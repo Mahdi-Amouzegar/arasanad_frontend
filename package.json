@@ -1,22 +1,27 @@
 {
-  "name": "arasand-react",
+  "name": "arasanad-frontend",
+  "version": "0.1.0",
   "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "description": "آراسند — رابط کاربری سامانه‌ی ثبت سفارش و آماده‌سازی اسناد",
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "postbuild": "node scripts/postbuild.mjs",
+    "typecheck": "tsc --noEmit",
+    "preview": "npx --yes serve out"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0"
+    "next": "^15.5.29",
+    "react": "19.1.1",
+    "react-dom": "19.1.1"
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.4.0"
+    "@types/node": "22.18.6",
+    "@types/react": "19.1.13",
+    "@types/react-dom": "19.1.9",
+    "typescript": "5.9.2"
   }
 }
