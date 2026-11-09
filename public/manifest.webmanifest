@@ -1,0 +1,33 @@
+{
+  "name": "آراسند | خدمات تخصصی آماده‌سازی اسناد",
+  "short_name": "آراسند",
+  "description": "ثبت سفارش تایپ، ویرایش و آماده‌سازی اسناد دانشگاهی، اداری و تجاری",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/arasanad_frontend/",
+  "scope": "/arasanad_frontend/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F6F8FC",
+  "theme_color": "#2457C5",
+  "icons": [
+    {
+      "src": "/arasanad_frontend/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/arasanad_frontend/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/arasanad_frontend/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

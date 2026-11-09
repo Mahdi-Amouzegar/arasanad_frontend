@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+
+import '@/styles/fonts.css';
+import '@/styles/tokens.css';
 import './globals.css';
+import '@/styles/components.css';
 
 /**
  * آدرس پایه برای ساخت URLهای مطلق (OG، sitemap و…).
@@ -17,6 +21,7 @@ export const metadata: Metadata = {
   description:
     'آراسند خدمات تایپ تخصصی، ویرایش، صفحه‌آرایی، فرمول‌نویسی و آماده‌سازی حرفه‌ای اسناد دانشگاهی، اداری و تجاری را با سرعت و دقت بالا ارائه می‌دهد.',
   applicationName: 'آراسند',
+  manifest: '/manifest.webmanifest',
   openGraph: {
     type: 'website',
     locale: 'fa_IR',
@@ -24,6 +29,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/icons/apple-touch-icon.png' }],
   },
 };
 
