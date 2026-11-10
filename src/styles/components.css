@@ -894,3 +894,194 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   سیستم هشدار و Toast
+   ⚠️ جایگزین کامل alert/confirm/prompt بومی مرورگر.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.alert-dialog {
+  margin: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+  max-width: min(420px, calc(100vw - 32px));
+  width: 100%;
+}
+
+.alert-dialog::backdrop {
+  background: rgba(11, 18, 32, 0.55);
+  backdrop-filter: blur(2px);
+}
+
+.alert {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-6);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-lg);
+  text-align: center;
+}
+
+.alert__icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-full);
+}
+
+.alert__icon--success {
+  background: var(--c-success-bg);
+  color: var(--c-success);
+}
+.alert__icon--danger {
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+}
+.alert__icon--warning {
+  background: var(--c-warning-bg);
+  color: var(--c-warning);
+}
+.alert__icon--info {
+  background: var(--c-info-bg);
+  color: var(--c-info);
+}
+.alert__icon--primary {
+  background: var(--c-primary-light);
+  color: var(--c-primary);
+}
+
+.alert__title {
+  font-size: var(--fs-card-title);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+}
+
+.alert__message {
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+  max-width: 34ch;
+}
+
+.alert__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  width: 100%;
+  margin-top: var(--sp-2);
+}
+
+/* ─── Toast ─── */
+
+.toast-stack {
+  position: fixed;
+  inset-block-end: var(--sp-4);
+  inset-inline-start: var(--sp-4);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  min-width: 260px;
+  max-width: 360px;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-inline-start: 3px solid var(--c-info);
+  border-radius: var(--r-md);
+  box-shadow: var(--sh-md);
+  pointer-events: auto;
+}
+
+.toast--success {
+  border-inline-start-color: var(--c-success);
+  color: var(--c-success);
+}
+.toast--error {
+  border-inline-start-color: var(--c-danger);
+  color: var(--c-danger);
+}
+.toast--info {
+  border-inline-start-color: var(--c-info);
+  color: var(--c-info);
+}
+
+.toast__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--c-text);
+}
+
+.toast__message {
+  font-size: var(--fs-xs);
+  color: var(--c-text-secondary);
+}
+
+/* ─── Avatar ─── */
+
+.avatar {
+  border-radius: var(--r-full);
+  object-fit: cover;
+  flex: none;
+  background: var(--c-surface-sunken);
+}
+
+.avatar--fallback {
+  display: inline-grid;
+  place-items: center;
+  font-weight: var(--fw-semibold);
+  color: var(--c-primary);
+  background: var(--c-primary-light);
+  line-height: 1;
+}
+
+/* ─── مرتب‌سازی جدول ─── */
+
+.table__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  color: inherit;
+  font-weight: var(--fw-medium);
+}
+
+.table__sort:hover {
+  color: var(--c-text);
+}
+
+/* ─── موبایل: هشدار به Bottom Sheet ─── */
+
+@media (max-width: 768px) {
+  .alert-dialog {
+    max-width: 100%;
+    width: 100%;
+    margin: auto 0 0;
+  }
+
+  .alert {
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
+    padding-bottom: calc(var(--sp-6) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .toast-stack {
+    inset-inline: var(--sp-3);
+    inset-block-end: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .toast {
+    min-width: 0;
+    max-width: none;
+  }
+}
+

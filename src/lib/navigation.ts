@@ -1,0 +1,78 @@
+import type { IconName } from '@/components/ui/Icon';
+
+export interface NavItem {
+  href: string;
+  label: string;
+  icon: IconName;
+  /** شمارنده‌ی اختیاری (اعلان‌های خوانده‌نشده و…) */
+  badge?: number;
+}
+
+export interface NavGroup {
+  /** برچسب گروه — در سایدبار نمایش داده می‌شود */
+  label?: string;
+  items: NavItem[];
+}
+
+/** ناوبری پنل مشتری. */
+export const CUSTOMER_NAV: NavGroup[] = [
+  {
+    items: [
+      { href: '/panel', label: 'داشبورد', icon: 'activity' },
+      { href: '/panel/projects', label: 'سفارش‌های من', icon: 'file' },
+      { href: '/panel/projects/new', label: 'ثبت سفارش جدید', icon: 'plus' },
+    ],
+  },
+  {
+    label: 'ارتباط و مالی',
+    items: [
+      { href: '/panel/messages', label: 'پیام‌ها', icon: 'message' },
+      { href: '/panel/wallet', label: 'کیف پول', icon: 'wallet' },
+      { href: '/panel/notifications', label: 'اعلان‌ها', icon: 'inbox' },
+    ],
+  },
+  {
+    label: 'حساب',
+    items: [{ href: '/panel/profile', label: 'پروفایل من', icon: 'user' }],
+  },
+];
+
+/** ناوبری پنل مدیر. */
+export const ADMIN_NAV: NavGroup[] = [
+  {
+    items: [
+      { href: '/admin', label: 'داشبورد', icon: 'activity' },
+      { href: '/admin/projects', label: 'سفارش‌ها', icon: 'file' },
+      { href: '/admin/payments', label: 'بررسی پرداخت‌ها', icon: 'card' },
+    ],
+  },
+  {
+    label: 'مالی',
+    items: [
+      { href: '/admin/wallets', label: 'کیف پول‌ها', icon: 'wallet' },
+      { href: '/admin/refunds', label: 'برگشت وجه', icon: 'bank' },
+    ],
+  },
+  {
+    label: 'مدیریت',
+    items: [
+      { href: '/admin/users', label: 'کاربران', icon: 'user' },
+      { href: '/pricing', label: 'نرخ‌نامه', icon: 'receipt' },
+      { href: '/portfolio', label: 'نمونه‌کارها', icon: 'package' },
+      { href: '/admin/settings', label: 'تنظیمات', icon: 'settings' },
+    ],
+  },
+];
+
+/** ناوبری عمومی (صفحات بدون پنل). */
+export const PUBLIC_NAV: NavGroup[] = [
+  {
+    items: [
+      { href: '/', label: 'صفحه اصلی', icon: 'activity' },
+      { href: '/pricing/', label: 'نرخ‌نامه', icon: 'receipt' },
+      { href: '/portfolio/', label: 'نمونه‌کارها', icon: 'package' },
+      { href: '/about/', label: 'درباره ما', icon: 'user' },
+      { href: '/contact/', label: 'تماس با ما', icon: 'message' },
+    ],
+  },
+];

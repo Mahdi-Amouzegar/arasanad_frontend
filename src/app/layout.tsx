@@ -6,6 +6,9 @@ import '@/styles/tokens.css';
 import './globals.css';
 import '@/styles/components.css';
 
+import { AlertProvider } from '@/components/ui/AlertProvider';
+import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
+
 /**
  * آدرس پایه برای ساخت URLهای مطلق (OG، sitemap و…).
  * ⚠️ باید با basePath در next.config.mjs هم‌خوان باشد.
@@ -42,7 +45,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fa" dir="rtl">
-      <body>{children}</body>
+      <body>
+        <AlertProvider>{children}</AlertProvider>
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }

@@ -23,6 +23,11 @@ import {
   type PaymentStatus,
   type RefundStatus,
 } from '@/lib/status';
+import { Money } from '@/components/ui/Money';
+import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
+import { Avatar } from '@/components/ui/Avatar';
+import { AlertDemo } from './AlertDemo';
+import { TableDemo } from './TableDemo';
 
 export const metadata: Metadata = {
   title: 'پیش‌نمایش اجزا',
@@ -444,6 +449,87 @@ export default function ComponentsPreviewPage() {
               </tbody>
             </table>
           </div>
+        </Card>
+      </Section>
+
+      <Section title="اعداد، مبلغ و تاریخ">
+        <Card>
+          <CardBody>
+            <div style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+              <p>
+                مبلغ با واحد: <Money value={1250000} />
+              </p>
+              <p>
+                مبلغ بدون واحد (برای جدول): <Money value={675000} withUnit={false} />
+              </p>
+              <p>
+                تاریخ کوتاه: <JalaliDate value="2026-11-09T11:30:45.123Z" />
+              </p>
+              <p>
+                تاریخ کامل: <JalaliDate value="2026-11-09T11:30:45.123Z" variant="full" />
+              </p>
+              <p>
+                فقط تاریخ: <JalaliDate value="2026-11-09T11:30:45.123Z" variant="date" />
+              </p>
+              <p>
+                زمان نسبی: <RelativeTime value={new Date(Date.now() - 7 * 60 * 1000).toISOString()} />
+              </p>
+            </div>
+            <p
+              style={{
+                marginTop: 'var(--sp-4)',
+                fontSize: 'var(--fs-xs)',
+                color: 'var(--c-text-muted)',
+              }}
+            >
+              همه‌ی زمان‌ها در دیتابیس UTC ذخیره می‌شوند؛ تبدیل به شمسی و منطقه‌ی تهران فقط در
+              لایه‌ی نمایش انجام می‌شود.
+            </p>
+          </CardBody>
+        </Card>
+      </Section>
+
+      <Section title="آواتار">
+        <Card>
+          <CardBody>
+            <div className="row" style={{ flexWrap: 'wrap', gap: 'var(--sp-4)' }}>
+              <Avatar name="مهدی آموزگار" size="sm" />
+              <Avatar name="مهدی آموزگار" size="md" />
+              <Avatar name="مهدی آموزگار" size="lg" />
+              <span style={{ color: 'var(--c-text-secondary)', fontSize: 'var(--fs-sm)' }}>
+                بدون تصویر → حرف اول نام
+              </span>
+            </div>
+          </CardBody>
+        </Card>
+      </Section>
+
+      <Section title="جدول داده">
+        <Card>
+          <CardBody flush>
+            <TableDemo />
+          </CardBody>
+        </Card>
+        <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
+          سرستون‌های دارای فلش مرتب‌شدنی هستند. در موبایل، جدول به کارت تبدیل می‌شود.
+        </p>
+      </Section>
+
+      <Section title="هشدار و Toast">
+        <Card>
+          <CardBody>
+            <AlertDemo />
+            <p
+              style={{
+                marginTop: 'var(--sp-4)',
+                fontSize: 'var(--fs-xs)',
+                color: 'var(--c-text-muted)',
+              }}
+            >
+              هیچ‌کدام از این‌ها از <code>alert()</code> بومی مرورگر استفاده نمی‌کنند؛ قاعده‌ی
+              لینت پروژه استفاده از آن را ممنوع کرده است.
+            </p>
+          </CardBody>
         </Card>
       </Section>
     </main>
