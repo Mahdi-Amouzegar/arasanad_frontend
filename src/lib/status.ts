@@ -3,13 +3,17 @@ import type { IconName } from '@/components/ui/Icon';
 /**
  * کاتالوگ وضعیت‌ها.
  *
- * ⚠️ اصل معماری (architecture.md §10.5 و design.md §10.1):
+ * ⚠️ اصل معماری (architecture.md §10.5 و design.md §5.4):
  *    «وضعیت پروژه» و «وضعیت پرداخت» دو مفهوم مستقل‌اند و هرگز نباید
  *    در یک نشان ادغام شوند. یک پروژه می‌تواند «در حال انجام» باشد
  *    ولی هم‌زمان یک پرداخت «در انتظار تأیید» داشته باشد.
  *
- * ⚠️ هر وضعیت باید متن + آیکون + رنگ داشته باشد (design.md §5.4).
+ * ⚠️ هر وضعیت باید متن + آیکون + رنگ داشته باشد.
  *    رنگ به‌تنهایی هرگز حامل معنا نیست.
+ *
+ * ⚠️ آیکون هر مفهوم متمایز است:
+ *    انتظار = ساعت/ساعت شنی · تأیید = تیک · رد/لغو = ضربدر
+ *    پیش‌نویس = مداد · اصلاح = قلم روی خط · برگشت وجه = بانک
  */
 
 export type Tone = 'neutral' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
@@ -19,7 +23,7 @@ export interface StatusMeta {
   label: string;
   /** رنگ نشان */
   tone: Tone;
-  /** آیکون همراه */
+  /** آیکون همراه — هر مفهوم آیکون متمایز دارد */
   icon: IconName;
   /** توضیح کوتاه برای Tooltip یا راهنما */
   description?: string;
@@ -52,26 +56,26 @@ export const PROJECT_STATUS: Record<ProjectStatus, StatusMeta> = {
   pending_review: {
     label: 'در انتظار بررسی مدیر',
     tone: 'warning',
-    icon: 'clock',
+    icon: 'hourglass',
     description: 'سفارش ثبت شده و منتظر تعیین نرخ توسط مدیر است.',
   },
   awaiting_deposit: {
     label: 'در انتظار پرداخت بیعانه',
     tone: 'warning',
-    icon: 'card',
+    icon: 'wallet',
     description: 'نرخ تأیید شده است؛ برای شروع کار، بیعانه را پرداخت کنید.',
     needsCustomerAction: true,
   },
   in_progress: {
     label: 'در حال انجام',
     tone: 'primary',
-    icon: 'refresh',
+    icon: 'activity',
     description: 'کار روی سند شما آغاز شده است.',
   },
   awaiting_final_quote: {
     label: 'در انتظار تعیین قیمت نهایی',
     tone: 'info',
-    icon: 'clock',
+    icon: 'receipt',
     description: 'کار انجام شده و منتظر ثبت مبلغ نهایی توسط مدیر است.',
   },
   awaiting_final_payment: {
@@ -90,15 +94,14 @@ export const PROJECT_STATUS: Record<ProjectStatus, StatusMeta> = {
   delivered: {
     label: 'تحویل‌شده',
     tone: 'success',
-    icon: 'download',
+    icon: 'package',
     description: 'فایل نهایی در دسترس شماست.',
   },
   revision_requested: {
     label: 'درخواست اصلاح',
     tone: 'warning',
-    icon: 'refresh',
+    icon: 'penLine',
     description: 'شما درخواست اصلاح ثبت کرده‌اید و کار در حال بازبینی است.',
-    needsCustomerAction: false,
   },
   completed: {
     label: 'تکمیل‌شده',
@@ -134,7 +137,7 @@ export const PAYMENT_STATUS: Record<PaymentStatus, StatusMeta> = {
   rejected: {
     label: 'ردشده',
     tone: 'danger',
-    icon: 'x',
+    icon: 'xCircle',
     description: 'رسید تأیید نشد. دلیل رد در جزئیات نمایش داده می‌شود.',
   },
 };
@@ -163,9 +166,9 @@ export const REFUND_STATUS: Record<RefundStatus, StatusMeta> = {
     description: 'درخواست تأیید شده و در نوبت پرداخت است.',
   },
   processing: {
-    label: 'در حال پردازش',
+    label: 'در حال پردازش بانکی',
     tone: 'info',
-    icon: 'refresh',
+    icon: 'bank',
     description: 'انتقال بانکی در حال انجام است.',
   },
   paid: {
@@ -177,7 +180,7 @@ export const REFUND_STATUS: Record<RefundStatus, StatusMeta> = {
   rejected: {
     label: 'ردشده',
     tone: 'danger',
-    icon: 'x',
+    icon: 'xCircle',
     description: 'درخواست رد شده و مبلغ رزروشده آزاد شده است.',
   },
   cancelled: {
@@ -196,10 +199,30 @@ export const REFUND_STATUS: Record<RefundStatus, StatusMeta> = {
 export type FinancialStatus = 'unpaid' | 'deposit_paid' | 'partially_paid' | 'settled';
 
 export const FINANCIAL_STATUS: Record<FinancialStatus, StatusMeta> = {
-  unpaid: { label: 'پرداخت‌نشده', tone: 'neutral', icon: 'card' },
-  deposit_paid: { label: 'بیعانه پرداخت‌شده', tone: 'info', icon: 'card' },
-  partially_paid: { label: 'پرداخت ناقص', tone: 'warning', icon: 'card' },
-  settled: { label: 'تسویه‌شده', tone: 'success', icon: 'checkCircle' },
+  unpaid: {
+    label: 'پرداخت‌نشده',
+    tone: 'neutral',
+    icon: 'coins',
+    description: 'هنوز هیچ پرداختی برای این سفارش تأیید نشده است.',
+  },
+  deposit_paid: {
+    label: 'بیعانه پرداخت‌شده',
+    tone: 'info',
+    icon: 'wallet',
+    description: 'بیعانه تأیید شده و مانده در پایان کار محاسبه می‌شود.',
+  },
+  partially_paid: {
+    label: 'پرداخت ناقص',
+    tone: 'warning',
+    icon: 'pieChart',
+    description: 'بخشی از مبلغ پرداخت شده و بخشی باقی مانده است.',
+  },
+  settled: {
+    label: 'تسویه‌شده',
+    tone: 'success',
+    icon: 'checkCircle',
+    description: 'تمام مبلغ سفارش پرداخت و تأیید شده است.',
+  },
 };
 
 /* ─────────────────────────── کمکی ─────────────────────────── */

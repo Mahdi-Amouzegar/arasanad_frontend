@@ -311,10 +311,10 @@ export default function ComponentsPreviewPage() {
             >
               <TextField label="نام پروژه" placeholder="مثال: پایان‌نامه کارشناسی ارشد" required />
               <TextField
-                label="تعداد صفحه"
+                label="تعداد صفحات ورودی"
                 type="number"
                 defaultValue={10}
-                hint="تعداد صفحات ورودی"
+                hint="تعداد صفحه‌های فایلی که ارسال می‌کنید"
               />
               <FormField label="نوع خدمت" htmlFor="svc" required>
                 <Select id="svc" defaultValue="fa">
@@ -323,10 +323,24 @@ export default function ComponentsPreviewPage() {
                   <option value="math">ریاضی</option>
                 </Select>
               </FormField>
+              <FormField label="نوع منبع" htmlFor="src" required>
+                <Select id="src" defaultValue="print">
+                  <option value="print">چاپی</option>
+                  <option value="hand">دست‌نویس</option>
+                  <option value="mixed">ترکیبی</option>
+                </Select>
+              </FormField>
+              <FormField label="فرمت خروجی" htmlFor="out" required>
+                <Select id="out" defaultValue="pdf">
+                  <option value="pdf">PDF</option>
+                  <option value="docx">Word</option>
+                </Select>
+              </FormField>
               <TextField
-                label="شماره تماس"
-                placeholder="۰۹۱۲۳۴۵۶۷۸۹"
-                error="شماره وارد‌شده معتبر نیست"
+                label="تعداد صفحه (نمونه‌ی خطا)"
+                type="number"
+                defaultValue={0}
+                error="تعداد صفحه باید عددی بزرگ‌تر از صفر باشد"
                 invalid
               />
             </div>
@@ -336,8 +350,12 @@ export default function ComponentsPreviewPage() {
               </FormField>
             </div>
             <div style={{ marginTop: 'var(--sp-2)' }}>
-              <FormField label="شهر" htmlFor="disabled-field">
-                <Input id="disabled-field" value="تهران" disabled readOnly />
+              <FormField
+                label="کد پروژه"
+                htmlFor="disabled-field"
+                hint="پس از ثبت، به‌صورت خودکار تولید می‌شود"
+              >
+                <Input id="disabled-field" value="ARS-1042" disabled readOnly className="ltr" />
               </FormField>
             </div>
           </CardBody>
