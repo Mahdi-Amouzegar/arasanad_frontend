@@ -522,3 +522,366 @@
   background: var(--c-primary);
   border-radius: 2px 2px 0 0;
 }
+
+/* ───────────────────────────── Grid helpers ───────────────────────────── */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sp-4);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-4);
+}
+
+/* ───────────────────────────── App Shell ───────────────────────────── */
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  min-height: 100dvh;
+  background: var(--c-bg);
+}
+
+.shell__main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shell__content {
+  flex: 1;
+  width: 100%;
+  max-width: var(--content-max);
+  margin-inline: auto;
+  padding: var(--sp-6);
+}
+
+/* ───────────────────────────── Sidebar ───────────────────────────── */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  background: var(--c-sidebar);
+  color: var(--c-sidebar-text);
+  padding: var(--sp-4) var(--sp-3);
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  z-index: var(--z-sidebar);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  color: #fff;
+  font-weight: var(--fw-extrabold);
+  font-size: 1.0625rem;
+}
+
+.sidebar__group-label {
+  padding-inline: var(--sp-3);
+  margin-top: var(--sp-3);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: #7d8ea6;
+  letter-spacing: 0.02em;
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 40px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--c-sidebar-text);
+  transition:
+    background var(--t-fast),
+    color var(--t-fast);
+}
+
+.sidebar__link:hover {
+  background: var(--c-sidebar-hover);
+  color: #fff;
+}
+
+.sidebar__link[aria-current='page'] {
+  background: var(--c-sidebar-active);
+  color: var(--c-sidebar-text-active);
+  font-weight: var(--fw-semibold);
+}
+
+.sidebar__spacer {
+  flex: 1;
+}
+
+/* ───────────────────────────── Topbar ───────────────────────────── */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-topbar);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  height: var(--topbar-h);
+  padding-inline: var(--sp-6);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.topbar__search {
+  flex: 1;
+  max-width: 360px;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* دکمه‌ی بازکردن سایدبار — فقط موبایل */
+.topbar__menu {
+  display: none;
+}
+
+/* ───────────────────────────── Mobile bottom nav ───────────────────────────── */
+
+.mobile-nav {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   واکنش‌گرایی
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── تبلت: جمع‌شدن سایدبار ─── */
+@media (max-width: 1024px) {
+  .shell {
+    grid-template-columns: var(--sidebar-w-collapsed) 1fr;
+  }
+
+  .sidebar__brand-text,
+  .sidebar__group-label,
+  .sidebar__link span {
+    display: none;
+  }
+
+  .sidebar {
+    align-items: center;
+    padding-inline: var(--sp-2);
+    overflow: visible;
+  }
+
+  .sidebar__link {
+    justify-content: center;
+    width: var(--touch-min);
+    padding: 0;
+  }
+}
+
+/* ─── موبایل: سایدبار به Drawer ─── */
+@media (max-width: 768px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  /* سایدبار از جریان خارج و به پنل کشویی تبدیل می‌شود */
+  .sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-end: 0;
+    width: min(84vw, 300px);
+    height: 100dvh;
+    transform: translateX(100%);
+    transition: transform var(--t-normal);
+    box-shadow: var(--sh-lg);
+    z-index: var(--z-drawer);
+    align-items: stretch;
+    overflow-y: auto;
+  }
+
+  /* در RTL، پنل از سمت راست می‌آید */
+  [dir='rtl'] .sidebar {
+    transform: translateX(100%);
+  }
+
+  .sidebar--open {
+    transform: translateX(0);
+  }
+
+  .sidebar__brand-text,
+  .sidebar__group-label,
+  .sidebar__link span {
+    display: inline;
+  }
+
+  .sidebar__link {
+    justify-content: flex-start;
+    width: auto;
+    padding: 0 var(--sp-3);
+  }
+
+  .topbar__menu {
+    display: inline-flex;
+  }
+
+  .topbar {
+    padding-inline: var(--sp-4);
+  }
+
+  .topbar__search {
+    display: none;
+  }
+
+  .shell__content {
+    padding: var(--sp-4);
+    padding-bottom: calc(var(--sp-16) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* نوار ناوبری پایین در موبایل */
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: var(--z-topbar);
+    background: var(--c-surface);
+    border-top: 1px solid var(--c-border);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-nav__item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-height: 56px;
+    font-size: 11px;
+    color: var(--c-text-secondary);
+  }
+
+  .mobile-nav__item[aria-current='page'] {
+    color: var(--c-primary);
+    font-weight: var(--fw-semibold);
+  }
+
+  /* صفحه‌ی پشت Drawer */
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 18, 32, 0.5);
+    z-index: calc(var(--z-drawer) - 1);
+    border: none;
+    padding: 0;
+  }
+
+  /* ─── کارت‌ها ─── */
+  .card__body {
+    padding: var(--sp-4);
+  }
+
+  .card__header {
+    padding: var(--sp-3) var(--sp-4);
+  }
+
+  /* ─── فرم‌ها: تک‌ستونه ─── */
+  .form-grid,
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ─── جدول: تبدیل به کارت ─── */
+  .table--stack thead {
+    display: none;
+  }
+
+  .table--stack tbody tr {
+    display: grid;
+    gap: var(--sp-1);
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: 1px solid var(--c-border);
+  }
+
+  .table--stack tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    padding: 0;
+    border: none;
+    text-align: end;
+  }
+
+  .table--stack tbody td::before {
+    content: attr(data-label);
+    font-size: var(--fs-xs);
+    color: var(--c-text-secondary);
+    flex: none;
+  }
+
+  /* جدول‌های بدون نسخه‌ی کارتی: اسکرول افقی کنترل‌شده */
+  .table-wrap {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ─── سرصفحه ─── */
+  .page-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-head__actions > .btn {
+    flex: 1;
+  }
+
+  /* ─── دکمه‌ها: ناحیه‌ی لمسی کافی ─── */
+  .btn {
+    min-height: var(--touch-min);
+  }
+
+  .btn--sm {
+    min-height: 38px;
+  }
+
+  .btn--icon {
+    width: var(--touch-min);
+  }
+}
+
+/* ─── موبایل کوچک ─── */
+@media (max-width: 420px) {
+  .shell__content {
+    padding: var(--sp-3);
+    padding-bottom: calc(var(--sp-16) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .stat__value {
+    font-size: 1.375rem;
+  }
+
+  .page-head__title {
+    font-size: 1.25rem;
+  }
+}
+

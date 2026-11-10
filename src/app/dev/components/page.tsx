@@ -8,6 +8,21 @@ import { StatCard } from '@/components/ui/StatCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { FormField, Input, Select, TextField, Textarea } from '@/components/ui/Field';
+import {
+  FinancialStatusBadge,
+  PaymentStatusBadge,
+  ProjectStatusBadge,
+  RefundStatusBadge,
+} from '@/components/ui/StatusBadge';
+import {
+  PAYMENT_STATUS,
+  PROJECT_STATUS_FLOW,
+  PROJECT_STATUS,
+  REFUND_STATUS,
+  type FinancialStatus,
+  type PaymentStatus,
+  type RefundStatus,
+} from '@/lib/status';
 
 export const metadata: Metadata = {
   title: 'پیش‌نمایش اجزا',
@@ -130,29 +145,144 @@ export default function ComponentsPreviewPage() {
         </Card>
       </Section>
 
-      <Section title="نشان وضعیت">
+      <Section title="وضعیت سفارش — گردش‌کار کامل">
         <Card>
           <CardBody>
-            <div className="row" style={{ flexWrap: 'wrap' }}>
-              <Badge tone="neutral" dot>
-                پیش‌نویس
-              </Badge>
-              <Badge tone="warning" dot>
-                در انتظار پرداخت
-              </Badge>
-              <Badge tone="primary" dot>
-                در حال انجام
-              </Badge>
-              <Badge tone="success" dot>
-                تحویل‌شده
-              </Badge>
-              <Badge tone="danger" dot>
-                لغوشده
-              </Badge>
-              <Badge tone="info">اطلاع</Badge>
+            <p
+              style={{
+                fontSize: 'var(--fs-sm)',
+                color: 'var(--c-text-secondary)',
+                marginBottom: 'var(--sp-4)',
+              }}
+            >
+              هر وضعیت متن، آیکون و رنگ دارد. رنگ به‌تنهایی حامل معنا نیست.
+            </p>
+            <div style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+              {PROJECT_STATUS_FLOW.map((status) => (
+                <div
+                  key={status}
+                  className="row"
+                  style={{
+                    gap: 'var(--sp-4)',
+                    paddingBottom: 'var(--sp-3)',
+                    borderBottom: '1px solid var(--c-border)',
+                  }}
+                >
+                  <div style={{ minWidth: 200 }}>
+                    <ProjectStatusBadge status={status} />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 'var(--fs-sm)',
+                      color: 'var(--c-text-secondary)',
+                    }}
+                  >
+                    {PROJECT_STATUS[status].description}
+                  </span>
+                </div>
+              ))}
             </div>
           </CardBody>
         </Card>
+      </Section>
+
+      <Section title="وضعیت پرداخت — مستقل از وضعیت سفارش">
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+            gap: 'var(--sp-4)',
+          }}
+        >
+          <Card>
+            <CardHeader title="درخواست پرداخت" />
+            <CardBody>
+              <div style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+                {(['pending', 'approved', 'rejected'] as PaymentStatus[]).map((s) => (
+                  <div key={s} style={{ display: 'grid', gap: 4 }}>
+                    <PaymentStatusBadge status={s} />
+                    <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
+                      {PAYMENT_STATUS[s].description}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="درخواست برگشت وجه" />
+            <CardBody>
+              <div style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+                {(
+                  ['pending', 'approved', 'processing', 'paid', 'rejected', 'cancelled'] as RefundStatus[]
+                ).map((s) => (
+                  <div key={s} style={{ display: 'grid', gap: 4 }}>
+                    <RefundStatusBadge status={s} />
+                    <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
+                      {REFUND_STATUS[s].description}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+
+          <Card>
+            <CardHeader title="وضعیت مالی پروژه" />
+            <CardBody>
+              <div style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+                {(
+                  ['unpaid', 'deposit_paid', 'partially_paid', 'settled'] as FinancialStatus[]
+                ).map((s) => (
+                  <FinancialStatusBadge key={s} status={s} />
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+      </Section>
+
+      <Section title="تم تاریک">
+        <div
+          className="theme-dark"
+          style={{
+            background: 'var(--c-bg)',
+            border: '1px solid var(--c-border)',
+            borderRadius: 'var(--r-lg)',
+            padding: 'var(--sp-5)',
+          }}
+        >
+          <div className="stat-grid" style={{ marginBottom: 'var(--sp-4)' }}>
+            <StatCard label="پروژه‌های فعال" value="۴" hint="۲ مورد نیازمند اقدام" />
+            <StatCard label="موجودی کیف پول" value="۱٬۲۵۰٬۰۰۰" hint="تومان" />
+          </div>
+          <div className="row" style={{ flexWrap: 'wrap', marginBottom: 'var(--sp-4)' }}>
+            <Button>اصلی</Button>
+            <Button variant="secondary">ثانویه</Button>
+            <Button variant="outline">دورخط</Button>
+            <PaymentStatusBadge status="pending" />
+            <ProjectStatusBadge status="in_progress" />
+          </div>
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>کد</th>
+                  <th>وضعیت</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="ltr tabular">ARS-1042</td>
+                  <td>
+                    <ProjectStatusBadge status="awaiting_deposit" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </Section>
 
       <Section title="کارت آماری">

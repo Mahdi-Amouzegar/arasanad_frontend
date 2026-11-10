@@ -2,46 +2,83 @@
    Design Tokens — آراسند
    مبنای بصری تمام رابط کاربری. هیچ مقدار رنگ/فاصله‌ی خام در کامپوننت‌ها
    نباید نوشته شود؛ همه از این متغیرها می‌آیند.
+
+   ── روش پیاده‌سازی تم روشن/تاریک ──
+   هر رنگ دو اعلان دارد: اول مقدار روشن (fallback)، بعد light-dark(روشن، تاریک).
+   مرورگرهای قدیمی که light-dark() را نمی‌شناسند، مقدار اول را نگه می‌دارند.
+   مرورگرهای جدید بر اساس color-scheme تصمیم می‌گیرند.
+
+   برای اجبار تم روی یک زیردرخت (مثل پیش‌نمایش) از کلاس‌های
+   .theme-light / .theme-dark استفاده شود؛ چون color-scheme ارث می‌رسد.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
+  color-scheme: light dark;
+
   /* ─── رنگ: اصلی ─── */
   --c-primary: #2457c5;
+  --c-primary: light-dark(#2457c5, #5b8def);
   --c-primary-hover: #1d46a3;
+  --c-primary-hover: light-dark(#1d46a3, #7ba4f2);
   --c-primary-active: #173a89;
+  --c-primary-active: light-dark(#173a89, #4c7be0);
   --c-primary-light: #eaf0ff;
+  --c-primary-light: light-dark(#eaf0ff, #17233a);
   --c-primary-subtle: #f4f7ff;
+  --c-primary-subtle: light-dark(#f4f7ff, #131c2e);
 
   /* ─── رنگ: خنثی ─── */
   --c-bg: #f6f8fc;
+  --c-bg: light-dark(#f6f8fc, #0b1220);
   --c-surface: #ffffff;
+  --c-surface: light-dark(#ffffff, #121a2a);
   --c-surface-raised: #ffffff;
+  --c-surface-raised: light-dark(#ffffff, #162034);
   --c-surface-sunken: #f1f4f9;
+  --c-surface-sunken: light-dark(#f1f4f9, #0e1626);
   --c-border: #e2e8f0;
+  --c-border: light-dark(#e2e8f0, #243046);
   --c-border-strong: #cbd5e1;
+  --c-border-strong: light-dark(#cbd5e1, #33415a);
 
   /* ─── رنگ: متن ─── */
   --c-text: #172033;
+  --c-text: light-dark(#172033, #e6edf7);
   --c-text-secondary: #64748b;
+  --c-text-secondary: light-dark(#64748b, #9fb0c7);
   --c-text-muted: #94a3b8;
+  --c-text-muted: light-dark(#94a3b8, #6f819b);
   --c-text-inverse: #ffffff;
+  --c-text-inverse: light-dark(#ffffff, #0b1220);
 
   /* ─── رنگ: وضعیت ─── */
   --c-success: #16a36a;
+  --c-success: light-dark(#16a36a, #34d399);
   --c-success-bg: #e8f7ef;
+  --c-success-bg: light-dark(#e8f7ef, #10281f);
   --c-warning: #d97706;
+  --c-warning: light-dark(#d97706, #fbbf24);
   --c-warning-bg: #fff4df;
+  --c-warning-bg: light-dark(#fff4df, #2a1f0b);
   --c-danger: #dc4545;
+  --c-danger: light-dark(#dc4545, #f87171);
   --c-danger-bg: #fdecec;
+  --c-danger-bg: light-dark(#fdecec, #2a1414);
   --c-info: #2583c7;
+  --c-info: light-dark(#2583c7, #60a5fa);
   --c-info-bg: #e8f4fc;
+  --c-info-bg: light-dark(#e8f4fc, #0f2131);
 
-  /* ─── رنگ: سایدبار تیره (پنل‌ها) ─── */
+  /* ─── رنگ: سایدبار (در هر دو تم تیره است) ─── */
   --c-sidebar: #101828;
+  --c-sidebar: light-dark(#101828, #070d18);
   --c-sidebar-hover: #1b2537;
+  --c-sidebar-hover: light-dark(#1b2537, #131c2c);
   --c-sidebar-text: #cbd5e1;
+  --c-sidebar-text: light-dark(#cbd5e1, #a9b8cc);
   --c-sidebar-text-active: #ffffff;
   --c-sidebar-active: #2457c5;
+  --c-sidebar-active: light-dark(#2457c5, #3f6ed6);
 
   /* ─── تایپوگرافی ─── */
   --font-fa: 'Vazirmatn', system-ui, sans-serif;
@@ -85,12 +122,16 @@
   --r-xl: 20px;
   --r-full: 999px;
 
-  /* ─── سایه (همه ملایم) ─── */
+  /* ─── سایه ─── */
   --sh-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
   --sh-sm: 0 1px 3px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.04);
   --sh-md: 0 4px 12px rgba(16, 24, 40, 0.08);
   --sh-lg: 0 12px 32px rgba(16, 24, 40, 0.12);
   --sh-focus: 0 0 0 3px rgba(36, 87, 197, 0.28);
+  --sh-focus: light-dark(
+    0 0 0 3px rgba(36, 87, 197, 0.28),
+    0 0 0 3px rgba(91, 141, 239, 0.45)
+  );
 
   /* ─── اندازه‌ها ─── */
   --sidebar-w: 260px;
@@ -112,6 +153,14 @@
   --t-fast: 120ms ease;
   --t-normal: 200ms ease;
   --t-slow: 320ms ease;
+}
+
+/* ─── اجبار تم روی یک زیردرخت (برای پیش‌نمایش و تست) ─── */
+.theme-light {
+  color-scheme: light;
+}
+.theme-dark {
+  color-scheme: dark;
 }
 
 /* ─── کاهش حرکت: خاموشی کامل انیمیشن‌ها ─── */
