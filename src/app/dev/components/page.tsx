@@ -9,16 +9,19 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { FormField, Input, Select, TextField, Textarea } from '@/components/ui/Field';
 import {
+  DeliveryStateBadge,
   FinancialStatusBadge,
   PaymentStatusBadge,
   ProjectStatusBadge,
   RefundStatusBadge,
 } from '@/components/ui/StatusBadge';
 import {
+  DELIVERY_STATE,
   PAYMENT_STATUS,
   PROJECT_STATUS_FLOW,
   PROJECT_STATUS,
   REFUND_STATUS,
+  type DeliveryState,
   type FinancialStatus,
   type PaymentStatus,
   type RefundStatus,
@@ -183,6 +186,51 @@ export default function ComponentsPreviewPage() {
                     }}
                   >
                     {PROJECT_STATUS[status].description}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardBody>
+        </Card>
+      </Section>
+
+      <Section title="نشانگر مهلت تحویل — مشتق از زمان بیعانه">
+        <Card>
+          <CardBody>
+            <p
+              style={{
+                fontSize: 'var(--fs-sm)',
+                color: 'var(--c-text-secondary)',
+                marginBottom: 'var(--sp-4)',
+              }}
+            >
+              مهلت از <code>deposit_paid_at</code> حساب می‌شود، نه از زمان ثبت سفارش. این نشانگر
+              در کنار وضعیت پروژه نمایش داده می‌شود، نه به‌جای آن.
+            </p>
+            <div style={{ display: 'grid', gap: 'var(--sp-3)' }}>
+              {(
+                [
+                  'on_track',
+                  'due_soon',
+                  'overdue',
+                  'delivered_on_time',
+                  'delivered_late',
+                ] as DeliveryState[]
+              ).map((state) => (
+                <div
+                  key={state}
+                  className="row"
+                  style={{
+                    gap: 'var(--sp-4)',
+                    paddingBottom: 'var(--sp-3)',
+                    borderBottom: '1px solid var(--c-border)',
+                  }}
+                >
+                  <div style={{ minWidth: 190 }}>
+                    <DeliveryStateBadge state={state} />
+                  </div>
+                  <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-secondary)' }}>
+                    {DELIVERY_STATE[state].description}
                   </span>
                 </div>
               ))}

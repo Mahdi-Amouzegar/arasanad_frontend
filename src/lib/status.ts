@@ -44,6 +44,7 @@ export type ProjectStatus =
   | 'delivered'
   | 'revision_requested'
   | 'completed'
+  | 'cancel_requested'
   | 'cancelled';
 
 export const PROJECT_STATUS: Record<ProjectStatus, StatusMeta> = {
@@ -108,6 +109,13 @@ export const PROJECT_STATUS: Record<ProjectStatus, StatusMeta> = {
     tone: 'success',
     icon: 'checkCircle',
     description: 'سفارش به پایان رسیده است.',
+  },
+  cancel_requested: {
+    label: 'درخواست لغو — در انتظار مدیر',
+    tone: 'warning',
+    icon: 'alert',
+    description:
+      'شما درخواست لغو ثبت کرده‌اید. پس از واریز بیعانه، لغو فقط با تأیید مدیر انجام می‌شود.',
   },
   cancelled: {
     label: 'لغوشده',
@@ -225,6 +233,94 @@ export const FINANCIAL_STATUS: Record<FinancialStatus, StatusMeta> = {
   },
 };
 
+/* ─────────────────────── وضعیت مهلت تحویل (مشتق) ─────────────────────── */
+/**
+ * ⚠️ این یک «وضعیت» مستقل نیست؛ یک نشانگر مشتق از زمان است.
+ *    مهلت تحویل از **لحظه‌ی واریز بیعانه** حساب می‌شود، نه از زمان ثبت سفارش.
+ *    یک پروژه می‌تواند هم‌زمان «در حال انجام» باشد و «تأخیر در تحویل» داشته باشد؛
+ *    به همین دلیل جدا از وضعیت پروژه نمایش داده می‌شود.
+ */
+export type DeliveryState =
+  | 'on_track'
+  | 'due_soon'
+  | 'overdue'
+  | 'delivered_on_time'
+  | 'delivered_late';
+
+export const DELIVERY_STATE: Record<DeliveryState, StatusMeta> = {
+  on_track: {
+    label: 'در زمان مقرر',
+    tone: 'info',
+    icon: 'clock',
+    description: 'مهلت تحویل بر اساس زمان واریز بیعانه در حال سپری شدن است.',
+  },
+  due_soon: {
+    label: 'نزدیک موعد تحویل',
+    tone: 'warning',
+    icon: 'hourglass',
+    description: 'زمان تحویل نزدیک است.',
+  },
+  overdue: {
+    label: 'تأخیر در تحویل',
+    tone: 'danger',
+    icon: 'alert',
+    description: 'مهلت تحویل گذشته و کار هنوز تحویل نشده است.',
+  },
+  delivered_on_time: {
+    label: 'تحویل در موعد',
+    tone: 'success',
+    icon: 'checkCircle',
+    description: 'کار پیش از پایان مهلت تحویل شده است.',
+  },
+  delivered_late: {
+    label: 'تحویل با تأخیر',
+    tone: 'warning',
+    icon: 'package',
+    description: 'کار پس از پایان مهلت تحویل شده است.',
+  },
+};
+
+export interface DeliveryInput {
+  /** زمان واریز/تأیید بیعانه — مبدأ محاسبه‌ی مهلت */
+  depositPaidAt: string | null | undefined;
+  /** مهلت درخواستی مشتری بر حسب ساعت */
+  deliveryHours: number;
+  /** زمان تحویل واقعی (اگر تحویل شده) */
+  deliveredAt?: string | null;
+  now?: Date;
+}
+
+/**
+ * محاسبه‌ی نشانگر مهلت تحویل.
+ * خروجی `null` یعنی بیعانه هنوز پرداخت نشده و مهلت شروع نشده است.
+ */
+export function computeDeliveryState(input: DeliveryInput): DeliveryState | null {
+  const { depositPaidAt, deliveryHours, deliveredAt, now = new Date() } = input;
+
+  if (!depositPaidAt) return null;
+
+  const startMs = new Date(depositPaidAt).getTime();
+  if (Number.isNaN(startMs)) return null;
+  if (!Number.isFinite(deliveryHours) || deliveryHours <= 0) return null;
+
+  const totalMs = deliveryHours * 60 * 60 * 1000;
+  const deadlineMs = startMs + totalMs;
+
+  if (deliveredAt) {
+    const deliveredMs = new Date(deliveredAt).getTime();
+    if (Number.isNaN(deliveredMs)) return null;
+    return deliveredMs <= deadlineMs ? 'delivered_on_time' : 'delivered_late';
+  }
+
+  const nowMs = now.getTime();
+  if (nowMs > deadlineMs) return 'overdue';
+
+  // «نزدیک موعد»: کمتر از ۲ ساعت یا کمتر از یک‌چهارم کل مهلت
+  const remainingMs = deadlineMs - nowMs;
+  const thresholdMs = Math.min(2 * 60 * 60 * 1000, totalMs / 4);
+  return remainingMs <= thresholdMs ? 'due_soon' : 'on_track';
+}
+
 /* ─────────────────────────── کمکی ─────────────────────────── */
 
 export function projectStatusMeta(status: ProjectStatus): StatusMeta {
@@ -251,5 +347,6 @@ export const PROJECT_STATUS_FLOW: ProjectStatus[] = [
   'delivered',
   'revision_requested',
   'completed',
+  'cancel_requested',
   'cancelled',
 ];

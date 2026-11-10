@@ -1,10 +1,12 @@
 import { Badge } from './Badge';
 import { Icon } from './Icon';
 import {
+  DELIVERY_STATE,
   FINANCIAL_STATUS,
   PAYMENT_STATUS,
   PROJECT_STATUS,
   REFUND_STATUS,
+  type DeliveryState,
   type FinancialStatus,
   type PaymentStatus,
   type ProjectStatus,
@@ -42,5 +44,14 @@ export function RefundStatusBadge({ status }: { status: RefundStatus }) {
 
 export function FinancialStatusBadge({ status }: { status: FinancialStatus }) {
   const meta = FINANCIAL_STATUS[status];
+  return render(meta.label, meta.tone, meta.icon, meta.description);
+}
+
+/**
+ * نشانگر مهلت تحویل.
+ * ⚠️ این نشان در کنار وضعیت پروژه نمایش داده می‌شود، نه به‌جای آن.
+ */
+export function DeliveryStateBadge({ state }: { state: DeliveryState }) {
+  const meta = DELIVERY_STATE[state];
   return render(meta.label, meta.tone, meta.icon, meta.description);
 }

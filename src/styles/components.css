@@ -825,11 +825,31 @@
     display: none;
   }
 
+  /* هر ردیف یک کارت مستقل می‌شود؛ نه یک ردیف پیوسته */
+  .table--stack tbody {
+    display: grid;
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+  }
+
   .table--stack tbody tr {
     display: grid;
-    gap: var(--sp-1);
+    gap: var(--sp-2);
     padding: var(--sp-3) var(--sp-4);
-    border-bottom: 1px solid var(--c-border);
+    background: var(--c-surface);
+    border: 1px solid var(--c-border);
+    border-radius: var(--r-md);
+    box-shadow: var(--sh-xs);
+  }
+
+  /* زمینه‌ی یکی‌درمیان: تفکیک بصری کارت‌های پشت‌سرهم در موبایل که hover ندارد */
+  .table--stack tbody tr:nth-child(even) {
+    background: var(--c-surface-sunken);
+  }
+
+  .table--stack tbody tr:hover {
+    background: var(--c-primary-subtle);
+    border-color: var(--c-border-strong);
   }
 
   .table--stack tbody td {
@@ -847,6 +867,11 @@
     font-size: var(--fs-xs);
     color: var(--c-text-secondary);
     flex: none;
+  }
+
+  /* آخرین ردیف هم مثل بقیه کارت است، نه بدون مرز */
+  .table--stack tbody tr:last-child td {
+    border-bottom: none;
   }
 
   /* جدول‌های بدون نسخه‌ی کارتی: اسکرول افقی کنترل‌شده */
