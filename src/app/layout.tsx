@@ -5,6 +5,7 @@ import '@/styles/fonts.css';
 import '@/styles/tokens.css';
 import './globals.css';
 import '@/styles/components.css';
+import '@/styles/public.css';
 
 import { AlertProvider } from '@/components/ui/AlertProvider';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';

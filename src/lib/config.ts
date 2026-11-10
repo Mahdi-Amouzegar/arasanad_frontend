@@ -15,3 +15,15 @@ export function absoluteUrl(path = '/'): string {
   const clean = path.startsWith('/') ? path : `/${path}`;
   return `${SITE_ORIGIN}${BASE_PATH}${clean}`;
 }
+
+/**
+ * مسیر فایل‌های عمومی (`public/`).
+ *
+ * ⚠️ تگ‌های `<img src="/...">` توسط Next مسیر پایه نمی‌گیرند و روی GitHub Pages
+ *    به ریشه‌ی دامنه اشاره می‌کنند (۴۰۴). همه‌ی ارجاع‌ها به فایل‌های public
+ *    باید از این تابع عبور کنند.
+ */
+export function asset(path: string): string {
+  const clean = path.startsWith('/') ? path : `/${path}`;
+  return `${BASE_PATH}${clean}`;
+}

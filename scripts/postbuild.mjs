@@ -17,7 +17,16 @@ const SITE_URL = 'https://mahdi-amouzegar.github.io';
 const BASE_PATH = '/arasanad_frontend';
 
 /** مسیرهای عمومی سایت. با افزودن صفحه‌ی جدید، اینجا اضافه شود. */
-const ROUTES = ['/', '/pricing/', '/portfolio/', '/about/', '/contact/'];
+const ROUTES = [
+  '/',
+  '/pricing/',
+  '/portfolio/',
+  '/about/',
+  '/contact/',
+  '/login/',
+  '/terms/',
+  '/privacy/',
+];
 
 /** الگوهایی که نباید در خروجی نهایی باشند. */
 const FORBIDDEN = [
