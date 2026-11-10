@@ -10,7 +10,18 @@
 
 const DEFAULT_BASE = 'https://arasanad-api.arasanad-for-type.workers.dev/api/v1';
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? DEFAULT_BASE;
+/**
+ * ⚠️ از `||` استفاده می‌شود، نه `??`:
+ *    در GitHub Actions متغیر تعریف‌نشده به‌صورت رشته‌ی خالی تزریق می‌شود،
+ *    و `??` رشته‌ی خالی را معتبر می‌داند — نتیجه: آدرس نسبی و درخواست
+ *    به خود سایت گیت‌هاب (خطای ۴۰۵).
+ */
+const RAW_BASE = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+export const API_BASE = (RAW_BASE && RAW_BASE.length > 0 ? RAW_BASE : DEFAULT_BASE).replace(
+  /\/+$/,
+  '',
+);
 
 export class ApiError extends Error {
   readonly code: string;

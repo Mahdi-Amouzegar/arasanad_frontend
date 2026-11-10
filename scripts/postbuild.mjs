@@ -101,6 +101,14 @@ if (homeHtml.includes(`${BASE_PATH}${BASE_PATH}`)) {
   failures.push('basePath دو بار اعمال شده است (مسیر تکراری در HTML)');
 }
 
+// ⚠️ Next مسیر basePath را برای metadata (manifest و icons) اعمال نمی‌کند.
+//    بدون این بررسی، آدرس‌ها بی‌صدا ۴۰۴ می‌دهند.
+for (const required of ['manifest.webmanifest', 'favicon.svg']) {
+  if (!homeHtml.includes(`${BASE_PATH}/${required}`)) {
+    failures.push(`مسیر ${required} بدون basePath است (باید با asset() ساخته شود)`);
+  }
+}
+
 // ─── ۵. تولید sitemap.xml ───
 const today = new Date().toISOString().slice(0, 10);
 const urls = ROUTES.map((route) => {

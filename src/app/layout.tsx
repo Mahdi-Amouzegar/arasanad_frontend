@@ -10,12 +10,13 @@ import '@/styles/public.css';
 import { AlertProvider } from '@/components/ui/AlertProvider';
 import { AuthProvider } from '@/lib/auth-context';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
+import { SITE_ORIGIN, BASE_PATH, asset } from '@/lib/config';
 
 /**
- * آدرس پایه برای ساخت URLهای مطلق (OG، sitemap و…).
+ * آدرس پایه برای ساخت URLهای مطلق (OG و…).
  * ⚠️ باید با basePath در next.config.mjs هم‌خوان باشد.
  */
-const SITE_URL = 'https://mahdi-amouzegar.github.io/arasanad_frontend';
+const SITE_URL = `${SITE_ORIGIN}${BASE_PATH}`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -26,15 +27,17 @@ export const metadata: Metadata = {
   description:
     'آراسند خدمات تایپ تخصصی، ویرایش، صفحه‌آرایی، فرمول‌نویسی و آماده‌سازی حرفه‌ای اسناد دانشگاهی، اداری و تجاری را با سرعت و دقت بالا ارائه می‌دهد.',
   applicationName: 'آراسند',
-  manifest: '/manifest.webmanifest',
   openGraph: {
     type: 'website',
     locale: 'fa_IR',
     siteName: 'آراسند',
   },
+  // ⚠️ Next مسیر basePath را برای این فیلدها **اعمال نمی‌کند**؛
+  //    بدون asset() آدرس‌ها به ریشه‌ی دامنه اشاره می‌کنند و ۴۰۴ می‌دهند.
+  manifest: asset('/manifest.webmanifest'),
   icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
-    apple: [{ url: '/icons/apple-touch-icon.png' }],
+    icon: [{ url: asset('/favicon.svg'), type: 'image/svg+xml' }],
+    apple: [{ url: asset('/icons/apple-touch-icon.png') }],
   },
 };
 
