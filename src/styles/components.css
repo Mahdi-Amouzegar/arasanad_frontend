@@ -1060,6 +1060,28 @@
   color: var(--c-text);
 }
 
+/* ─── Tooltip ─── */
+
+.tooltip-anchor {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: var(--z-toast);
+  max-width: 280px;
+  padding: 6px 10px;
+  background: var(--c-text);
+  color: var(--c-surface);
+  font-size: var(--fs-xs);
+  line-height: 1.6;
+  border-radius: var(--r-xs);
+  box-shadow: var(--sh-md);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 /* ─── موبایل: هشدار به Bottom Sheet ─── */
 
 @media (max-width: 768px) {

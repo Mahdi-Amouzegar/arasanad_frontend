@@ -6,8 +6,8 @@ import {
   formatDateOnly,
   formatDateShort,
   formatRelative,
-  formatGregorianIso,
 } from '@/lib/datetime';
+import { Tooltip } from './Tooltip';
 
 export type DateVariant = 'short' | 'full' | 'date' | 'relative';
 
@@ -15,7 +15,7 @@ export interface JalaliDateProps {
   /** ISO UTC (مثلاً 2026-11-09T11:30:45.123Z) */
   value: string | Date;
   variant?: DateVariant;
-  /** نمایش تاریخ میلادی در Tooltip (پیش‌فرض: بله) */
+  /** نمایش تاریخ کامل شمسی در تولتیپ (پیش‌فرض: بله) */
   withTooltip?: boolean;
   className?: string;
 }
@@ -36,6 +36,7 @@ function render(value: string | Date, variant: DateVariant, now?: Date): string 
 /**
  * نمایش تاریخ شمسی.
  * ⚠️ ورودی همیشه UTC است؛ تبدیل به شمسی و منطقه‌ی تهران همین‌جا انجام می‌شود.
+ * ⚠️ تولتیپ، تاریخ کامل شمسی با ارقام فارسی نشان می‌دهد (نه میلادی).
  */
 export function JalaliDate({
   value,
@@ -44,16 +45,17 @@ export function JalaliDate({
   className,
 }: JalaliDateProps) {
   const text = render(value, variant);
-  return (
-    <time
-      dateTime={new Date(value).toISOString()}
-      title={withTooltip ? formatGregorianIso(value) : undefined}
-      className={className}
-      suppressHydrationWarning
-    >
+  const iso = new Date(value).toISOString();
+
+  const node = (
+    <time dateTime={iso} className={className} suppressHydrationWarning>
       {text}
     </time>
   );
+
+  if (!withTooltip) return node;
+
+  return <Tooltip label={formatDateFull(value)}>{node}</Tooltip>;
 }
 
 /**
@@ -68,14 +70,13 @@ export function RelativeTime({ value, className }: { value: string | Date; class
     return () => clearInterval(id);
   }, []);
 
+  const iso = new Date(value).toISOString();
+
   return (
-    <time
-      dateTime={new Date(value).toISOString()}
-      title={formatGregorianIso(value)}
-      className={className}
-      suppressHydrationWarning
-    >
-      {formatRelative(value, now)}
-    </time>
+    <Tooltip label={formatDateFull(value)}>
+      <time dateTime={iso} className={className} suppressHydrationWarning>
+        {formatRelative(value, now)}
+      </time>
+    </Tooltip>
   );
 }
