@@ -8,6 +8,7 @@ import '@/styles/components.css';
 import '@/styles/public.css';
 
 import { AlertProvider } from '@/components/ui/AlertProvider';
+import { AuthProvider } from '@/lib/auth-context';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
 
 /**
@@ -47,7 +48,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fa" dir="rtl">
       <body>
-        <AlertProvider>{children}</AlertProvider>
+        <AlertProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </AlertProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

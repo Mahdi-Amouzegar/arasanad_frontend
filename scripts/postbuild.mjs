@@ -24,6 +24,7 @@ const ROUTES = [
   '/about/',
   '/contact/',
   '/login/',
+  '/profile/',
   '/terms/',
   '/privacy/',
 ];

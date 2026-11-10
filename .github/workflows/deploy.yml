@@ -36,6 +36,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          # ⚠️ از Repository Variable خوانده می‌شود؛ اگر خالی باشد، مقدار
+          #    پیش‌فرض داخل src/lib/api.ts استفاده می‌شود.
+          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

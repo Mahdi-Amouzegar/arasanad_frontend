@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from './Logo';
+import { AccountWidget } from './AccountWidget';
 import { Icon } from '@/components/ui/Icon';
 import { PUBLIC_NAV } from '@/lib/navigation';
 import { BRAND } from '@/content/site';
@@ -38,19 +39,7 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
 
-      <div className="public-side__account">
-        <p className="public-side__account-title">حساب کاربری</p>
-        <p className="public-side__account-desc">
-          با حساب تلگرام وارد شوید تا سفارش‌ها، پرداخت‌ها و فایل‌هایتان را پیگیری کنید.
-        </p>
-        <Link
-          href="/login/"
-          className="btn btn--primary btn--block"
-          onClick={onNavigate}
-        >
-          ورود با تلگرام
-        </Link>
-      </div>
+      <AccountWidget />
 
       <div className="public-side__foot">
         <p>{BRAND.hours}</p>
