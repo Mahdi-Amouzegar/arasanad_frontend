@@ -1182,6 +1182,48 @@
   }
 }
 
+/* ───────────────────────────── ورود ───────────────────────────── */
+
+.login-lead {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+  line-height: 2;
+}
+
+.login-note {
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+  line-height: 1.9;
+}
+
+.login-error {
+  font-size: var(--fs-sm);
+  color: var(--c-danger);
+  background: var(--c-danger-bg);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+}
+
+.login-steps {
+  display: grid;
+  gap: var(--sp-2);
+  padding-inline-start: var(--sp-5);
+  list-style: decimal;
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+  line-height: 2;
+}
+
+.login-wait {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
 /* ───────────────────────────── انتخاب ورود ───────────────────────────── */
 
 .login-choice {

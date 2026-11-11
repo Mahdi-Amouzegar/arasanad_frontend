@@ -312,34 +312,8 @@ export function ProfileView() {
       </div>
 
       <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
-        نشانی پیش‌فرض پس از ورود: {BASE_PATH}/profile/
+        نشانی پروفایل: {BASE_PATH}/profile/
       </p>
-
-      {/* راهنمای تغییر حساب تلگرام — تلگرام نشست خودش را نگه می‌دارد */}
-      <details className="faq-item">
-        <summary>چطور با حساب تلگرام دیگری وارد شوم؟</summary>
-        <p>
-          تلگرام نشست ورود را در حساب خودش نگه می‌دارد؛ خروج از سایت آن را پاک نمی‌کند. برای تغییر
-          حساب:
-        </p>
-        <p>
-          ۱. در تلگرام به <strong>Settings → Privacy and Security</strong> بروید.
-          <br />
-          ۲. بخش <strong>Devices</strong> (یا Active Sessions) را باز کنید.
-          <br />
-          ۳. اتصال مربوط به <strong>ArasanadBot</strong> یا دامنه‌ی سایت را پیدا کنید.
-          <br />
-          ۴. روی <strong>Terminate</strong> یا <strong>Disconnect</strong> بزنید.
-          <br />
-          ۵. به آراسند برگردید و از حساب خارج شوید.
-          <br />
-          ۶. دوباره «ورود با تلگرام» را بزنید — این بار اجازه می‌دهد حساب دیگری انتخاب کنید.
-        </p>
-        <p style={{ color: 'var(--c-warning)' }}>
-          اگر فقط از سایت خارج شوید، نشست تلگرام باقی می‌ماند و بار بعد بدون پرسیدن حساب وارد
-          می‌شوید.
-        </p>
-      </details>
     </div>
   );
 }

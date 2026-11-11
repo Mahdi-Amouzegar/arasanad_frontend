@@ -140,11 +140,6 @@ export function AccountMenu() {
         پروفایل من
       </Link>
 
-      <Link href="/login/?switch=1" className="account-menu__item" role="menuitem" onClick={() => setOpen(false)}>
-        <Icon name="refresh" size={15} />
-        تغییر حساب
-      </Link>
-
       <button
         type="button"
         className="account-menu__item account-menu__item--danger"

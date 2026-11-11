@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { ApiError, apiRequest, getDeviceId, getDeviceName } from './api';
+import { ApiError, API_BASE, apiRequest, getDeviceId, getDeviceName } from './api';
 
 export interface AuthUser {
   id: string;
@@ -42,6 +42,17 @@ interface AuthContextValue {
 
 const TOKEN_KEY = 'arasanad_token';
 
+/**
+ * مسیرهای نسبی رسانه (`/media/avatar/...`) باید به آدرس API تبدیل شوند.
+ * ⚠️ آواتار تلگرام از واسط سرور می‌آید تا توکن ربات در مرورگر قرار نگیرد.
+ */
+function normalizeUser(user: AuthUser): AuthUser {
+  if (user.avatarUrl && user.avatarUrl.startsWith('/')) {
+    return { ...user, avatarUrl: `${API_BASE}${user.avatarUrl}` };
+  }
+  return user;
+}
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 function readToken(): string | null {
@@ -64,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (activeToken: string) => {
       try {
         const data = await apiRequest<MeResponse>('/auth/me', { token: activeToken });
-        setUser(data.user);
+        setUser(normalizeUser(data.user));
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) clear();
       }
@@ -103,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = useCallback((nextToken: string, nextUser: AuthUser) => {
     window.localStorage.setItem(TOKEN_KEY, nextToken);
     setToken(nextToken);
-    setUser(nextUser);
+    setUser(normalizeUser(nextUser));
   }, []);
 
   const signOut = useCallback(async () => {
