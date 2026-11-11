@@ -7,9 +7,15 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAlert } from '@/components/ui/AlertProvider';
-import { useAuth, startBotLogin, checkBotStatus } from '@/lib/auth-context';
+import { useAuth, startBotLogin, checkBotStatus, type AuthUser } from '@/lib/auth-context';
 import { listKnownAccounts, rememberAccount, forgetAccount, type KnownAccount } from '@/lib/known-accounts';
-import { ApiError } from '@/lib/api';
+import { ApiError, apiRequest, getDeviceId, getDeviceName } from '@/lib/api';
+import {
+  buildTelegramOAuthUrl,
+  parseTelegramCallback,
+  cleanTelegramCallbackFromUrl,
+  type TelegramCallbackPayload,
+} from '@/lib/telegram-oauth';
 
 type Phase = 'choose' | 'known' | 'starting' | 'waiting' | 'expired' | 'error';
 
@@ -23,6 +29,10 @@ export function LoginFlow() {
   const [phase, setPhase] = useState<Phase>('choose');
   const [known, setKnown] = useState<KnownAccount[]>([]);
   const [selected, setSelected] = useState<KnownAccount | null>(null);
+  /** عبور از حالت «وارد شده‌اید» برای تغییر حساب */
+  const [switching, setSwitching] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState(false);
+  const [oauthHandled, setOauthHandled] = useState(false);
 
   const [deepLink, setDeepLink] = useState<string | null>(null);
   const [loginId, setLoginId] = useState<string | null>(null);
@@ -36,6 +46,44 @@ export function LoginFlow() {
   useEffect(() => {
     setKnown(listKnownAccounts());
   }, []);
+
+  // ?switch=1 → عبور از حالت «وارد شده‌اید»
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('switch')) setSwitching(true);
+  }, []);
+
+  // بازگشت از oauth.telegram.org
+  useEffect(() => {
+    if (oauthHandled) return;
+    const payload: TelegramCallbackPayload | null = parseTelegramCallback();
+    if (!payload) return;
+
+    setOauthHandled(true);
+    cleanTelegramCallbackFromUrl();
+    setPhase('starting');
+
+    void (async () => {
+      try {
+        const result = await apiRequest<{ token: string; user: AuthUser }>('/auth/telegram', {
+            method: 'POST',
+            body: { payload, deviceId: getDeviceId(), deviceName: getDeviceName() },
+          },
+        );
+
+        signIn(result.token, result.user);
+        rememberAccount({
+          userId: result.user.id,
+          username: result.user.username,
+          displayName: result.user.displayName,
+        });
+        showToast({ type: 'success', title: 'خوش آمدید', message: `@${result.user.username}` });
+        router.push('/profile/');
+      } catch (error) {
+        setPhase('choose');
+        setMessage(error instanceof ApiError ? error.message : 'ورود با تلگرام ناموفق بود');
+      }
+    })();
+  }, [oauthHandled, signIn, showToast, router]);
 
   const stopAll = useCallback(() => {
     if (pollRef.current !== null) {
@@ -134,8 +182,35 @@ export function LoginFlow() {
     };
   }, [phase, loginId, signIn, showToast, router, stopAll, selected]);
 
+  /**
+   * ورود با شماره موبایل (OAuth تلگرام).
+   * ⚠️ برای هر حسابی کار می‌کند، حتی اگر روی این دستگاه وارد نشده باشد.
+   */
+  const startOAuth = useCallback(async () => {
+    setOauthLoading(true);
+    setMessage(null);
+
+    try {
+      const config = await apiRequest<{ botId: string | null; configured: boolean }>(
+        '/auth/telegram/config',
+      );
+
+      if (!config.botId) {
+        setMessage('ورود با شماره موبایل هنوز پیکربندی نشده است. از «تأیید از داخل ربات» استفاده کنید.');
+        setOauthLoading(false);
+        return;
+      }
+
+      const returnTo = `${window.location.origin}${window.location.pathname}`;
+      window.location.href = buildTelegramOAuthUrl(config.botId, returnTo);
+    } catch (error) {
+      setOauthLoading(false);
+      setMessage(error instanceof ApiError ? error.message : 'شروع ورود ناموفق بود');
+    }
+  }, []);
+
   /* ─── از قبل وارد شده ─── */
-  if (!loading && user) {
+  if (!loading && user && !switching) {
     return (
       <div className="calc-card">
         <div className="row" style={{ gap: 'var(--sp-3)' }}>
@@ -156,7 +231,8 @@ export function LoginFlow() {
             variant="outline"
             size="sm"
             onClick={() => {
-              setPhase('known');
+              setSwitching(true);
+              setPhase('choose');
               setKnown(listKnownAccounts());
             }}
           >
@@ -215,14 +291,19 @@ export function LoginFlow() {
           <button
             type="button"
             className="login-choice__card login-choice__card--primary"
-            onClick={() => begin(null)}
+            onClick={startOAuth}
+            disabled={oauthLoading}
           >
             <span className="login-choice__icon" aria-hidden="true">
-              <Icon name="plus" size={18} />
+              <Icon name="send" size={18} />
             </span>
             <span className="login-choice__body">
-              <strong>ثبت‌نام با حساب تلگرام</strong>
-              <span>حساب کاربری جدید ساخته می‌شود و با تلگرام تأیید می‌کنید.</span>
+              <strong>ورود با شماره موبایل تلگرام</strong>
+              <span>
+                {oauthLoading
+                  ? 'در حال انتقال به تلگرام…'
+                  : 'هر حساب تلگرامی، حتی اگر روی این دستگاه وارد نشده باشد.'}
+              </span>
             </span>
           </button>
 
@@ -246,11 +327,25 @@ export function LoginFlow() {
               </span>
             </span>
           </button>
+
+          <button
+            type="button"
+            className="login-choice__card"
+            onClick={() => begin(null)}
+          >
+            <span className="login-choice__icon" aria-hidden="true">
+              <Icon name="plus" size={18} />
+            </span>
+            <span className="login-choice__body">
+              <strong>تأیید از داخل ربات</strong>
+              <span>سریع‌ترین راه، وقتی همین حساب در اپ تلگرام فعال است.</span>
+            </span>
+          </button>
         </div>
 
         <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)', lineHeight: 1.9 }}>
-          تأیید نهایی همیشه در تلگرام انجام می‌شود. اگر چند حساب در تلگرام دارید، پیش از زدن
-          «Start» حساب مورد نظر را انتخاب کنید.
+          «شماره موبایل» برای هر حسابی کار می‌کند و اگر حساب جدیدی باشد، خودکار ساخته می‌شود.
+          «تأیید از داخل ربات» فقط با حسابی که در اپ تلگرام باز است کار می‌کند.
         </p>
       </div>
     );

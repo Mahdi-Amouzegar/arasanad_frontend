@@ -73,11 +73,8 @@
 }
 
 .account-menu__panel {
-  position: absolute;
-  inset-block-start: calc(100% + 8px);
-  inset-inline-start: 0;
-  z-index: 60;
-  min-width: 216px;
+  /* ⚠️ موقعیت با style درون‌خطی (fixed) تنظیم می‌شود؛ اینجا فقط ظاهر */
+  z-index: 2000;
   display: grid;
   gap: 2px;
   padding: var(--sp-2);
