@@ -23,13 +23,22 @@ export interface TelegramCallbackPayload {
 
 /** ساخت لینک OAuth. `logout=1` باعث می‌شود تلگرام همیشه شماره بپرسد. */
 export function buildTelegramOAuthUrl(botId: string, returnTo: string): string {
+  // ⚠️ `request_access=write` باعث می‌شود تلگرام پنجره‌ی «این سایت می‌خواهد به
+  //    اطلاعات خصوصی شما دسترسی پیدا کند» را نشان دهد. ما برای ورود فقط به
+  //    اطلاعات پایه نیاز داریم، پس این پارامتر را نمی‌فرستیم.
+  //
+  // ⚠️ یک nonce به `return_to` اضافه می‌شود تا مرورگر پاسخ قبلی تلگرام را از
+  //    کش نگیرد و کاربر برای حساب دیگر واقعاً از نو هدایت شود.
+  const nonce = Date.now().toString(36);
+  const separator = returnTo.includes('?') ? '&' : '?';
+
   const params = new URLSearchParams({
     bot_id: botId,
     origin: window.location.origin,
-    return_to: returnTo,
-    request_access: 'write',
+    return_to: `${returnTo}${separator}tg=${nonce}`,
     logout: '1',
   });
+
   return `${OAUTH_URL}?${params.toString()}`;
 }
 
@@ -103,7 +112,7 @@ export function parseTelegramCallback(url: string = window.location.href): Teleg
 export function cleanTelegramCallbackFromUrl(): void {
   try {
     const url = new URL(window.location.href);
-    const keys = ['id', 'hash', 'auth_date', 'first_name', 'last_name', 'username', 'photo_url'];
+    const keys = ['id', 'hash', 'auth_date', 'first_name', 'last_name', 'username', 'photo_url', 'tg'];
 
     let changed = false;
     for (const key of keys) {

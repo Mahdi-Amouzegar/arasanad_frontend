@@ -35,6 +35,7 @@ export function LoginFlow() {
   const [oauthHandled, setOauthHandled] = useState(false);
 
   const [deepLink, setDeepLink] = useState<string | null>(null);
+  const [startToken, setStartToken] = useState<string | null>(null);
   const [loginId, setLoginId] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -108,6 +109,7 @@ export function LoginFlow() {
       try {
         const data = await startBotLogin();
         setDeepLink(data.deepLink);
+        setStartToken(data.startToken);
         setLoginId(data.loginId);
         setExpiresAt(data.expiresAt);
         setPhase('waiting');
@@ -455,6 +457,32 @@ export function LoginFlow() {
           <Icon name="send" size={16} />
           باز کردن ربات تلگرام
         </a>
+
+        {startToken ? (
+          <div className="start-code">
+            <p className="start-code__hint">
+              می‌خواهید با <strong>حساب دیگری</strong> وارد شوید؟ لینک بالا همیشه حساب فعال تلگرام
+              را باز می‌کند. در تلگرام به حساب مورد نظر بروید، ربات آراسند را باز کنید و این دستور
+              را بفرستید:
+            </p>
+            <code className="start-code__value ltr">/start {startToken}</code>
+            <button
+              type="button"
+              className="btn btn--outline btn--sm"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(`/start ${startToken}`);
+                  showToast({ title: 'کپی شد', message: 'در تلگرام بفرستید' });
+                } catch {
+                  showToast({ type: 'error', title: 'کپی نشد', message: 'متن را دستی انتخاب کنید' });
+                }
+              }}
+            >
+              <Icon name="file" size={14} />
+              کپی دستور
+            </button>
+          </div>
+        ) : null}
 
         <div
           style={{

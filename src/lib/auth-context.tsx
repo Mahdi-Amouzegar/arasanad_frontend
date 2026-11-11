@@ -152,6 +152,8 @@ export function useAuth(): AuthContextValue {
 export interface BotStartResponse {
   loginId: string;
   deepLink: string;
+  /** توکن دستور `/start` — برای ارسال دستی از حسابی دیگر */
+  startToken: string;
   expiresAt: string;
 }
 
