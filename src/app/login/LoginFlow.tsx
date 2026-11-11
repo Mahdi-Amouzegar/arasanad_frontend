@@ -5,20 +5,25 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
+import { Avatar } from '@/components/ui/Avatar';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { useAuth, startBotLogin, checkBotStatus } from '@/lib/auth-context';
+import { listKnownAccounts, rememberAccount, forgetAccount, type KnownAccount } from '@/lib/known-accounts';
 import { ApiError } from '@/lib/api';
 
-type Phase = 'idle' | 'starting' | 'waiting' | 'expired' | 'error';
+type Phase = 'choose' | 'known' | 'starting' | 'waiting' | 'expired' | 'error';
 
 const POLL_INTERVAL_MS = 2500;
 
 export function LoginFlow() {
   const router = useRouter();
-  const { showToast } = useAlert();
-  const { signIn, user, loading } = useAuth();
+  const { showToast, showAlert } = useAlert();
+  const { signIn, user, loading, signOut } = useAuth();
 
-  const [phase, setPhase] = useState<Phase>('idle');
+  const [phase, setPhase] = useState<Phase>('choose');
+  const [known, setKnown] = useState<KnownAccount[]>([]);
+  const [selected, setSelected] = useState<KnownAccount | null>(null);
+
   const [deepLink, setDeepLink] = useState<string | null>(null);
   const [loginId, setLoginId] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
@@ -27,6 +32,10 @@ export function LoginFlow() {
 
   const timerRef = useRef<number | null>(null);
   const pollRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setKnown(listKnownAccounts());
+  }, []);
 
   const stopAll = useCallback(() => {
     if (pollRef.current !== null) {
@@ -41,22 +50,26 @@ export function LoginFlow() {
 
   useEffect(() => stopAll, [stopAll]);
 
-  const begin = useCallback(async () => {
-    stopAll();
-    setPhase('starting');
-    setMessage(null);
+  const begin = useCallback(
+    async (account: KnownAccount | null) => {
+      stopAll();
+      setSelected(account);
+      setPhase('starting');
+      setMessage(null);
 
-    try {
-      const data = await startBotLogin();
-      setDeepLink(data.deepLink);
-      setLoginId(data.loginId);
-      setExpiresAt(data.expiresAt);
-      setPhase('waiting');
-    } catch (error) {
-      setPhase('error');
-      setMessage(error instanceof ApiError ? error.message : 'شروع ورود ناموفق بود');
-    }
-  }, [stopAll]);
+      try {
+        const data = await startBotLogin();
+        setDeepLink(data.deepLink);
+        setLoginId(data.loginId);
+        setExpiresAt(data.expiresAt);
+        setPhase('waiting');
+      } catch (error) {
+        setPhase('error');
+        setMessage(error instanceof ApiError ? error.message : 'شروع ورود ناموفق بود');
+      }
+    },
+    [stopAll],
+  );
 
   // شمارش معکوس
   useEffect(() => {
@@ -78,7 +91,7 @@ export function LoginFlow() {
     };
   }, [phase, expiresAt, stopAll]);
 
-  // Polling وضعیت
+  // Polling
   useEffect(() => {
     if (phase !== 'waiting' || !loginId) return undefined;
 
@@ -88,7 +101,23 @@ export function LoginFlow() {
         if (result.status === 'ok' && result.token && result.user) {
           stopAll();
           signIn(result.token, result.user);
-          showToast({ type: 'success', title: 'خوش آمدید', message: `@${result.user.username}` });
+          rememberAccount({
+            userId: result.user.id,
+            username: result.user.username,
+            displayName: result.user.displayName,
+          });
+          setKnown(listKnownAccounts());
+
+          if (selected && selected.userId !== result.user.id) {
+            showToast({
+              type: 'info',
+              title: 'حساب متفاوتی تأیید شد',
+              message: `وارد شدید با @${result.user.username}`,
+            });
+          } else {
+            showToast({ type: 'success', title: 'خوش آمدید', message: `@${result.user.username}` });
+          }
+
           router.push('/profile/');
         } else if (result.status === 'expired' || result.status === 'used') {
           stopAll();
@@ -96,140 +125,288 @@ export function LoginFlow() {
           if (result.status === 'used') setMessage('این لینک قبلاً استفاده شده است');
         }
       } catch {
-        /* خطای موقت شبکه — در تلاش بعدی دوباره بررسی می‌شود */
+        /* خطای موقت شبکه — تلاش بعدی */
       }
     }, POLL_INTERVAL_MS);
 
     return () => {
       if (pollRef.current !== null) window.clearInterval(pollRef.current);
     };
-  }, [phase, loginId, signIn, showToast, router, stopAll]);
+  }, [phase, loginId, signIn, showToast, router, stopAll, selected]);
 
-  /* ─── اگر از قبل وارد شده ─── */
+  /* ─── از قبل وارد شده ─── */
   if (!loading && user) {
     return (
       <div className="calc-card">
-        <p style={{ fontWeight: 'var(--fw-semibold)' }}>شما وارد شده‌اید</p>
-        <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-secondary)' }}>
-          با حساب <span className="ltr">@{user.username}</span>
-        </p>
+        <div className="row" style={{ gap: 'var(--sp-3)' }}>
+          <Avatar name={user.displayName} src={user.avatarUrl} size="lg" />
+          <div>
+            <p style={{ fontWeight: 'var(--fw-semibold)' }}>شما وارد شده‌اید</p>
+            <p className="ltr" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-secondary)' }}>
+              @{user.username}
+            </p>
+          </div>
+        </div>
+
         <div className="row" style={{ flexWrap: 'wrap' }}>
-          <Link href="/profile/" className="btn btn--primary">
+          <Link href="/profile/" className="btn btn--primary btn--sm">
             پروفایل من
           </Link>
-          <Link href="/" className="btn btn--outline">
-            صفحه اصلی
-          </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setPhase('known');
+              setKnown(listKnownAccounts());
+            }}
+          >
+            <Icon name="refresh" size={14} />
+            تغییر حساب
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={async () => {
+              const ok = await showAlert({
+                type: 'danger-confirm',
+                title: 'خروج از حساب',
+                message: 'از حساب خود خارج می‌شوید؟',
+                confirmText: 'خروج',
+                cancelText: 'بازگشت',
+              });
+              if (ok) {
+                await signOut();
+                setPhase('choose');
+              }
+            }}
+          >
+            <Icon name="x" size={14} />
+            خروج
+          </Button>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="calc-card">
-      {phase === 'idle' || phase === 'error' || phase === 'starting' ? (
-        <>
-          <div>
-            <span className="eyebrow">ورود امن</span>
-            <h2 className="section-head__title">ورود با تلگرام</h2>
-            <p
-              style={{
-                marginTop: 'var(--sp-2)',
-                fontSize: 'var(--fs-sm)',
-                color: 'var(--c-text-secondary)',
-                lineHeight: 2,
-              }}
-            >
-              بدون رمز عبور. روی دکمه بزنید، لینک اختصاصی شما ساخته می‌شود، سپس در تلگرام
-              تأیید کنید.
-            </p>
-          </div>
+  /* ─── انتخاب روش ورود ─── */
+  if (phase === 'choose' || phase === 'error') {
+    return (
+      <div className="calc-card">
+        <div>
+          <span className="eyebrow">ورود امن</span>
+          <h2 className="section-head__title">حساب خود را انتخاب کنید</h2>
+        </div>
 
-          {message ? (
-            <p
-              style={{
-                fontSize: 'var(--fs-sm)',
-                color: 'var(--c-danger)',
-                background: 'var(--c-danger-bg)',
-                padding: 'var(--sp-3)',
-                borderRadius: 'var(--r-sm)',
-              }}
-            >
-              {message}
+        {message ? (
+          <p
+            style={{
+              fontSize: 'var(--fs-sm)',
+              color: 'var(--c-danger)',
+              background: 'var(--c-danger-bg)',
+              padding: 'var(--sp-3)',
+              borderRadius: 'var(--r-sm)',
+            }}
+          >
+            {message}
+          </p>
+        ) : null}
+
+        <div className="login-choice">
+          <button
+            type="button"
+            className="login-choice__card login-choice__card--primary"
+            onClick={() => begin(null)}
+          >
+            <span className="login-choice__icon" aria-hidden="true">
+              <Icon name="plus" size={18} />
+            </span>
+            <span className="login-choice__body">
+              <strong>ثبت‌نام با حساب تلگرام</strong>
+              <span>حساب کاربری جدید ساخته می‌شود و با تلگرام تأیید می‌کنید.</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className="login-choice__card"
+            onClick={() => {
+              setKnown(listKnownAccounts());
+              setPhase('known');
+            }}
+          >
+            <span className="login-choice__icon" aria-hidden="true">
+              <Icon name="refresh" size={18} />
+            </span>
+            <span className="login-choice__body">
+              <strong>ورود به حساب قبلی</strong>
+              <span>
+                {known.length > 0
+                  ? `${known.length.toLocaleString('fa-IR')} حساب در این مرورگر`
+                  : 'هنوز حسابی در این مرورگر ثبت نشده است'}
+              </span>
+            </span>
+          </button>
+        </div>
+
+        <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)', lineHeight: 1.9 }}>
+          تأیید نهایی همیشه در تلگرام انجام می‌شود. اگر چند حساب در تلگرام دارید، پیش از زدن
+          «Start» حساب مورد نظر را انتخاب کنید.
+        </p>
+      </div>
+    );
+  }
+
+  /* ─── فهرست حساب‌های شناخته‌شده ─── */
+  if (phase === 'known') {
+    return (
+      <div className="calc-card">
+        <div>
+          <span className="eyebrow">ورود سریع</span>
+          <h2 className="section-head__title">حساب قبلی خود را انتخاب کنید</h2>
+        </div>
+
+        {known.length === 0 ? (
+          <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-secondary)', lineHeight: 2 }}>
+            در این مرورگر حسابی ثبت نشده است. با گزینه‌ی «ثبت‌نام با حساب تلگرام» وارد شوید.
+          </p>
+        ) : (
+          <div className="known-list">
+            {known.map((account) => (
+              <div className="known-list__row" key={account.userId}>
+                <button
+                  type="button"
+                  className="known-list__pick"
+                  onClick={() => begin(account)}
+                >
+                  <Avatar name={account.displayName} size="sm" />
+                  <span>
+                    <span className="known-list__name">{account.displayName}</span>
+                    <span className="known-list__username ltr">@{account.username}</span>
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className="known-list__remove"
+                  aria-label={`حذف ${account.displayName} از این مرورگر`}
+                  onClick={() => {
+                    forgetAccount(account.userId);
+                    setKnown(listKnownAccounts());
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="row" style={{ flexWrap: 'wrap' }}>
+          <Button variant="primary" size="sm" onClick={() => begin(null)}>
+            حساب دیگر
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setPhase('choose')}>
+            بازگشت
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── انتظار برای تأیید ─── */
+  if (phase === 'starting') {
+    return (
+      <div className="calc-card">
+        <p style={{ fontWeight: 'var(--fw-semibold)' }}>در حال ساخت لینک ورود…</p>
+        <span className="btn__spinner" aria-hidden="true" />
+      </div>
+    );
+  }
+
+  if (phase === 'waiting' && deepLink) {
+    return (
+      <div className="calc-card">
+        <div>
+          <span className="eyebrow">مرحله ۲ از ۲</span>
+          <h2 className="section-head__title">در تلگرام تأیید کنید</h2>
+          {selected ? (
+            <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-secondary)', marginTop: 4 }}>
+              حساب انتخابی: <span className="ltr">@{selected.username}</span>
             </p>
           ) : null}
+        </div>
 
-          <Button block onClick={begin} loading={phase === 'starting'}>
-            <Icon name="send" size={16} />
-            دریافت لینک ورود
+        <ol
+          style={{
+            display: 'grid',
+            gap: 'var(--sp-2)',
+            paddingInlineStart: 'var(--sp-5)',
+            listStyle: 'decimal',
+            fontSize: 'var(--fs-sm)',
+            color: 'var(--c-text-secondary)',
+            lineHeight: 2,
+          }}
+        >
+          <li>دکمه‌ی زیر را بزنید تا ربات تلگرام باز شود.</li>
+          <li>در تلگرام، حساب مورد نظر را انتخاب و روی Start بزنید.</li>
+          <li>به همین صفحه برگردید؛ ورود خودکار انجام می‌شود.</li>
+        </ol>
+
+        <a
+          href={deepLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn--primary btn--block"
+        >
+          <Icon name="send" size={16} />
+          باز کردن ربات تلگرام
+        </a>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 'var(--sp-3)',
+            fontSize: 'var(--fs-xs)',
+            color: 'var(--c-text-muted)',
+          }}
+        >
+          <span className="row" style={{ gap: 6 }}>
+            <span className="btn__spinner" aria-hidden="true" />
+            در انتظار تأیید…
+          </span>
+          <span className="tabular">
+            {remaining > 0 ? `${remaining.toLocaleString('fa-IR')} ثانیه` : 'منقضی شد'}
+          </span>
+        </div>
+
+        <div className="row" style={{ flexWrap: 'wrap' }}>
+          <Button variant="ghost" size="sm" onClick={() => begin(selected)}>
+            لینک تازه
           </Button>
-        </>
-      ) : null}
-
-      {phase === 'waiting' && deepLink ? (
-        <>
-          <div>
-            <span className="eyebrow">مرحله ۲ از ۲</span>
-            <h2 className="section-head__title">در تلگرام تأیید کنید</h2>
-          </div>
-
-          <ol
-            style={{
-              display: 'grid',
-              gap: 'var(--sp-2)',
-              paddingInlineStart: 'var(--sp-5)',
-              listStyle: 'decimal',
-              fontSize: 'var(--fs-sm)',
-              color: 'var(--c-text-secondary)',
-              lineHeight: 2,
-            }}
-          >
-            <li>دکمه‌ی زیر را بزنید تا ربات تلگرام باز شود.</li>
-            <li>روی «Start» بزنید.</li>
-            <li>به همین صفحه برگردید؛ ورود خودکار انجام می‌شود.</li>
-          </ol>
-
-          <a href={deepLink} target="_blank" rel="noopener noreferrer" className="btn btn--primary btn--block">
-            <Icon name="send" size={16} />
-            باز کردن ربات تلگرام
-          </a>
-
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 'var(--sp-3)',
-              fontSize: 'var(--fs-xs)',
-              color: 'var(--c-text-muted)',
-            }}
-          >
-            <span className="row" style={{ gap: 6 }}>
-              <span className="btn__spinner" aria-hidden="true" />
-              در انتظار تأیید…
-            </span>
-            <span className="tabular">
-              {remaining > 0 ? `${remaining.toLocaleString('fa-IR')} ثانیه` : 'منقضی شد'}
-            </span>
-          </div>
-
-          <Button variant="ghost" size="sm" onClick={begin}>
-            لینک تازه بساز
+          <Button variant="ghost" size="sm" onClick={() => setPhase('choose')}>
+            انصراف
           </Button>
-        </>
-      ) : null}
+        </div>
+      </div>
+    );
+  }
 
-      {phase === 'expired' ? (
-        <>
-          <p style={{ fontWeight: 'var(--fw-semibold)' }}>لینک ورود منقضی شد</p>
-          <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-secondary)', lineHeight: 2 }}>
-            هر لینک فقط ۱۰ دقیقه اعتبار دارد. دکمه‌ی زیر را بزنید تا لینک تازه ساخته شود.
-          </p>
-          <Button block onClick={begin}>
-            ساخت لینک تازه
-          </Button>
-        </>
-      ) : null}
+  /* ─── منقضی ─── */
+  return (
+    <div className="calc-card">
+      <p style={{ fontWeight: 'var(--fw-semibold)' }}>لینک ورود منقضی شد</p>
+      <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-secondary)', lineHeight: 2 }}>
+        هر لینک فقط ۱۰ دقیقه اعتبار دارد.
+      </p>
+      <div className="row" style={{ flexWrap: 'wrap' }}>
+        <Button variant="primary" size="sm" onClick={() => begin(selected)}>
+          ساخت لینک تازه
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => setPhase('choose')}>
+          بازگشت
+        </Button>
+      </div>
     </div>
   );
 }

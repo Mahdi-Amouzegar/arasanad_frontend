@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from './Logo';
-import { AccountWidget } from './AccountWidget';
+import { AccountMenu } from './AccountMenu';
 import { Icon } from '@/components/ui/Icon';
 import { PUBLIC_NAV } from '@/lib/navigation';
 import { BRAND } from '@/content/site';
@@ -22,8 +22,10 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="public-side__inner">
-      <Logo className="public-side__brand" />
-
+      <div className="public-side__top">
+        <Logo className="public-side__brand" />
+        <AccountMenu />
+      </div>
       <nav className="public-side__nav" aria-label="ناوبری اصلی">
         {PUBLIC_NAV[0]?.items.map((item) => (
           <Link
@@ -38,8 +40,6 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
         ))}
       </nav>
-
-      <AccountWidget />
 
       <div className="public-side__foot">
         <p>{BRAND.hours}</p>
