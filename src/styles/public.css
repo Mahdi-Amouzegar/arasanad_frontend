@@ -99,6 +99,13 @@
   line-height: 1.4;
 }
 
+.account-menu__role {
+  margin-inline-start: 6px;
+  font-size: 10px;
+  padding: 1px 6px;
+  vertical-align: middle;
+}
+
 .account-menu__username {
   font-size: var(--fs-xs);
   color: var(--c-text-muted);

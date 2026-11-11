@@ -42,7 +42,7 @@ export function SiteHeader() {
           aria-controls="public-drawer"
           onClick={() => setOpen(true)}
         >
-          <Icon name="plus" size={20} style={{ transform: 'rotate(45deg)' }} />
+          <Icon name="menu" size={20} />
         </button>
       </header>
 

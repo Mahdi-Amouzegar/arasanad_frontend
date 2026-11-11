@@ -69,7 +69,11 @@ export async function apiRequest<T>(
       signal,
     });
   } catch {
-    throw new ApiError('NETWORK', 'ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.', 0);
+    throw new ApiError(
+      'NETWORK',
+      'ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید. در صورت نیاز از ابزارهای تغییر IP استفاده کنید.',
+      0,
+    );
   }
 
   let payload: Envelope<T> | null = null;

@@ -47,6 +47,7 @@ export type IconName =
   | 'settings'
   | 'search'
   | 'plus'
+  | 'menu'
   | 'chevronDown';
 
 const PATHS: Record<IconName, string> = {
@@ -91,6 +92,8 @@ const PATHS: Record<IconName, string> = {
     'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.4-2.3 1a7 7 0 0 0-1.7-1L14.5 3h-4l-.4 2.6a7 7 0 0 0-1.7 1l-2.3-1-2 3.4 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.4 2.3-1a7 7 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7 7 0 0 0 1.7-1l2.3 1 2-3.4-2-1.5a7 7 0 0 0 .1-1Z',
   search: 'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.3-4.3',
   plus: 'M12 5v14M5 12h14',
+  /* منوی همبرگری — سه خط افقی */
+  menu: 'M4 7h16M4 12h16M4 17h16',
   chevronDown: 'm6 9 6 6 6-6',
 };
 

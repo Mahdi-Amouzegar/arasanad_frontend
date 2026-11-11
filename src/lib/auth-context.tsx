@@ -18,6 +18,8 @@ export interface AuthUser {
   lastName: string;
   displayName: string;
   avatarUrl: string | null;
+  /** نقش کاربر — از سرور می‌آید و مرجع نهایی است */
+  role: 'admin' | 'customer';
   profileComplete: boolean;
 }
 

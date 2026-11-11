@@ -45,7 +45,7 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
         <p>{BRAND.hours}</p>
         <p style={{ marginTop: 4 }}>
           <a href="https://t.me/Mehdi_Amouz" className="public-side__tel">
-            تلگرام: @Mehdi_Amouz
+            تلگرام: <span className="ltr">@Mehdi_Amouz</span>
           </a>
         </p>
       </div>

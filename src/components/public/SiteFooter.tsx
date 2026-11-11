@@ -48,7 +48,7 @@ export function SiteFooter() {
                 >
                   <Icon name={channel.icon} size={14} />
                   <span>
-                    {channel.label}: {channel.value}
+                    {channel.label}: <span className="ltr">{channel.value}</span>
                   </span>
                 </a>
               </li>

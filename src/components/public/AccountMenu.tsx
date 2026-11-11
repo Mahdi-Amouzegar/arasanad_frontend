@@ -123,7 +123,12 @@ export function AccountMenu() {
       <div className="account-menu__head">
         <Avatar name={user.displayName} src={user.avatarUrl} size="md" />
         <div style={{ minWidth: 0 }}>
-          <p className="account-menu__name">{user.displayName}</p>
+          <p className="account-menu__name">
+            {user.displayName}
+            {user.role === 'admin' ? (
+              <span className="badge badge--primary account-menu__role">مدیر</span>
+            ) : null}
+          </p>
           <p className="account-menu__username ltr">@{user.username}</p>
         </div>
       </div>

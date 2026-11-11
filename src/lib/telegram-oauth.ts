@@ -23,19 +23,17 @@ export interface TelegramCallbackPayload {
 
 /** ساخت لینک OAuth. `logout=1` باعث می‌شود تلگرام همیشه شماره بپرسد. */
 export function buildTelegramOAuthUrl(botId: string, returnTo: string): string {
-  // ⚠️ `request_access=write` باعث می‌شود تلگرام پنجره‌ی «این سایت می‌خواهد به
-  //    اطلاعات خصوصی شما دسترسی پیدا کند» را نشان دهد. ما برای ورود فقط به
-  //    اطلاعات پایه نیاز داریم، پس این پارامتر را نمی‌فرستیم.
-  //
-  // ⚠️ یک nonce به `return_to` اضافه می‌شود تا مرورگر پاسخ قبلی تلگرام را از
-  //    کش نگیرد و کاربر برای حساب دیگر واقعاً از نو هدایت شود.
-  const nonce = Date.now().toString(36);
-  const separator = returnTo.includes('?') ? '&' : '?';
-
+  // ⚠️ `request_access=write` و `logout=1` هر دو لازم هستند:
+  //    - `logout=1` نشست قبلی تلگرام را پاک می‌کند
+  //    - `request_access=write` تلگرام را مجبور می‌کند اجازه را دوباره بپرسد؛
+  //      بدون آن، تلگرام بی‌صدا همان حساب قبلی را تأیید می‌کند و کاربر
+  //      امکان انتخاب حساب دیگر را ندارد.
+  //    این ترکیب، همان چیزی است که در پروژه‌ی مرجع کار می‌کرد.
   const params = new URLSearchParams({
     bot_id: botId,
     origin: window.location.origin,
-    return_to: `${returnTo}${separator}tg=${nonce}`,
+    return_to: returnTo,
+    request_access: 'write',
     logout: '1',
   });
 
