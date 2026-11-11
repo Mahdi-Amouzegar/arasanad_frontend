@@ -293,61 +293,59 @@ export function LoginFlow() {
           <button
             type="button"
             className="login-choice__card login-choice__card--primary"
-            onClick={startOAuth}
-            disabled={oauthLoading}
+            onClick={() => begin(null)}
           >
             <span className="login-choice__icon" aria-hidden="true">
               <Icon name="send" size={18} />
             </span>
             <span className="login-choice__body">
-              <strong>ورود با شماره موبایل تلگرام</strong>
+              <strong>ورود با تلگرام</strong>
+              <span>یک ضربه؛ ربات تلگرام باز می‌شود و تأیید می‌کنید.</span>
+            </span>
+          </button>
+
+          {known.length > 0 ? (
+            <button
+              type="button"
+              className="login-choice__card"
+              onClick={() => {
+                setKnown(listKnownAccounts());
+                setPhase('known');
+              }}
+            >
+              <span className="login-choice__icon" aria-hidden="true">
+                <Icon name="refresh" size={18} />
+              </span>
+              <span className="login-choice__body">
+                <strong>ورود به حساب قبلی</strong>
+                <span>{known.length.toLocaleString('fa-IR')} حساب در این مرورگر</span>
+              </span>
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            className="login-choice__card"
+            onClick={startOAuth}
+            disabled={oauthLoading}
+          >
+            <span className="login-choice__icon" aria-hidden="true">
+              <Icon name="user" size={18} />
+            </span>
+            <span className="login-choice__body">
+              <strong>ورود با شماره موبایل</strong>
               <span>
                 {oauthLoading
                   ? 'در حال انتقال به تلگرام…'
-                  : 'هر حساب تلگرامی، حتی اگر روی این دستگاه وارد نشده باشد.'}
+                  : 'برای حسابی که روی این دستگاه وارد نشده است.'}
               </span>
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="login-choice__card"
-            onClick={() => {
-              setKnown(listKnownAccounts());
-              setPhase('known');
-            }}
-          >
-            <span className="login-choice__icon" aria-hidden="true">
-              <Icon name="refresh" size={18} />
-            </span>
-            <span className="login-choice__body">
-              <strong>ورود به حساب قبلی</strong>
-              <span>
-                {known.length > 0
-                  ? `${known.length.toLocaleString('fa-IR')} حساب در این مرورگر`
-                  : 'هنوز حسابی در این مرورگر ثبت نشده است'}
-              </span>
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="login-choice__card"
-            onClick={() => begin(null)}
-          >
-            <span className="login-choice__icon" aria-hidden="true">
-              <Icon name="plus" size={18} />
-            </span>
-            <span className="login-choice__body">
-              <strong>تأیید از داخل ربات</strong>
-              <span>سریع‌ترین راه، وقتی همین حساب در اپ تلگرام فعال است.</span>
             </span>
           </button>
         </div>
 
         <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)', lineHeight: 1.9 }}>
-          «شماره موبایل» برای هر حسابی کار می‌کند و اگر حساب جدیدی باشد، خودکار ساخته می‌شود.
-          «تأیید از داخل ربات» فقط با حسابی که در اپ تلگرام باز است کار می‌کند.
+          اگر قبلاً با حساب دیگری وارد شده‌اید و می‌خواهید حساب را عوض کنید، در تلگرام اتصال این
+          سایت را قطع کنید؛ راهنمای مرحله‌به‌مرحله پس از ورود در بخش پروفایل آمده است.
         </p>
       </div>
     );
@@ -459,11 +457,11 @@ export function LoginFlow() {
         </a>
 
         {startToken ? (
-          <div className="start-code">
+          <details className="start-code">
+            <summary className="start-code__summary">ورود با حساب تلگرام دیگر</summary>
             <p className="start-code__hint">
-              می‌خواهید با <strong>حساب دیگری</strong> وارد شوید؟ لینک بالا همیشه حساب فعال تلگرام
-              را باز می‌کند. در تلگرام به حساب مورد نظر بروید، ربات آراسند را باز کنید و این دستور
-              را بفرستید:
+              لینک بالا حساب فعال تلگرام را باز می‌کند. اگر می‌خواهید با حساب دیگری وارد شوید، در
+              تلگرام به آن حساب بروید، ربات آراسند را باز کنید و این دستور را بفرستید:
             </p>
             <code className="start-code__value ltr">/start {startToken}</code>
             <button
@@ -481,7 +479,7 @@ export function LoginFlow() {
               <Icon name="file" size={14} />
               کپی دستور
             </button>
-          </div>
+          </details>
         ) : null}
 
         <div
