@@ -188,7 +188,7 @@ export function LoginFlow() {
    * ورود با شماره موبایل (OAuth تلگرام).
    * ⚠️ برای هر حسابی کار می‌کند، حتی اگر روی این دستگاه وارد نشده باشد.
    */
-  const startOAuth = useCallback(async () => {
+  const startOAuth = useCallback(async (switchAccount = false) => {
     setOauthLoading(true);
     setMessage(null);
 
@@ -198,13 +198,13 @@ export function LoginFlow() {
       );
 
       if (!config.botId) {
-        setMessage('ورود با شماره موبایل هنوز پیکربندی نشده است. از «تأیید از داخل ربات» استفاده کنید.');
+        setMessage('ورود با شماره موبایل هنوز پیکربندی نشده است. از دکمه‌ی «ورود با تلگرام» استفاده کنید.');
         setOauthLoading(false);
         return;
       }
 
       const returnTo = `${window.location.origin}${window.location.pathname}`;
-      window.location.href = buildTelegramOAuthUrl(config.botId, returnTo);
+      window.location.href = buildTelegramOAuthUrl(config.botId, returnTo, { switchAccount });
     } catch (error) {
       setOauthLoading(false);
       setMessage(error instanceof ApiError ? error.message : 'شروع ورود ناموفق بود');
@@ -326,7 +326,7 @@ export function LoginFlow() {
           <button
             type="button"
             className="login-choice__card"
-            onClick={startOAuth}
+            onClick={() => startOAuth(false)}
             disabled={oauthLoading}
           >
             <span className="login-choice__icon" aria-hidden="true">
@@ -342,6 +342,16 @@ export function LoginFlow() {
             </span>
           </button>
         </div>
+
+        <button
+          type="button"
+          className="btn btn--ghost btn--sm"
+          onClick={() => startOAuth(true)}
+          disabled={oauthLoading}
+        >
+          <Icon name="refresh" size={14} />
+          ورود با حساب تلگرام دیگر
+        </button>
 
         <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)', lineHeight: 1.9 }}>
           اگر قبلاً با حساب دیگری وارد شده‌اید و می‌خواهید حساب را عوض کنید، در تلگرام اتصال این

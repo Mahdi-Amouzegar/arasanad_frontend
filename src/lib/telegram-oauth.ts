@@ -21,21 +21,34 @@ export interface TelegramCallbackPayload {
   photo_url?: string;
 }
 
-/** ساخت لینک OAuth. `logout=1` باعث می‌شود تلگرام همیشه شماره بپرسد. */
-export function buildTelegramOAuthUrl(botId: string, returnTo: string): string {
-  // ⚠️ `request_access=write` و `logout=1` هر دو لازم هستند:
-  //    - `logout=1` نشست قبلی تلگرام را پاک می‌کند
-  //    - `request_access=write` تلگرام را مجبور می‌کند اجازه را دوباره بپرسد؛
-  //      بدون آن، تلگرام بی‌صدا همان حساب قبلی را تأیید می‌کند و کاربر
-  //      امکان انتخاب حساب دیگر را ندارد.
-  //    این ترکیب، همان چیزی است که در پروژه‌ی مرجع کار می‌کرد.
+export interface OAuthOptions {
+  /**
+   * اجبار تلگرام به پرسیدن حساب.
+   *
+   * ⚠️ `request_access=write` + `logout=1` تلگرام را مجبور می‌کند اجازه را
+   *    دوباره بپرسد (پنجره‌ی accept/decline) — تنها راه تغییر حساب.
+   *    ولی همین پارامترها باعث می‌شوند هر بار آن پنجره دیده شود.
+   *    بدون آن‌ها: ورود بی‌صدا و بدون پنجره، ولی همیشه با حساب قبلی.
+   */
+  switchAccount?: boolean;
+}
+
+/** ساخت لینک OAuth. */
+export function buildTelegramOAuthUrl(
+  botId: string,
+  returnTo: string,
+  { switchAccount = false }: OAuthOptions = {},
+): string {
   const params = new URLSearchParams({
     bot_id: botId,
     origin: window.location.origin,
     return_to: returnTo,
-    request_access: 'write',
-    logout: '1',
   });
+
+  if (switchAccount) {
+    params.set('request_access', 'write');
+    params.set('logout', '1');
+  }
 
   return `${OAUTH_URL}?${params.toString()}`;
 }

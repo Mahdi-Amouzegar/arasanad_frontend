@@ -7,6 +7,7 @@ import { AccountMenu } from './AccountMenu';
 import { Icon } from '@/components/ui/Icon';
 import { PUBLIC_NAV } from '@/lib/navigation';
 import { BRAND } from '@/content/site';
+import { useAdminTelegram } from '@/lib/site-config';
 
 /**
  * ستون کنار راست صفحات عمومی.
@@ -14,6 +15,7 @@ import { BRAND } from '@/content/site';
  */
 export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const adminTelegram = useAdminTelegram(BRAND.adminTelegram);
 
   const isActive = (href: string): boolean => {
     if (href === '/') return pathname === '/' || pathname === '';
@@ -44,8 +46,8 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
       <div className="public-side__foot">
         <p>{BRAND.hours}</p>
         <p style={{ marginTop: 4 }}>
-          <a href="https://t.me/Mehdi_Amouz" className="public-side__tel">
-            تلگرام: <span className="ltr">@Mehdi_Amouz</span>
+          <a href={`https://t.me/${adminTelegram}`} className="public-side__tel">
+            تلگرام: <span className="ltr">@{adminTelegram}</span>
           </a>
         </p>
       </div>
