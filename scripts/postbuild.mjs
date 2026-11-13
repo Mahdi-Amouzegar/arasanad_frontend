@@ -1,26 +1,34 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // postbuild.mjs — بررسی و تکمیل خروجی استاتیک
 //
-// این اسکریپت پس از `next build` اجرا می‌شود و سه کار انجام می‌دهد:
-//   ۱. اطمینان از وجود .nojekyll (بدون آن، GitHub Pages پوشه‌ی _next را نادیده می‌گیرد)
-//   ۲. تولید sitemap.xml با آدرس‌های کامل
-//   ۳. جلوگیری از انتشار فایل‌های داخلی (هر *.md یا پوشه‌ی docs / _legacy)
+// پس از `next build` اجرا میشود و:
+//   ۱. اطمینان از وجود .nojekyll (بدون آن GitHub Pages پوشهی _next را نادیده میگیرد)
+//   ۲. جلوگیری از انتشار فایلهای داخلی (*.md و پوشههای ممنوع)
+//   ۳. بررسی مسیر داراییها و manifest/favicon
+//   ۴. بررسی اینکه هیچ پیشوند قدیمی /arasanad_frontend/ و هیچ آدرس
+//      قدیمی workers.dev / github.io در خروجی نمانده باشد
+//   ۵. تولید sitemap.xml و robots.txt با مبدأ دامنهی اختصاصی
 //
-// اگر یکی از بررسی‌ها شکست بخورد، فرآیند Build با خطا متوقف می‌شود.
+// ⚠️ دامنهی اختصاصی `https://arasanad.ir` از ریشه سرو میشود، پس BASE_PATH
+//    خالی است. گارد زیر عمداً سختگیر است تا خطای 404 منابع یا تزریق
+//    Repository Variable قدیمی، بیلد را بیصدا عبور نکند.
 // ═══════════════════════════════════════════════════════════════════════════
 
-import { access, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
-import { join, relative, sep } from 'node:path';
+import { access, readdir, readFile, writeFile } from 'node:fs/promises';
+import { extname, join, relative, sep } from 'node:path';
 
 const OUT_DIR = 'out';
-const SITE_URL = 'https://mahdi-amouzegar.github.io';
-const BASE_PATH = '/arasanad_frontend';
+const SITE_URL = 'https://arasanad.ir';
+const BASE_PATH = '';
 
-/** مسیرهای عمومی سایت. با افزودن صفحه‌ی جدید، اینجا اضافه شود. */
+/** فقط صفحات عمومی و ایندکسپذیر؛ `/panel` و `/admin` و `/dev` عمداً حذف شدهاند. */
 const ROUTES = [
   '/',
+  '/services/',
   '/pricing/',
   '/portfolio/',
+  '/faq/',
+  '/start/',
   '/about/',
   '/contact/',
   '/login/',
@@ -32,10 +40,19 @@ const ROUTES = [
 /** الگوهایی که نباید در خروجی نهایی باشند. */
 const FORBIDDEN = [
   { test: (p) => p.endsWith('.md'), label: 'فایل Markdown' },
-  { test: (p) => p.split(sep).includes('docs'), label: 'پوشه‌ی docs' },
-  { test: (p) => p.split(sep).includes('_legacy'), label: 'پوشه‌ی _legacy' },
-  { test: (p) => p.split(sep).includes('backup'), label: 'پوشه‌ی backup' },
+  { test: (p) => p.split(sep).includes('docs'), label: 'پوشهی docs' },
+  { test: (p) => p.split(sep).includes('_legacy'), label: 'پوشهی _legacy' },
+  { test: (p) => p.split(sep).includes('backup'), label: 'پوشهی backup' },
 ];
+
+/** رشتههای ممنوع در خروجی متنی — نشانهی استقرار نادرست یا تنظیم قدیمی. */
+const LEGACY_STRINGS = [
+  { needle: '/arasanad_frontend/', label: 'پیشوند قدیمی basePath' },
+  { needle: 'arasanad-api.arasanad-for-type.workers.dev', label: 'آدرس قدیمی Worker (workers.dev)' },
+  { needle: 'mahdi-amouzegar.github.io', label: 'مبدأ قدیمی GitHub Pages' },
+];
+
+const TEXT_EXTENSIONS = new Set(['.html', '.js', '.css', '.json', '.xml', '.txt', '.webmanifest']);
 
 const failures = [];
 
@@ -65,14 +82,14 @@ async function exists(path) {
 
 // ─── ۱. بررسی وجود خروجی ───
 if (!(await exists(OUT_DIR))) {
-  console.error(`[postbuild] ✗ پوشه‌ی ${OUT_DIR} وجود ندارد. آیا next build اجرا شد؟`);
+  console.error(`[postbuild] ✗ پوشهی ${OUT_DIR} وجود ندارد. آیا next build اجرا شد؟`);
   process.exit(1);
 }
 if (!(await exists(join(OUT_DIR, 'index.html')))) {
   failures.push('out/index.html ساخته نشده است');
 }
 
-// ─── ۲. جلوگیری از انتشار فایل‌های داخلی ───
+// ─── ۲. جلوگیری از انتشار فایلهای داخلی ───
 const files = await walk(OUT_DIR);
 for (const file of files) {
   const rel = relative(OUT_DIR, file);
@@ -90,22 +107,24 @@ if (!(await exists(nojekyll))) {
   console.log('[postbuild] .nojekyll ساخته شد');
 }
 
-// ─── ۴. بررسی مسیر پایه در HTML ───
+// ─── ۴. بررسی مسیر داراییها ───
 const homeHtml = await readFile(join(OUT_DIR, 'index.html'), 'utf8');
-if (!homeHtml.includes(`${BASE_PATH}/_next/`)) {
+const assetPrefix = `${BASE_PATH}/_next/`; // '/_next/'
+
+if (!homeHtml.includes(assetPrefix)) {
   failures.push(
-    `مسیر دارایی‌ها در out/index.html شامل "${BASE_PATH}/_next/" نیست؛ basePath درست اعمال نشده است`
+    `مسیر داراییها در out/index.html شامل "${assetPrefix}" نیست؛ خروجی از ریشه ساخته نشده است`,
   );
 }
-if (homeHtml.includes(`${BASE_PATH}${BASE_PATH}`)) {
+if (BASE_PATH && homeHtml.includes(`${BASE_PATH}${BASE_PATH}`)) {
   failures.push('basePath دو بار اعمال شده است (مسیر تکراری در HTML)');
 }
 
-// ⚠️ Next مسیر basePath را برای metadata (manifest و icons) اعمال نمی‌کند.
-//    بدون این بررسی، آدرس‌ها بی‌صدا ۴۰۴ می‌دهند.
+// ⚠️ Next مسیر basePath را برای metadata (manifest و icons) اعمال نمیکند؛
+//    `asset()` در layout مسئول ساخت آنهاست.
 for (const required of ['manifest.webmanifest', 'favicon.svg']) {
   if (!homeHtml.includes(`${BASE_PATH}/${required}`)) {
-    failures.push(`مسیر ${required} بدون basePath است (باید با asset() ساخته شود)`);
+    failures.push(`مسیر ${required} نادرست است (باید با asset() ساخته شود)`);
   }
 }
 
@@ -124,14 +143,41 @@ ${urls}
 await writeFile(join(OUT_DIR, 'sitemap.xml'), sitemap, 'utf8');
 
 // ─── ۶. robots.txt ───
-// ⚠️ روی GitHub Pages با Project Site، robots.txt در ریشه‌ی دامنه قابل سرو نیست
-//    و فقط زیر مسیر مخزن در دسترس است. تا اتصال دامنه‌ی اختصاصی، اثر محدودی دارد.
+// دامنهی اختصاصی از ریشه سرو میشود، پس robots.txt و sitemap در جای درستاند.
 const robots = `User-agent: *
 Allow: /
 
 Sitemap: ${SITE_URL}${BASE_PATH}/sitemap.xml
 `;
 await writeFile(join(OUT_DIR, 'robots.txt'), robots, 'utf8');
+
+// ─── ۷. پویش تمام فایلهای متنی برای رشتههای قدیمی ───
+const outputFiles = await walk(OUT_DIR);
+const legacyHits = new Map();
+for (const file of outputFiles) {
+  if (!TEXT_EXTENSIONS.has(extname(file))) continue;
+  let text;
+  try {
+    text = await readFile(file, 'utf8');
+  } catch {
+    continue;
+  }
+  for (const rule of LEGACY_STRINGS) {
+    if (text.includes(rule.needle)) {
+      const rel = relative(OUT_DIR, file);
+      if (!legacyHits.has(rule.label)) legacyHits.set(rule.label, []);
+      legacyHits.get(rule.label).push(rel);
+    }
+  }
+}
+
+for (const [label, paths] of legacyHits) {
+  const preview = paths.slice(0, 3).join(', ');
+  failures.push(
+    `${label} در ${paths.length} فایل خروجی باقی مانده است (${preview}). ` +
+      `اگر مربوط به API است، نشانی قدیمی از طریق NEXT_PUBLIC_API_BASE_URL در محیط بیلد تزریق شده؛ آنرا حذف یا اصلاح کنید.`,
+  );
+}
 
 // ─── نتیجه ───
 if (failures.length > 0) {
@@ -145,9 +191,11 @@ const pages = files.filter((f) => f.endsWith('.html')).length;
 const assets = files.filter((f) => !f.endsWith('.html') && !f.endsWith(sep)).length;
 
 console.log('\n[postbuild] ✓ خروجی استاتیک سالم است');
-console.log(`  صفحه‌های HTML : ${pages}`);
-console.log(`  دارایی‌ها      : ${assets}`);
-console.log(`  مسیر پایه     : ${BASE_PATH}`);
+console.log(`  صفحههای HTML : ${pages}`);
+console.log(`  داراییها      : ${assets}`);
+console.log(`  مسیر پایه     : ${BASE_PATH || '/ (ریشهی دامنه)'}`);
+console.log(`  مبدأ          : ${SITE_URL}`);
 console.log(`  sitemap       : ${ROUTES.length} مسیر`);
 console.log('  .nojekyll     : موجود');
+console.log('  رشتهی قدیمی  : هیچ');
 console.log('  فایل داخلی    : هیچ\n');

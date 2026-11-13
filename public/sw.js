@@ -5,8 +5,11 @@
    ⚠️ این فایل در `public/` است و بدون باندل شدن، عیناً منتشر می‌شود.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-const VERSION = 'arasanad-v1';
-const BASE = '/arasanad_frontend';
+// ⚠️ نسخه هنگام تغییر مسیر پایه بالا رفت تا کش پوستهی قدیمی
+//    (با مسیرپایهی مخزن قدیمی) در activate پاک شود و HTML کهنه نماند.
+const VERSION = 'arasanad-v2';
+// دامنهی اختصاصی از ریشه سرو میشود؛ مسیر پایه خالی است.
+const BASE = '';
 const SHELL = `${BASE}/`;
 
 self.addEventListener('install', (event) => {

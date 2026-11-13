@@ -2,130 +2,186 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public/PublicLayout';
 import { SectionHeading } from '@/components/public/SectionHeading';
+import { HeroPanelMock } from '@/components/public/HeroPanelMock';
 import { Icon } from '@/components/ui/Icon';
-import { asset } from '@/lib/config';
+import { Badge } from '@/components/ui/Badge';
+import { Money } from '@/components/ui/Money';
+import { SERVICE_TYPES } from '@/content/catalog';
 import {
   BENEFITS,
   BRAND,
   FAQ,
   QUALITY_ITEMS,
   SERVICES,
+  SERVICE_GROUPS,
   STATS,
   STEPS,
+  TESTIMONIAL_NOTE,
   TESTIMONIALS,
 } from '@/content/site';
+import { asset } from '@/lib/config';
 
 export const metadata: Metadata = {
-  title: 'خدمات تخصصی تایپ، ویرایش و آماده‌سازی اسناد',
+  title: 'خدمات تخصصی تایپ، ویرایش و آمادهسازی اسناد',
   description:
-    'آراسند خدمات تایپ تخصصی، ویرایش، صفحه‌آرایی، فرمول‌نویسی و آماده‌سازی حرفه‌ای اسناد دانشگاهی، اداری و تجاری را با سرعت و دقت بالا ارائه می‌دهد.',
+    'آراسند خدمات تایپ تخصصی، ویرایش، صفحهآرایی، فرمولنویسی و آمادهسازی حرفهای اسناد دانشگاهی، اداری و تجاری را با سرعت و دقت بالا ارائه میدهد.',
   alternates: { canonical: '/' },
 };
+
+const BASE_PRICE = Math.min(...SERVICE_TYPES.map((service) => service.pricePerPage));
+const STEP_NUMBERS = ['۱', '۲', '۳', '۴'] as const;
 
 export default function HomePage() {
   return (
     <PublicLayout>
-      {/* ─── هیرو ─── */}
+      {/* ─── هیرو: متن/CTA بالا، ماکت محصول پایین ─── */}
       <section className="hero">
         <div className="hero__grid">
-          <div>
-            <span className="eyebrow">سرویس تایپ و آماده‌سازی سند</span>
+          <div className="hero__copy">
+            <span className="eyebrow">سرویس تایپ و آمادهسازی سند</span>
             <h1 className="hero__title">آراستن اسناد شما، با دقت و اطمینان</h1>
             <p className="hero__desc">
-              از تایپ دست‌نویس و فرمول‌نویسی تا قالب‌بندی پایان‌نامه مطابق آیین‌نامه‌ی دانشگاه؛
-              سند شما با کیفیت تحویل، در زمان مقرر و با محرمانگی کامل آماده می‌شود.
+              از تایپ دستنویس و فرمولنویسی تا قالببندی پایاننامه مطابق آییننامهی دانشگاه؛
+              سند شما با کیفیت تحویل، در زمان مقرر و با محرمانگی کامل آماده میشود.
             </p>
             <div className="hero__actions">
-              <Link href="/pricing/" className="btn btn--primary btn--lg">
-                مشاهده‌ی نرخ‌نامه
+              <Link href="/start/" className="btn btn--primary btn--lg">
+                <Icon name="plus" size={18} />
+                شروع سفارش
               </Link>
-              <Link href="/portfolio/" className="btn btn--outline btn--lg">
-                نمونه‌کارها
+              <Link href="/pricing/" className="btn btn--outline btn--lg">
+                مشاهدهی نرخنامه
               </Link>
             </div>
+            <p className="hero__micro">
+              <Icon name="shield" size={15} />
+              محرمانگی کامل · برآورد هزینه پیش از شروع کار
+            </p>
           </div>
 
           <div className="hero__media">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={asset("/images/site/hero.avif")}
-              alt="کار با دقت روی اسناد و متون"
-              className="hero__photo"
-              width={800}
-              height={600}
-              loading="eager"
-            />
+            <HeroPanelMock />
+            {/* نشان داخل کادر؛ عدد تکراری آمار حذف شد (تصمیم شماره ۶) */}
             <div className="hero__badge">
-              بیش از ۸٬۰۰۰ پروژه‌ی موفق
-              <span>با رتبه‌ی ۷ در سامانه‌ی TypeIran</span>
+              <Icon name="shield" size={16} />
+              <span>
+                <strong>محرمانگی کامل</strong>
+                <span>بازبینی نهایی پیش از تحویل</span>
+              </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── خدمات ─── */}
-      <section className="section" id="services">
+      {/* ─── خدمات: ۳ گروه + ۱ کارت ویژه با نرخ، بهجای ۱۲ کارت همشکل ─── */}
+      <section className="section section--alt" id="services">
         <SectionHeading
           eyebrow="خدمات ما"
-          title="هر سندی که در ذهن دارید، آماده‌ی تحویل است"
-          description="از یک نامه‌ی اداری کوتاه تا پایان‌نامه‌ی چند صد صفحه‌ای؛ هر خدمت با تعرفه‌ی مشخص و زمان تحویل روشن."
+          title="هر سندی که در ذهن دارید، آمادهی تحویل است"
+          description="دوازده خدمت در سه گروه. نرخ هر خدمت مشخص است و پیش از شروع کار تأیید میشود."
           actions={
-            <Link href="/pricing/" className="btn btn--outline btn--sm">
-              نرخ هر خدمت
+            <Link href="/services/" className="btn btn--outline btn--sm">
+              همهی خدمات
             </Link>
           }
         />
-        <div className="services-grid">
-          {SERVICES.map((service) => (
-            <article className="service-card" key={service.title}>
-              <span className="service-card__icon" aria-hidden="true">
-                <Icon name={service.icon} size={20} />
+
+        <div className="service-groups">
+          {SERVICE_GROUPS.map((group) => (
+            <article className="service-group" key={group.title}>
+              <span className="service-group__icon" aria-hidden="true">
+                <Icon name={group.icon} size={22} />
               </span>
-              <h3 className="service-card__title">{service.title}</h3>
-              <p className="service-card__desc">{service.description}</p>
+              <h3 className="service-group__title">{group.title}</h3>
+              <p className="service-group__desc">{group.description}</p>
+              <ul className="service-group__list">
+                {group.items.map((title) => {
+                  const service = SERVICES.find((item) => item.title === title);
+                  return (
+                    <li key={title}>
+                      <Icon name={service?.icon ?? 'check'} size={14} />
+                      <span>{title}</span>
+                    </li>
+                  );
+                })}
+              </ul>
             </article>
           ))}
+
+          <article className="service-feature">
+            <Badge tone="primary">
+              <Icon name="sparkles" size={13} />
+              پرطرفدارترین
+            </Badge>
+            <h3 className="service-feature__title">قالببندی پایاننامه</h3>
+            <p className="service-feature__desc">
+              از جلد و فهرست تا منابع و پیوستها، دقیقاً مطابق آییننامهی دانشگاه شما.
+            </p>
+            <div className="service-feature__price">
+              <span>نرخ پایه از</span>
+              <strong>
+                <Money value={BASE_PRICE} /> / صفحه
+              </strong>
+            </div>
+            <Link href="/pricing/" className="btn btn--secondary btn--sm btn--block">
+              دیدن نرخ کامل
+            </Link>
+          </article>
         </div>
       </section>
 
-      {/* ─── مراحل سفارش ─── */}
+      {/* ─── مراحل: timeline بهجای ۴ کارت همشکل ─── */}
       <section className="section" id="how">
         <SectionHeading
           eyebrow="نحوه سفارش"
           title="چهار قدم تا دریافت فایل نهایی"
-          description="همه‌ی مراحل از پنل کاربری قابل پیگیری است و در هر مرحله اعلان دریافت می‌کنید."
+          description="همهی مراحل از پنل کاربری قابل پیگیری است و در هر مرحله اعلان دریافت میکنید."
+          actions={
+            <Link href="/start/" className="btn btn--primary btn--sm">
+              شروع سفارش
+            </Link>
+          }
         />
-        <ol className="steps-grid">
+        <ol className="steps-timeline">
           {STEPS.map((step, index) => (
-            <li className="step" key={step.title}>
-              <span className="step__num" aria-hidden="true">
-                {['۱', '۲', '۳', '۴'][index]}
+            <li className="steps-timeline__item" key={step.title}>
+              <span className="steps-timeline__marker" aria-hidden="true">
+                {STEP_NUMBERS[index]}
               </span>
-              <h3 className="step__title">{step.title}</h3>
-              <p className="step__desc">{step.description}</p>
+              <div className="steps-timeline__card">
+                <span className="steps-timeline__icon" aria-hidden="true">
+                  <Icon name={step.icon} size={18} />
+                </span>
+                <h3>{step.title}</h3>
+                <p>{step.description}</p>
+              </div>
             </li>
           ))}
         </ol>
       </section>
 
-      {/* ─── مزیت‌ها ─── */}
-      <section className="section">
+      {/* ─── مزیتها: لنگر بصری بهجای عکس استاک دوم ─── */}
+      <section className="section section--alt">
         <div className="split">
-          <div className="split__media">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={asset("/images/site/why-us.avif")}
-              alt="بررسی و آماده‌سازی اسناد در آراسند"
-              loading="lazy"
-              width={800}
-              height={600}
-            />
+          <div className="benefit-anchor">
+            <span className="benefit-anchor__icon" aria-hidden="true">
+              <Icon name="clock" size={26} />
+            </span>
+            <p className="benefit-anchor__lead">مهلت تحویل، از لحظهی پرداخت بیعانه</p>
+            <p className="benefit-anchor__desc">
+              زمانبندی شفاف، قابل پیگیری در پنل و همراه با اعلان در هر مرحله.
+              تأخیر نقطهای نیست که بخواهیم پنهانش کنیم.
+            </p>
+            <Link href="/faq/" className="benefit-anchor__link">
+              پرسشهای متداول دربارهی زمان و هزینه
+              <Icon name="chevronDown" size={15} />
+            </Link>
           </div>
           <div>
             <SectionHeading
               eyebrow="مزایای ما"
               title="چرا آراسند را انتخاب کنید؟"
-              description="چون فقط تایپ نمی‌کنیم؛ سند را برای ارائه، داوری یا بایگانی آماده می‌کنیم."
+              description="چون فقط تایپ نمیکنیم؛ سند را برای ارائه، داوری یا بایگانی آماده میکنیم."
             />
             <div className="benefits">
               {BENEFITS.map((benefit) => (
@@ -156,14 +212,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── محرمانگی ─── */}
-      <section className="section">
+      {/* ─── محرمانگی: تنها عکس باقیمانده ─── */}
+      <section className="section section--alt">
         <div className="split">
           <div>
             <SectionHeading
               eyebrow="محرمانگی"
               title="اطلاعات شما نزد ما امن است"
-              description="بسیاری از اسناد — به‌ویژه پایان‌نامه و پروژه‌های تحقیقاتی — پیش از انتشار رسمی باید محرمانه بمانند. آراسند متعهد است محتوای هیچ سندی را با شخص یا نهاد ثالثی به اشتراک نگذارد."
+              description="بسیاری از اسناد — بهویژه پایاننامه و پروژههای تحقیقاتی — پیش از انتشار رسمی باید محرمانه بمانند. آراسند متعهد است محتوای هیچ سندی را با شخص یا نهاد ثالثی به اشتراک نگذارد."
             />
             <ul className="benefits">
               {QUALITY_ITEMS.map((item) => (
@@ -181,7 +237,7 @@ export default function HomePage() {
           <div className="split__media">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={asset("/images/site/confidentiality.avif")}
+              src={asset('/images/site/confidentiality.avif')}
               alt="محیط کاری امن برای ویرایش اسناد شما"
               loading="lazy"
               width={800}
@@ -191,31 +247,41 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── نظرات ─── */}
+      {/* ─── نظرات: آیکن ستاره + یادداشت حریم خصوصی ─── */}
       <section className="section">
         <SectionHeading
           eyebrow="نظر مشتریان"
           title="چند نظر از کسانی که سندشان را سپردند"
-          align="center"
+          description={TESTIMONIAL_NOTE}
         />
         <div className="quotes-grid">
           {TESTIMONIALS.slice(0, 3).map((text) => (
             <figure className="quote-card" key={text.slice(0, 24)}>
-              <span className="quote-card__stars" aria-label="پنج ستاره">
-                ★★★★★
+              <span className="quote-card__stars" aria-label="پنج ستاره از پنج">
+                {[0, 1, 2, 3, 4].map((star) => (
+                  <Icon key={star} name="star" size={15} />
+                ))}
               </span>
               <blockquote className="quote-card__text">«{text}»</blockquote>
-              <figcaption className="quote-card__meta">کاربر TypeIran</figcaption>
+              <figcaption className="quote-card__meta">بدون درج نام، به احترام حریم خصوصی</figcaption>
             </figure>
           ))}
         </div>
       </section>
 
-      {/* ─── پرسش‌های متداول ─── */}
-      <section className="section">
-        <SectionHeading eyebrow="پرسش‌های متداول" title="چیزهایی که بیشتر پرسیده می‌شود" />
+      {/* ─── پرسشهای متداول ─── */}
+      <section className="section section--alt">
+        <SectionHeading
+          eyebrow="پرسشهای متداول"
+          title="چیزهایی که بیشتر پرسیده میشود"
+          actions={
+            <Link href="/faq/" className="btn btn--outline btn--sm">
+              همهی پرسشها
+            </Link>
+          }
+        />
         <div className="faq-list">
-          {FAQ.map((item) => (
+          {FAQ.slice(0, 4).map((item) => (
             <details className="faq-item" key={item.question}>
               <summary>{item.question}</summary>
               <p>{item.answer}</p>
@@ -228,15 +294,15 @@ export default function HomePage() {
       <section className="section section--tight">
         <div className="cta-band">
           <div>
-            <h2>آماده‌اید سند خود را بسپارید؟</h2>
-            <p>نرخ را ببینید، سفارش را ثبت کنید و بقیه را به ما بسپارید.</p>
+            <h2>آمادهاید سند خود را بسپارید؟</h2>
+            <p>نوع خدمت را انتخاب کنید، برآورد بگیرید و بقیه را به ما بسپارید.</p>
           </div>
           <div className="row">
             <Link href="/pricing/" className="btn btn--outline">
-              نرخ‌نامه
+              نرخنامه
             </Link>
-            <Link href="/contact/" className="btn btn--primary">
-              ارتباط با ما
+            <Link href="/start/" className="btn btn--primary">
+              شروع سفارش
             </Link>
           </div>
         </div>

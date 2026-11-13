@@ -1,20 +1,23 @@
 /**
  * لایه‌ی ارتباط با API.
  *
- * ⚠️ آدرس پایه از متغیر محیطی خوانده می‌شود تا با تغییر دامنه، فقط تنظیم عوض شود:
- *    `NEXT_PUBLIC_API_BASE_URL` → در GitHub Actions به‌صورت Repository Variable
- *
- * ⚠️ چون `workers.dev` در ایران مسدود است، مقدار پیش‌فرض فقط برای توسعه است.
- *    پس از اتصال دامنه، مقدار را به `https://api.arasanad.ir/api/v1` تغییر دهید.
+ * ⚠️ آدرس پیشفرض فقط در یک نقطه تعریف میشود: `DEFAULT_API_BASE_URL`
+ *    در `src/lib/config.ts` (= `https://api.arasanad.ir/api/v1`).
+ * ⚠️ `NEXT_PUBLIC_API_BASE_URL` فقط پوشش اختیاری است (مثلاً استقرار آزمایشی)
+ *    و در workflow استقرار عمداً تزریق نمیشود؛ بنابراین همیشه مرجع بالا
+ *    استفاده میشود. گارد `postbuild.mjs` هر نشانی قدیمی تزریقشده را در
+ *    خروجی شناسایی و بیلد را با پیام روشن متوقف میکند.
  */
 
-const DEFAULT_BASE = 'https://arasanad-api.arasanad-for-type.workers.dev/api/v1';
+import { DEFAULT_API_BASE_URL } from './config';
+
+const DEFAULT_BASE = DEFAULT_API_BASE_URL;
 
 /**
- * ⚠️ از `||` استفاده می‌شود، نه `??`:
- *    در GitHub Actions متغیر تعریف‌نشده به‌صورت رشته‌ی خالی تزریق می‌شود،
- *    و `??` رشته‌ی خالی را معتبر می‌داند — نتیجه: آدرس نسبی و درخواست
- *    به خود سایت گیت‌هاب (خطای ۴۰۵).
+ * ⚠️ شرط صریح «غیرخالی» لازم است، نه `??`:
+ *    برخی محیطها متغیر تعریفنشده را بهصورت رشتهی خالی تزریق میکنند و
+ *    `??` رشتهی خالی را معتبر میداند — نتیجه: آدرس نسبی و درخواست
+ *    به خود سایت (خطای ۴۰۵).
  */
 const RAW_BASE = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
 

@@ -11,10 +11,13 @@
     "build": "next build",
     "postbuild": "node scripts/postbuild.mjs",
     "typecheck": "tsc --noEmit",
+    "test": "node --test \"tests/*.test.mjs\"",
     "preview": "npx --yes serve out"
   },
   "dependencies": {
     "next": "^15.5.29",
+    "qr-scanner": "^1.4.2",
+    "qrcode-generator": "^2.0.4",
     "react": "19.1.1",
     "react-dom": "19.1.1"
   },

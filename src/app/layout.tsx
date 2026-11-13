@@ -11,10 +11,11 @@ import { AlertProvider } from '@/components/ui/AlertProvider';
 import { AuthProvider } from '@/lib/auth-context';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
 import { SITE_ORIGIN, BASE_PATH, asset } from '@/lib/config';
+import { THEME_INIT_SCRIPT } from '@/lib/theme';
 
 /**
  * آدرس پایه برای ساخت URLهای مطلق (OG و…).
- * ⚠️ باید با basePath در next.config.mjs هم‌خوان باشد.
+ * ⚠️ دامنهی اختصاصی از ریشه سرو میشود؛ basePath تعریف نشده است.
  */
 const SITE_URL = `${SITE_ORIGIN}${BASE_PATH}`;
 
@@ -32,7 +33,7 @@ export const metadata: Metadata = {
     locale: 'fa_IR',
     siteName: 'آراسند',
   },
-  // ⚠️ Next مسیر basePath را برای این فیلدها **اعمال نمی‌کند**؛
+  // ⚠️ این فیلدها مسیر نسبی لازم دارند و با `asset()` ساخته میشوند؛
   //    بدون asset() آدرس‌ها به ریشه‌ی دامنه اشاره می‌کنند و ۴۰۴ می‌دهند.
   manifest: asset('/manifest.webmanifest'),
   icons: {
@@ -50,6 +51,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fa" dir="rtl">
+      {/* اسکریپت بلاکینگ تم: پیش از اولین رنگآمیزی اجرا میشود تا پرش رنگ ندهد.
+          رشته ثابت و بدون ورودی کاربر است؛ هیچ دادهی پویایی تزریق نمیشود. */}
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
         <AlertProvider>
           <AuthProvider>{children}</AuthProvider>

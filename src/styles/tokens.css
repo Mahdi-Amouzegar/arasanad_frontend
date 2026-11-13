@@ -173,6 +173,19 @@
   color: var(--c-text);
 }
 
+/* ─── انتخاب دستی تم روی کل سند (فاز ۶ / design.md §3.7) ───
+   `light-dark()` بر اساس `color-scheme`ِ همان عنصر حل میشود؛ با اجبار
+   تکمقداری روی :root، تمام توکنها بدون دوبارهنویسی تغییر میکنند.
+   `data-theme` توسط اسکریپت بلاکینگِ <head> و `src/lib/theme.ts` ست میشود. */
+:root[data-theme='light'] {
+  color-scheme: light;
+  color: var(--c-text);
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  color: var(--c-text);
+}
+
 /* ─── کاهش حرکت: خاموشی کامل انیمیشن‌ها ─── */
 @media (prefers-reduced-motion: reduce) {
   :root {

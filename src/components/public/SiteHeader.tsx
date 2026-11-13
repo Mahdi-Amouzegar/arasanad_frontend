@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Logo } from './Logo';
 import { SiteSidebar } from './SiteSidebar';
 import { Icon } from '@/components/ui/Icon';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 /**
  * نوار بالای صفحات عمومی — فقط در موبایل دیده می‌شود.
@@ -34,16 +35,19 @@ export function SiteHeader() {
     <>
       <header className="public-topbar">
         <Logo />
-        <button
-          type="button"
-          className="btn btn--ghost btn--icon"
-          aria-label="باز کردن منو"
-          aria-expanded={open}
-          aria-controls="public-drawer"
-          onClick={() => setOpen(true)}
-        >
-          <Icon name="menu" size={20} />
-        </button>
+        <div className="public-topbar__actions">
+          <ThemeToggle variant="compact" />
+          <button
+            type="button"
+            className="btn btn--ghost btn--icon"
+            aria-label="باز کردن منو"
+            aria-expanded={open}
+            aria-controls="public-drawer"
+            onClick={() => setOpen(true)}
+          >
+            <Icon name="menu" size={20} />
+          </button>
+        </div>
       </header>
 
       {open ? (

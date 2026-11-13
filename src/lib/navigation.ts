@@ -69,10 +69,30 @@ export const PUBLIC_NAV: NavGroup[] = [
   {
     items: [
       { href: '/', label: 'صفحه اصلی', icon: 'activity' },
+      { href: '/services/', label: 'خدمات', icon: 'sparkles' },
       { href: '/pricing/', label: 'نرخ‌نامه', icon: 'receipt' },
       { href: '/portfolio/', label: 'نمونه‌کارها', icon: 'package' },
+      { href: '/faq/', label: 'پرسش‌های متداول', icon: 'message' },
       { href: '/about/', label: 'درباره ما', icon: 'user' },
       { href: '/contact/', label: 'تماس با ما', icon: 'message' },
     ],
   },
+];
+
+/** لنگرهای درون صفحه‌ی اصلی — در ستون کنار راست، زیر ناوبری. */
+export const PUBLIC_ANCHORS: NavItem[] = [
+  { href: '/#services', label: 'خدمات ما', icon: 'sparkles' },
+  { href: '/#how', label: 'نحوهی سفارش', icon: 'clock' },
+];
+
+/**
+ * نوار پایین موبایل (design.md §4.6 — حداکثر ۵ آیتم).
+ * «شروع سفارش» آیتم میانی و برجسته است؛ بقیهی صفحات از Drawer در دسترساند.
+ */
+export const PUBLIC_MOBILE_NAV: NavItem[] = [
+  { href: '/', label: 'خانه', icon: 'activity' },
+  { href: '/pricing/', label: 'نرخ‌نامه', icon: 'receipt' },
+  { href: '/start/', label: 'شروع سفارش', icon: 'plus' },
+  { href: '/contact/', label: 'تماس', icon: 'message' },
+  { href: '/login/', label: 'ورود', icon: 'user' },
 ];

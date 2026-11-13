@@ -48,7 +48,20 @@ export type IconName =
   | 'search'
   | 'plus'
   | 'menu'
-  | 'chevronDown';
+  | 'chevronDown'
+  /* ورود و کد یکبارمصرف / QR */
+  | 'key'
+  | 'copy'
+  | 'qr'
+  | 'camera'
+  /* تم */
+  | 'sun'
+  | 'moon'
+  | 'monitor'
+  /* صفحات عمومی */
+  | 'star'
+  | 'shield'
+  | 'sparkles';
 
 const PATHS: Record<IconName, string> = {
   /* ─── پیش‌نویس و ویرایش ─── */
@@ -95,6 +108,21 @@ const PATHS: Record<IconName, string> = {
   /* منوی همبرگری — سه خط افقی */
   menu: 'M4 7h16M4 12h16M4 17h16',
   chevronDown: 'm6 9 6 6 6-6',
+  /* کلید = کد یکبارمصرف (مفهومی جدا از قفل/رمز) */
+  key: 'M10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM10 14v7M10 17h3M10 20h2',
+  copy: 'M9 9h11v12H9zM5 15H4V3h11v2',
+  /* QR — سه مربع گوشه + ماژولهای پایین راست */
+  qr: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h3v3h-3zM18 18h3v3h-3zM14 18h2M18 14v2',
+  camera: 'M3 8h4l2-3h6l2 3h4v12H3zM12 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z',
+  /* تم */
+  sun: 'M12 5V3M12 21v-2M5 12H3M21 12h-2M6.3 6.3 4.9 4.9M19.1 19.1l-1.4-1.4M17.7 6.3l1.4-1.4M4.9 19.1l1.4-1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
+  moon: 'M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z',
+  monitor: 'M3 4h18v13H3zM8 21h8M12 17v4',
+  /* صفحات عمومی */
+  star: 'M12 3.5l2.7 5.5 6 .9-4.3 4.2 1 6-5.4-2.8-5.4 2.8 1-6L3.3 9.9l6-.9Z',
+  shield: 'M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6ZM9 12l2 2 4-4',
+  sparkles:
+    'M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6ZM18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8Z',
 };
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {

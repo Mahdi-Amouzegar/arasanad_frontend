@@ -6,8 +6,11 @@ import { Icon } from '@/components/ui/Icon';
 import { useAdminTelegram } from '@/lib/site-config';
 
 const PAGE_LINKS = [
+  { href: '/start/', label: 'شروع سفارش' },
+  { href: '/services/', label: 'خدمات' },
   { href: '/pricing/', label: 'نرخ‌نامه' },
   { href: '/portfolio/', label: 'نمونه‌کارها' },
+  { href: '/faq/', label: 'پرسش‌های متداول' },
   { href: '/about/', label: 'درباره ما' },
   { href: '/contact/', label: 'تماس با ما' },
   { href: '/terms/', label: 'قوانین و مقررات' },

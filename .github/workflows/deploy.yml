@@ -36,10 +36,11 @@ jobs:
 
       - name: Build
         run: npm run build
-        env:
-          # ⚠️ از Repository Variable خوانده می‌شود؛ اگر خالی باشد، مقدار
-          #    پیش‌فرض داخل src/lib/api.ts استفاده می‌شود.
-          NEXT_PUBLIC_API_BASE_URL: ${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+        # ⚠️ نشانی API فقط از src/lib/config.ts خوانده میشود. عمداً هیچ
+        #    Repository Variableای تزریق نمیشود تا یک مقدار قدیمی و پنهان
+        #    (workers.dev) بیصدا وارد باندل نشود. برای استقرار آزمایشی، یک
+        #    env صریح و بررسیشده همینجا اضافه کنید؛ گارد postbuild هر نشانی
+        #    قدیمی در خروجی را شناسایی و بیلد را متوقف میکند.
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

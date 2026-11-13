@@ -4,16 +4,23 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { useAuth, startBotLogin, checkBotStatus } from '@/lib/auth-context';
 import { ApiError } from '@/lib/api';
+import { readOtpCodeFromHash } from '@/lib/otp-qr.mjs';
+import { OtpLoginForm } from './OtpLoginForm';
 
 type Phase = 'idle' | 'starting' | 'waiting' | 'expired' | 'error';
+type Mode = 'choose' | 'telegram' | 'otp';
 
 const POLL_INTERVAL_MS = 2500;
 
 /**
- * ورود با تلگرام — یک مسیر، یک دکمه.
+ * انتخاب روش ورود: تلگرام (اصلی) یا کد یکبارمصرف (دستگاه بدون تلگرام).
+ *
+ * ⚠️ کد فقط روی نشست تلگرامی ساخته میشود؛ نشست حاصل از کد «مهمان» است
+ *    و اجازهی ساخت کد زنجیرهای، ویرایش پروفایل یا ابطال دستگاهها ندارد.
  *
  * ⚠️ چرا فقط لینک ربات؟
  *    ورود با شماره موبایل (OAuth) در تلگرام **دو** اجازه می‌ساخت:
@@ -27,6 +34,7 @@ export function LoginFlow() {
   const { showToast } = useAlert();
   const { signIn, user, loading } = useAuth();
 
+  const [mode, setMode] = useState<Mode>('choose');
   const [phase, setPhase] = useState<Phase>('idle');
   const [deepLink, setDeepLink] = useState<string | null>(null);
   const [loginId, setLoginId] = useState<string | null>(null);
@@ -49,6 +57,19 @@ export function LoginFlow() {
   }, []);
 
   useEffect(() => stopAll, [stopAll]);
+
+  // لینک QR مستقیماً وارد فرم کد میشود، بدون یک کلیک اضافه روی «انتخاب روش».
+  // fragment توسط خود OtpLoginForm خوانده و پاک میشود.
+  useEffect(() => {
+    if (readOtpCodeFromHash(window.location.hash)) setMode('otp');
+  }, []);
+
+  const backToChoice = useCallback(() => {
+    stopAll();
+    setPhase('idle');
+    setMessage(null);
+    setMode('choose');
+  }, [stopAll]);
 
   // کاربر واردشده به صفحه‌ی ورود دسترسی ندارد
   useEffect(() => {
@@ -119,10 +140,70 @@ export function LoginFlow() {
     };
   }, [phase, loginId, signIn, showToast, router, stopAll]);
 
+  // ⚠️ این حالت در HTML استاتیک هم رندر میشود (loading روی سرور true است).
+  //    نسخهی قبل «شما وارد شدهاید…» چاپ میکرد و پیش از hydration ادعای
+  //    نادرستی دربارهی وضعیت کاربر داشت؛ حالا فقط اسکلت خنثی است.
   if (loading || user) {
     return (
+      <div className="calc-card" aria-busy="true">
+        <p className="sr-only">در حال بارگذاری وضعیت حساب…</p>
+        <Skeleton height={18} width="45%" />
+        <Skeleton height={44} radius="12px" />
+        <Skeleton height={44} radius="12px" />
+      </div>
+    );
+  }
+
+  if (mode === 'otp') {
+    return <OtpLoginForm onBack={backToChoice} />;
+  }
+
+  if (mode === 'choose') {
+    return (
       <div className="calc-card">
-        <p style={{ fontWeight: 'var(--fw-semibold)' }}>شما وارد شده‌اید…</p>
+        <div>
+          <span className="eyebrow">ورود امن</span>
+          <h2 className="section-head__title">روش ورود را انتخاب کنید</h2>
+          <p className="login-lead">
+            بدون رمز عبور. بسته به اینکه روی این دستگاه به تلگرام دسترسی دارید یا نه،
+            یکی از دو مسیر زیر را انتخاب کنید.
+          </p>
+        </div>
+
+        <div className="login-choice">
+          <button
+            type="button"
+            className="login-choice__card login-choice__card--primary"
+            onClick={() => setMode('telegram')}
+          >
+            <span className="login-choice__icon" aria-hidden="true">
+              <Icon name="send" size={20} />
+            </span>
+            <span className="login-choice__body">
+              <strong>ورود با تلگرام</strong>
+              <span>روش اصلی؛ ربات را باز کنید و Start بزنید. تمام دسترسیها فعال است.</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className="login-choice__card"
+            onClick={() => setMode('otp')}
+          >
+            <span className="login-choice__icon" aria-hidden="true">
+              <Icon name="key" size={20} />
+            </span>
+            <span className="login-choice__body">
+              <strong>ورود با کد یکبارمصرف</strong>
+              <span>برای دستگاههای بدون تلگرام؛ کد را از پروفایل حساب خود بسازید.</span>
+            </span>
+          </button>
+        </div>
+
+        <p className="login-note">
+          ورود با کد به همان حساب اصلی متصل میشود، اما نشست مهمان است و نمیتواند
+          کد تازه بسازد، پروفایل را ویرایش کند یا دستگاهی را باطل کند.
+        </p>
       </div>
     );
   }
@@ -165,8 +246,8 @@ export function LoginFlow() {
           <Button variant="ghost" size="sm" onClick={begin}>
             لینک تازه
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => setPhase('idle')}>
-            انصراف
+          <Button variant="ghost" size="sm" onClick={backToChoice}>
+            بازگشت
           </Button>
         </div>
       </div>
@@ -182,6 +263,9 @@ export function LoginFlow() {
         </p>
         <Button block onClick={begin}>
           ساخت لینک تازه
+        </Button>
+        <Button variant="ghost" size="sm" onClick={backToChoice}>
+          بازگشت
         </Button>
       </div>
     );
@@ -207,6 +291,10 @@ export function LoginFlow() {
       <p className="login-note">
         اگر در تلگرام چند حساب دارید، پیش از زدن Start حساب مورد نظر را باز کنید.
       </p>
+
+      <Button variant="ghost" size="sm" onClick={backToChoice}>
+        بازگشت به انتخاب روش ورود
+      </Button>
     </div>
   );
 }

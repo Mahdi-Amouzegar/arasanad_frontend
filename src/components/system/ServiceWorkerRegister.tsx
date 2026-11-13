@@ -7,7 +7,8 @@ import { BASE_PATH } from '@/lib/config';
  * ثبت Service Worker.
  *
  * ⚠️ فقط در production ثبت می‌شود تا در توسعه، کش مزاحم نشود.
- * ⚠️ مسیر و scope باید شامل basePath باشند.
+ * ⚠️ `BASE_PATH` خالی است (ریشه‌ی دامنه‌ی اختصاصی)،
+ *    پس ثبت `/sw.js` با scope `/` انجام میشود.
  */
 export function ServiceWorkerRegister() {
   useEffect(() => {

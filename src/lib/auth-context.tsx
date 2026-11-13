@@ -23,14 +23,35 @@ export interface AuthUser {
   profileComplete: boolean;
 }
 
+/**
+ * قابلیتهای نشست — دقیقاً همان چیزی که سرور در `/auth/me` محاسبه میکند.
+ * ⚠️ فرانتاند این پرچمها را بازسازی نمیکند؛ فقط نمایش میدهد تا دکمهای
+ *    اضافهای نشان ندهد. امنیت واقعی همچنان سمت سرور است.
+ * ⚠️ مقدار پیشفرض «همه بسته» است: تا پیش از پاسخ سرور، هیچ عملیاتی مجاز نیست.
+ */
+export interface Capabilities {
+  issueOtpCode: boolean;
+  editProfile: boolean;
+  revokeSessions: boolean;
+}
+
+const GUEST_CAPABILITIES: Capabilities = {
+  issueOtpCode: false,
+  editProfile: false,
+  revokeSessions: false,
+};
+
 interface MeResponse {
   user: AuthUser;
+  capabilities?: Capabilities;
   session: { id: string; createdAt: string; expiresAt: string; authMethod: string } | null;
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   token: string | null;
+  /** قابلیتهای محاسبهشده توسط سرور — مرجع نمایش دکمها */
+  capabilities: Capabilities;
   /** در حال بازیابی نشست از حافظه */
   loading: boolean;
   signIn: (token: string, user: AuthUser) => void;
@@ -63,12 +84,14 @@ function readToken(): string | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [capabilities, setCapabilities] = useState<Capabilities>(GUEST_CAPABILITIES);
   const [loading, setLoading] = useState(true);
 
   const clear = useCallback(() => {
     if (typeof window !== 'undefined') window.localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
+    setCapabilities(GUEST_CAPABILITIES);
   }, []);
 
   const loadMe = useCallback(
@@ -76,6 +99,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const data = await apiRequest<MeResponse>('/auth/me', { token: activeToken });
         setUser(normalizeUser(data.user));
+        // اگر پاسخ قدیمی سرور فاقد capabilities باشد، حالت امن (مهمان) حفظ میشود.
+        setCapabilities(data.capabilities ?? GUEST_CAPABILITIES);
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) clear();
       }
@@ -101,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!event.newValue) {
         setToken(null);
         setUser(null);
+        setCapabilities(GUEST_CAPABILITIES);
         return;
       }
       setToken(event.newValue);
@@ -111,11 +137,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', onStorage);
   }, [loadMe]);
 
-  const signIn = useCallback((nextToken: string, nextUser: AuthUser) => {
-    window.localStorage.setItem(TOKEN_KEY, nextToken);
-    setToken(nextToken);
-    setUser(normalizeUser(nextUser));
-  }, []);
+  const signIn = useCallback(
+    (nextToken: string, nextUser: AuthUser) => {
+      window.localStorage.setItem(TOKEN_KEY, nextToken);
+      setToken(nextToken);
+      setUser(normalizeUser(nextUser));
+      // پاسخ ورود (ربات/کد) قابلیتها ندارد؛ بلافاصله از `/auth/me` میگیریم.
+      // تا آن لحظه حالت مهمان برقرار است تا دکمهای حساس زودتر ظاهر نشوند.
+      setCapabilities(GUEST_CAPABILITIES);
+      void loadMe(nextToken);
+    },
+    [loadMe],
+  );
 
   const signOut = useCallback(async () => {
     const activeToken = readToken();
@@ -147,8 +180,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, token, loading, signIn, signOut, reload, authedRequest }),
-    [user, token, loading, signIn, signOut, reload, authedRequest],
+    () => ({ user, token, capabilities, loading, signIn, signOut, reload, authedRequest }),
+    [user, token, capabilities, loading, signIn, signOut, reload, authedRequest],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

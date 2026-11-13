@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import { PublicLayout } from '@/components/public/PublicLayout';
 import { SectionHeading } from '@/components/public/SectionHeading';
+import { Icon } from '@/components/ui/Icon';
 import { LoginFlow } from './LoginFlow';
 
 export const metadata: Metadata = {
   title: 'ورود',
-  description: 'ورود به حساب کاربری آراسند با تلگرام.',
+  description: 'ورود به حساب کاربری آراسند با ربات تلگرام یا کد یکبارمصرف (همراه با QR).',
   robots: { index: false, follow: false },
 };
 
@@ -17,25 +18,33 @@ export default function LoginPage() {
           <div>
             <SectionHeading
               eyebrow="حساب کاربری"
-              title="ورود به پنل آراسند"
-              description="با ورود به حساب، سفارش‌ها، پرداخت‌ها، فایل‌ها و گفتگوهای شما در یک‌جا قابل پیگیری می‌شود."
+              title="ورود به حساب آراسند"
+              description="بدون رمز عبور. حساب کاربری و تنظیمات نشستها همینجا در دسترس است؛ پیگیری سفارشها و فایلها بهتدریج در فازهای ۷ تا ۱۳ اضافه میشود."
             />
 
             <ul className="benefits">
               <li className="benefit">
                 <span className="benefit__icon" aria-hidden="true">
-                  <IconCheck />
+                  <Icon name="check" size={16} />
                 </span>
                 <p className="benefit__desc">
-                  بدون رمز عبور؛ فقط با تأیید در تلگرام وارد می‌شوید.
+                  روش اصلی: ربات تلگرام. دسترسی کامل به ساخت کد، ویرایش پروفایل و مدیریت دستگاهها.
                 </p>
               </li>
               <li className="benefit">
                 <span className="benefit__icon" aria-hidden="true">
-                  <IconCheck />
+                  <Icon name="key" size={16} />
                 </span>
                 <p className="benefit__desc">
-                  امکان ورود روی چند دستگاه با کد یک‌بارمصرف و مدیریت نشست‌ها.
+                  دستگاه بدون تلگرام: کد یکبارمصرف یا اسکن QR ساختهشده در پروفایل دستگاه اصلی.
+                </p>
+              </li>
+              <li className="benefit">
+                <span className="benefit__icon" aria-hidden="true">
+                  <Icon name="shield" size={16} />
+                </span>
+                <p className="benefit__desc">
+                  نشست حاصل از کد «مهمان» است و نمیتواند کد تازهای بسازد یا دستگاهی را حذف کند.
                 </p>
               </li>
             </ul>
@@ -47,13 +56,5 @@ export default function LoginPage() {
         </div>
       </section>
     </PublicLayout>
-  );
-}
-
-function IconCheck() {
-  return (
-    <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m20 6-11 11-5-5" />
-    </svg>
   );
 }
