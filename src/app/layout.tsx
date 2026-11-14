@@ -10,6 +10,7 @@ import '@/styles/public.css';
 import { AlertProvider } from '@/components/ui/AlertProvider';
 import { AuthProvider } from '@/lib/auth-context';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
+import { ConnectivityBootstrap } from '@/components/system/ConnectivityBootstrap';
 import { SITE_ORIGIN, BASE_PATH, asset } from '@/lib/config';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
 
@@ -61,6 +62,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AuthProvider>{children}</AuthProvider>
         </AlertProvider>
         <ServiceWorkerRegister />
+        <ConnectivityBootstrap />
       </body>
     </html>
   );

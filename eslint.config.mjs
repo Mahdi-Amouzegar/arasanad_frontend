@@ -26,7 +26,7 @@ const config = [
   {
     rules: {
       // ⚠️ قاعده‌ی پروژه: هشدار بومی مرورگر ممنوع است.
-      //    همه‌ی هشدارها باید از سیستم یکپارچه‌ی Alert بیایند.
+      //    همه‌ی هشدار‌ها باید از سیستم یکپارچه‌ی Alert بیایند.
       'no-alert': 'error',
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       '@typescript-eslint/no-unused-vars': [

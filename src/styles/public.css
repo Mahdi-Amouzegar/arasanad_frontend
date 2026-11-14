@@ -390,31 +390,39 @@
   object-fit: cover;
 }
 
-.hero__badge {
-  position: absolute;
-  inset-block-end: var(--sp-4);
-  inset-inline-start: var(--sp-4);
+/* نشان محرمانگی: در جریان عادی و زیر ماکت، نه به‌صورت مطلق روی آن.
+   نسخه‌ی قبلی با position:absolute متن ردیف آخر سفارش‌ها را می‌پوشاند. */
+.hero__media-note {
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
   background: var(--c-surface);
   border: 1px solid var(--c-border);
   border-radius: var(--r-md);
-  padding: var(--sp-3) var(--sp-4);
-  box-shadow: var(--sh-md);
+  box-shadow: var(--sh-sm);
   font-size: var(--fs-sm);
   color: var(--c-primary);
 }
 
-.hero__badge > span > strong {
-  display: block;
+.hero__media-note svg {
+  flex: none;
+}
+
+.hero__media-note-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hero__media-note-text strong {
   font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
   color: var(--c-text);
 }
 
-.hero__badge > span > span {
-  display: block;
+.hero__media-note-text span {
   font-size: var(--fs-xs);
   font-weight: var(--fw-regular);
   color: var(--c-text-secondary);
@@ -772,6 +780,11 @@
 }
 
 .public-footer__bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2) var(--sp-4);
   border-top: 1px solid var(--c-border);
   padding: var(--sp-4) var(--sp-6);
   text-align: center;
@@ -1703,10 +1716,8 @@
     display: none;
   }
 
-  .hero__badge {
-    inset-inline-start: var(--sp-2);
-    inset-block-end: var(--sp-2);
-    padding: var(--sp-2);
+  .hero__media-note {
+    padding: var(--sp-2) var(--sp-3);
   }
 }
 

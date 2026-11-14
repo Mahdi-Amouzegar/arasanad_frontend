@@ -75,7 +75,7 @@ async function loadImage(blob: Blob): Promise<LoadedImage> {
     };
   }
 
-  // مرورگرهای قدیمی: همان مسیر، ولی با <img> و Object URL.
+  // مرورگر‌های قدیمی: همان مسیر، ولی با <img> و Object URL.
   // ⚠️ URL حتماً آزاد می‌شود، وگرنه بایت‌های تصویر در حافظه می‌مانند.
   const url = URL.createObjectURL(blob);
   const image = new Image();

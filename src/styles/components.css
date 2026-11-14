@@ -1132,3 +1132,32 @@
   }
 }
 
+/* ─── ساعت سرور: نمایش «در حال بروزرسانی» هنگام جستجوی منبع زمان ─── */
+.server-clock {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text-secondary);
+}
+
+.server-clock__spinner {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--r-full);
+  animation: btn-spin 0.7s linear infinite;
+}
+
+/* احترام به تنظیم کاهش حرکت سیستم (الگو از پروژه‌ی راه فردا). */
+@media (prefers-reduced-motion: reduce) {
+  .server-clock__spinner {
+    animation: none;
+    border-top-color: currentColor;
+    opacity: 0.6;
+  }
+}
+

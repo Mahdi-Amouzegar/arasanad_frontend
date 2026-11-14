@@ -22,7 +22,7 @@ test('Next.js دیگر basePath تعریف نمی‌کند و خروجی است�
   assert.doesNotMatch(next, /assetPrefix\s*:/);
 });
 
-test('مرجع واحد نشانیها، دامنه‌ی اختصاصی و API را درست می‌دهد', () => {
+test('مرجع واحد نشانی‌ها، دامنه‌ی اختصاصی و API را درست می‌دهد', () => {
   const config = read('src/lib/config.ts');
   assert.match(config, /BASE_PATH\s*=\s*''/);
   assert.match(config, /SITE_ORIGIN\s*=\s*'https:\/\/arasanad\.ir'/);

@@ -4,7 +4,7 @@ import { CUSTOMER_GROUPS, CUSTOMER_PAGES, hrefFromSlug, infoFor, slugsFor } from
 
 export const metadata: Metadata = {
   title: 'پنل کاربری',
-  description: 'پنل کاربری آراسند — اسکلت ناوبری، پیش از راهاندازی فازهای ۷ تا ۱۳.',
+  description: 'پنل کاربری آراسند — اسکلت ناوبری، پیش از راه‌اندازی فازهای ۷ تا ۱۳.',
   robots: { index: false, follow: false },
 };
 

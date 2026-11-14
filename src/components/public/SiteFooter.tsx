@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { CHANNELS, BRAND } from '@/content/site';
 import { Icon } from '@/components/ui/Icon';
 import { useAdminTelegram } from '@/lib/site-config';
+import { ServerClock } from '@/components/ui/ServerClock';
 
 const PAGE_LINKS = [
   { href: '/start/', label: 'شروع سفارش' },
@@ -77,6 +78,7 @@ export function SiteFooter() {
         <p>
           © {BRAND.name} — تمامی حقوق محفوظ است. · {BRAND.hours}
         </p>
+        <ServerClock />
       </div>
     </footer>
   );

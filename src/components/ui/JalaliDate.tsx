@@ -8,6 +8,8 @@ import {
   formatRelative,
 } from '@/lib/datetime';
 import { Tooltip } from './Tooltip';
+import { serverNow } from '@/lib/connectivity/index.mjs';
+import { useServerTime } from '@/lib/connectivity/useConnectivity';
 
 export type DateVariant = 'short' | 'full' | 'date' | 'relative';
 
@@ -63,12 +65,19 @@ export function JalaliDate({
  * ⚠️ طبق design.md §11.1: زمان نسبی نباید ثابت بماند.
  */
 export function RelativeTime({ value, className }: { value: string | Date; className?: string }) {
-  const [now, setNow] = useState<Date>(() => new Date());
+  // ⚠️ «اکنون» فقط از کتابخانه‌ی اتصال می‌آید؛ `new Date()` مستقیم
+  //    باعث دوباره‌کاری و ناهماهنگی با ساعت سرور می‌شد.
+  const clock = useServerTime();
+  const [now, setNow] = useState<Date>(() => serverNow());
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 60_000);
+    const id = setInterval(() => setNow(serverNow()), 60_000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    setNow(serverNow());
+  }, [clock.phase, clock.syncedAt]);
 
   const iso = new Date(value).toISOString();
 

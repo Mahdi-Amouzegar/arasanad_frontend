@@ -1,5 +1,5 @@
 /**
- * تنظیمات مسیر و نشانیها — **تنها مرجع** مقادیر ثابت سایت.
+ * تنظیمات مسیر و نشانی‌ها — **تنها مرجع** مقادیر ثابت سایت.
  *
  * ⚠️ دامنه‌ی اختصاصی `https://arasanad.ir` از ریشه سرو می‌شود؛ پس `BASE_PATH`
  *    خالی است و `next.config.mjs` هیچ `basePath`ای تعریف نمی‌کند. این دو باید
@@ -23,7 +23,7 @@ export const SITE_ORIGIN = 'https://arasanad.ir';
  */
 export const DEFAULT_API_BASE_URL = 'https://api.arasanad.ir/api/v1';
 
-/** آدرس کامل صفحهای از سایت (برای canonical / OG / لینکهای مطلق). */
+/** آدرس کامل صفحه‌ای از سایت (برای canonical / OG / لینکهای مطلق). */
 export function absoluteUrl(path = '/'): string {
   const clean = path.startsWith('/') ? path : `/${path}`;
   return `${SITE_ORIGIN}${BASE_PATH}${clean}`;

@@ -61,13 +61,15 @@ export default function HomePage() {
 
           <div className="hero__media">
             <HeroPanelMock />
-            {/* نشان داخل کادر؛ عدد تکراری آمار حذف شد (تصمیم شماره ۶) */}
-            <div className="hero__badge">
+            {/* ⚠️ پیشتر این نشان با position:absolute روی ماکت قرار می‌گرفت و
+                ردیف آخر سفارش‌ها و پاورقی پنل را در موبایل و دسکتاپ می‌پوشاند.
+                اکنون در جریان عادی و زیر ماکت است و هیچ متنی پنهان نمی‌شود. */}
+            <div className="hero__media-note">
               <Icon name="shield" size={16} />
-              <span>
+              <div className="hero__media-note-text">
                 <strong>محرمانگی کامل</strong>
                 <span>بازبینی نهایی پیش از تحویل</span>
-              </span>
+              </div>
             </div>
           </div>
         </div>
@@ -169,8 +171,8 @@ export default function HomePage() {
             </span>
             <p className="benefit-anchor__lead">مهلت تحویل، از لحظه‌ی پرداخت بیعانه</p>
             <p className="benefit-anchor__desc">
-              زمانبندی شفاف، قابل پیگیری در پنل و همراه با اعلان در هر مرحله.
-              تأخیر نقطهای نیست که بخواهیم پنهانش کنیم.
+              زمان‌بندی شفاف، قابل پیگیری در پنل و همراه با اعلان در هر مرحله.
+              تأخیر نقطه‌ای نیست که بخواهیم پنهانش کنیم.
             </p>
             <Link href="/faq/" className="benefit-anchor__link">
               پرسش‌های متداول درباره‌ی زمان و هزینه
@@ -212,7 +214,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── محرمانگی: تنها عکس باقیمانده ─── */}
+      {/* ─── محرمانگی: تنها عکس باقی‌مانده ─── */}
       <section className="section section--alt">
         <div className="split">
           <div>

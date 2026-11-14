@@ -10,6 +10,7 @@
  */
 
 import { DEFAULT_API_BASE_URL } from './config';
+import { noteRequestOutcome } from './connectivity/index.mjs';
 
 const DEFAULT_BASE = DEFAULT_API_BASE_URL;
 
@@ -71,10 +72,14 @@ export async function apiRequest<T>(
       body: body === undefined ? undefined : JSON.stringify(body),
       signal,
     });
+    // ⚠️ نتیجه به کتابخانه‌ی اتصال گزارش می‌شود؛ هیچ تست اتصال
+    //    جداگانه‌ای در لایه‌های دیگر تکرار نمی‌شود.
+    noteRequestOutcome({ ok: true });
   } catch {
+    noteRequestOutcome({ ok: false, reason: 'api-request-failed' });
     throw new ApiError(
       'NETWORK',
-      'ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید. در صورت نیاز از ابزارهای تغییر IP استفاده کنید.',
+      'ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید. در صورت نیاز از ابزار‌های تغییر IP استفاده کنید.',
       0,
     );
   }

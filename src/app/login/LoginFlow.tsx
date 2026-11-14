@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { useAuth, startBotLogin, checkBotStatus } from '@/lib/auth-context';
 import { ApiError } from '@/lib/api';
+import { serverNow } from '@/lib/connectivity/index.mjs';
 import { readOtpCodeFromHash } from '@/lib/otp-qr.mjs';
 import { OtpLoginForm } from './OtpLoginForm';
 
@@ -98,7 +99,7 @@ export function LoginFlow() {
     if (phase !== 'waiting' || !expiresAt) return undefined;
 
     const tick = () => {
-      const left = Math.max(0, new Date(expiresAt).getTime() - Date.now());
+      const left = Math.max(0, new Date(expiresAt).getTime() - serverNow().getTime());
       setRemaining(Math.ceil(left / 1000));
       if (left <= 0) {
         stopAll();

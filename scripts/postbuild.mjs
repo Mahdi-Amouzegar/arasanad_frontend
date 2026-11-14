@@ -22,7 +22,7 @@ const OUT_DIR = 'out';
 const SITE_URL = 'https://arasanad.ir';
 const BASE_PATH = '';
 
-/** فقط صفحات عمومی و ایندکسپذیر؛ `/panel` و `/admin` و `/dev` عمداً حذف شدهاند. */
+/** فقط صفحات عمومی و ایندکسپذیر؛ `/panel` و `/admin` و `/dev` عمداً حذف شده‌اند. */
 const ROUTES = [
   '/',
   '/services/',

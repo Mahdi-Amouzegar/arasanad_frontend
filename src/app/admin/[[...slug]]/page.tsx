@@ -4,7 +4,7 @@ import { ADMIN_GROUPS, ADMIN_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/li
 
 export const metadata: Metadata = {
   title: 'پنل مدیریت',
-  description: 'پنل مدیریت آراسند — اسکلت ناوبری، پیش از راهاندازی فازهای ۸ تا ۱۳.',
+  description: 'پنل مدیریت آراسند — اسکلت ناوبری، پیش از راه‌اندازی فازهای ۸ تا ۱۳.',
   robots: { index: false, follow: false },
 };
 

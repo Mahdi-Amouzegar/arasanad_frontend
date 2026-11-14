@@ -8,6 +8,7 @@
  */
 
 import { toJalali, jalaliMonthName } from './jalali';
+import { nowMs } from './connectivity/index.mjs';
 
 const FA_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'] as const;
 
@@ -136,7 +137,7 @@ export function formatDateOnly(input: string | Date): string {
  * زمان نسبی برای فهرست‌های اخیر.
  * ⚠️ در رابط کاربری باید هر دقیقه به‌روزرسانی شود تا ثابت نماند.
  */
-export function formatRelative(input: string | Date, now: Date = new Date()): string {
+export function formatRelative(input: string | Date, now: Date = new Date(nowMs())): string {
   const date = input instanceof Date ? input : new Date(input);
   if (Number.isNaN(date.getTime())) return '—';
 

@@ -72,7 +72,7 @@ export function readOtpCodeFromUrl(url) {
   return readOtpCodeFromHash(hashOf(url));
 }
 
-/** ثانیههای باقیمانده تا انقضا — هیچوقت منفی نمی‌شود. */
+/** ثانیههای باقی‌مانده تا انقضا — هیچوقت منفی نمی‌شود. */
 export function remainingSeconds(expiresAt, now = Date.now()) {
   const target = Date.parse(expiresAt);
   if (!Number.isFinite(target)) return 0;

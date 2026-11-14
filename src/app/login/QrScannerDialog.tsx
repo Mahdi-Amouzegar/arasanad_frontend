@@ -23,7 +23,7 @@ export interface QrScannerDialogProps {
  *
  * ⚠️ `qr-scanner` (MIT) فقط هنگام بازشدن پنجره به‌صورت پویا import می‌شود،
  *    پس هیچ کد دوربین/worker در باندل اولیه‌ی صفحات وجود ندارد.
- * ⚠️ کتابخانه در مرورگرهای دارای `BarcodeDetector` از همان API بومی استفاده
+ * ⚠️ کتابخانه در مرورگر‌های دارای `BarcodeDetector` از همان API بومی استفاده
  *    می‌کند و در iOS/Safari به موتور محلیِ باندلشده falling back می‌کند؛
  *    هیچ CDN، WASM خارجی یا سرویس پولی لازم نیست.
  * ⚠️ کد از fragment لینک خوانده می‌شود و بلافاصله پردازش می‌گردد.
@@ -138,7 +138,7 @@ export function QrScannerDialog({ onCode, onClose }: QrScannerDialogProps) {
           {starting || error ? (
             <div className="qr-modal__overlay" role="status">
               <Icon name={error ? 'alert' : 'camera'} size={26} />
-              <span>{error ?? 'در حال راهاندازی دوربین…'}</span>
+              <span>{error ?? 'در حال راه‌اندازی دوربین…'}</span>
             </div>
           ) : null}
         </div>

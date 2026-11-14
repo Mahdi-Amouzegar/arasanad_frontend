@@ -5,7 +5,7 @@ import { ADMIN_NAV, CUSTOMER_NAV, type NavGroup } from './navigation';
  *
  * ⚠️ تصمیم شماره ۵: «ساختن اسکلت پنل» یعنی مسیرها و پوسته‌ی `AppShell`
  *    همراه Empty State صادقانه، نه پیاده‌سازی فازهای ۷–۱۳ و نه داده‌ی ساختگی.
- * ⚠️ تمام hrefهای `CUSTOMER_NAV` / `ADMIN_NAV` باید صفحهای واقعی داشته باشند
+ * ⚠️ تمام hrefهای `CUSTOMER_NAV` / `ADMIN_NAV` باید صفحه‌ای واقعی داشته باشند
  *    تا لینک مرده باقی نماند.
  */
 
@@ -30,7 +30,7 @@ export const ADMIN_PAGES: Record<string, PanelPageInfo> = {
   '/admin/projects': { title: 'سفارش‌ها', phase: 8, note: 'مدیریت و تغییر وضعیت سفارش‌ها' },
   '/admin/payments': { title: 'بررسی پرداخت‌ها', phase: 10, note: 'تأیید رسیدها و پرداخت‌ها' },
   '/admin/wallets': { title: 'کیف پول‌ها', phase: 10, note: 'موجودی و تراکنشهای کاربران' },
-  '/admin/refunds': { title: 'برگشت وجه', phase: 11, note: 'درخواستها و پردازش استرداد' },
+  '/admin/refunds': { title: 'برگشت وجه', phase: 11, note: 'درخواست‌ها و پردازش استرداد' },
   '/admin/users': { title: 'کاربران', phase: 12, note: 'فهرست کاربران و نقشها' },
   '/admin/settings': { title: 'تنظیمات', phase: 12, note: 'نرخ‌ها، استانداردها و تنظیمات سامانه' },
 };
@@ -63,7 +63,7 @@ export function infoFor(map: Record<string, PanelPageInfo>, href: string): Panel
     map[href] ?? {
       title: 'این بخش',
       phase: 7,
-      note: 'صفحهای از پنل کاربری',
+      note: 'صفحه‌ای از پنل کاربری',
     }
   );
 }
