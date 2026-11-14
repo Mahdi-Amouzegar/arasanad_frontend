@@ -45,7 +45,7 @@ test('حروف مبهم 0/O و 1/I و نویسههای فارسی پذیرفته
   }
 });
 
-test('خروجی نرمالسازی همیشه از اعتبارسنجی میگذرد', () => {
+test('خروجی نرمالسازی همیشه از اعتبارسنجی می‌گذرد', () => {
   for (const raw of ['x7k92mnp8qrs', 'X7K9-2MNP-8QRS', ' 2 3 4 5 6 7 8 9 A B C D ']) {
     assert.equal(isValidOtpInput(formatOtpInput(raw)), true, `ورودی: ${raw}`);
   }

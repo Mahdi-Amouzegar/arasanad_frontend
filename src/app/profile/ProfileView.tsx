@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -14,6 +14,7 @@ import { useAlert } from '@/components/ui/AlertProvider';
 import { OtpQrPanel } from './OtpQrPanel';
 import { useAuth, type AuthUser } from '@/lib/auth-context';
 import { ApiError, apiRequest } from '@/lib/api';
+import { formatBytes, processAvatar, uploadAvatar } from '@/lib/avatar';
 import { BASE_PATH } from '@/lib/config';
 import {
   DEFAULT_OTP_SESSION_TTL_DAYS,
@@ -62,6 +63,8 @@ export function ProfileView() {
   const [copied, setCopied] = useState(false);
   const otpTtlId = useId();
   const debounceRef = useRef<number | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   // پر کردن فرم پس از بازیابی کاربر
   useEffect(() => {
@@ -135,6 +138,39 @@ export function ProfileView() {
       void loadOtpCodes();
     }
   }, [user, loadSessions, loadOtpCodes]);
+
+  /**
+   * انتخاب تصویر پروفایل توسط کاربر — دقیقاً همان خط لوله‌ای که عکس
+   * تلگرام از آن می‌گذرد: برش مربعی، ۴۰۰×۴۰۰، فشرده‌سازی و ذخیره در پارس‌پک.
+   */
+  async function changeAvatar(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    // پاک‌کردن مقدار، امکان انتخاب دوباره‌ی همان فایل را می‌دهد
+    event.target.value = '';
+    if (!file || !token || uploadingAvatar) return;
+
+    setUploadingAvatar(true);
+    try {
+      const processed = await processAvatar(file);
+      await uploadAvatar(token, processed.blob, processed.contentType);
+      await reload();
+      showToast({
+        type: 'success',
+        title: 'تصویر پروفایل ذخیره شد',
+        message: `${formatBytes(processed.originalBytes)} ← ${formatBytes(processed.outputBytes)} · ${
+          processed.chosen === 'webp' ? 'WebP فشرده‌شده' : 'همان فرمت، تغییر اندازه یافته'
+        }`,
+      });
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'تصویر ذخیره نشد',
+        message: error instanceof Error ? error.message : 'خطای نامشخص',
+      });
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
 
   async function createCode() {
     if (!token || creatingCode) return;
@@ -295,17 +331,49 @@ export function ProfileView() {
         </div>
       ) : null}
 
-      {/* شناسنامه */}
+      {/* شناسنامه و تصویر پروفایل */}
       <div className="calc-card">
-        <div className="row" style={{ gap: 'var(--sp-3)' }}>
+        <div className="row" style={{ gap: 'var(--sp-3)', alignItems: 'center' }}>
           <Avatar name={user.displayName} src={user.avatarUrl} size="lg" />
-          <div>
+          <div style={{ flex: 1 }}>
             <p style={{ fontWeight: 'var(--fw-semibold)' }}>{user.displayName}</p>
             <p className="ltr" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-secondary)' }}>
               @{user.username}
             </p>
           </div>
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={changeAvatar}
+            disabled={!capabilities.editProfile || uploadingAvatar}
+            aria-label="انتخاب تصویر پروفایل"
+            style={{ display: 'none' }}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            loading={uploadingAvatar}
+            disabled={!capabilities.editProfile}
+            onClick={() => avatarInputRef.current?.click()}
+          >
+            <Icon name="camera" size={14} />
+            تغییر تصویر
+          </Button>
         </div>
+        {capabilities.editProfile ? (
+          <p
+            style={{
+              fontSize: 'var(--fs-xs)',
+              color: 'var(--c-text-muted)',
+              marginTop: 'var(--sp-3)',
+            }}
+          >
+            تصویر به‌صورت مربعی ۴۰۰×۴۰۰ برش می‌خورد و پیش از ذخیره در
+            فضای ابری فشرده می‌شود. اگر نسخه‌ی فشرده کوچک‌تر نباشد،
+            همان تصویر تغییر اندازه یافته ذخیره می‌شود.
+          </p>
+        ) : null}
       </div>
 
       {/* نمایش و تم — جبران design.md §3.7 (فاز ۶) */}

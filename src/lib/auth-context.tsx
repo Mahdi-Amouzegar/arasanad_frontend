@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import { ApiError, API_BASE, apiRequest, getDeviceId, getDeviceName } from './api';
+import { migrateTelegramAvatar } from './avatar';
 
 export interface AuthUser {
   id: string;
@@ -18,6 +19,10 @@ export interface AuthUser {
   lastName: string;
   displayName: string;
   avatarUrl: string | null;
+  /** منبع تصویر پروفایل — مبنای تصمیم مهاجرت یک‌باره به پارس‌پک */
+  avatarSource?: 'parspack' | 'telegram' | 'external' | 'none';
+  /** نسخه‌ی پایدار برای شکستن کش (وابسته به محتوا، نه به زمان) */
+  avatarVersion?: string;
   /** نقش کاربر — از سرور می‌آید و مرجع نهایی است */
   role: 'admin' | 'customer';
   profileComplete: boolean;
@@ -25,7 +30,7 @@ export interface AuthUser {
 
 /**
  * قابلیتهای نشست — دقیقاً همان چیزی که سرور در `/auth/me` محاسبه می‌کند.
- * ⚠️ فرانتاند این پرچمها را بازسازی نمی‌کند؛ فقط نمایش می‌دهد تا دکمهای
+ * ⚠️ فرانت‌اند این پرچمها را بازسازی نمی‌کند؛ فقط نمایش می‌دهد تا دکمهای
  *    اضافهای نشان ندهد. امنیت واقعی همچنان سمت سرور است.
  * ⚠️ مقدار پیش‌فرض «همه بسته» است: تا پیش از پاسخ سرور، هیچ عملیاتی مجاز نیست.
  */
@@ -64,12 +69,27 @@ interface AuthContextValue {
 const TOKEN_KEY = 'arasanad_token';
 
 /**
+ * نگهبان «یک‌باره» برای مهاجرت عکس تلگرام.
+ *
+ * ⚠️ در سطح ماژول است، نه در state: اگر در state باشد، `reload()` پس از
+ *    آپلود دوباره آن را خالی می‌کند و حلقه‌ی بیهوده‌ی دانلود/آپلود
+ *    شکل می‌گیرد. بعد از موفقیت، سرور `avatarSource=parspack` می‌فرستد؛
+ *    بعد از شکست هم `Set` جلوی تلاش مکرر را می‌گیرد.
+ */
+const attemptedAvatarMigration = new Set<string>();
+
+/**
  * مسیرهای نسبی رسانه (`/media/avatar/...`) باید به آدرس API تبدیل شوند.
  * ⚠️ آواتار تلگرام از واسط سرور می‌آید تا توکن ربات در مرورگر قرار نگیرد.
  */
 function normalizeUser(user: AuthUser): AuthUser {
   if (user.avatarUrl && user.avatarUrl.startsWith('/')) {
-    return { ...user, avatarUrl: `${API_BASE}${user.avatarUrl}` };
+    // ⚠️ نسخه فقط وقتی عوض می‌شود که مرجع تصویر عوض شده باشد. استفاده از
+    //    `Date.now()` در هر رندر، مرورگر را مجبور به دانلود دوباره‌ی تصویر
+    //    و انباشتن بایت‌ها در حافظه می‌کرد.
+    const separator = user.avatarUrl.includes('?') ? '&' : '?';
+    const version = encodeURIComponent(user.avatarVersion ?? '0');
+    return { ...user, avatarUrl: `${API_BASE}${user.avatarUrl}${separator}v=${version}` };
   }
   return user;
 }
@@ -136,6 +156,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);
   }, [loadMe]);
+
+  /**
+   * مهاجرت خودکار عکس تلگرام به پارس‌پک — دقیقاً یک بار برای هر کاربر.
+   *
+   * تصویر از واسط خود بک‌اند گرفته می‌شود، پس نیازی به VPN نیست. تا پیش
+   * از موفقیت، همان واسط قدیمی تصویر را نشان می‌دهد؛ شکست، تجربه‌ی کاربر
+   * را خراب نمی‌کند و هیچ درخواست تکراری ایجاد نمی‌کند.
+   */
+  useEffect(() => {
+    if (!user || !token || !capabilities.editProfile) return;
+    if (user.avatarSource !== 'telegram') return;
+    if (attemptedAvatarMigration.has(user.id)) return;
+    attemptedAvatarMigration.add(user.id);
+
+    void (async () => {
+      try {
+        const result = await migrateTelegramAvatar(token, user.id);
+        if (result) await loadMe(token);
+      } catch {
+        /* منبع قدیمی همچنان در دسترس است؛ تلاش مکرر ممنوع */
+      }
+    })();
+  }, [user, token, capabilities.editProfile, loadMe]);
 
   const signIn = useCallback(
     (nextToken: string, nextUser: AuthUser) => {

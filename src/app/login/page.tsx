@@ -44,7 +44,7 @@ export default function LoginPage() {
                   <Icon name="shield" size={16} />
                 </span>
                 <p className="benefit__desc">
-                  نشست حاصل از کد «مهمان» است و نمی‌تواند کد تازهای بسازد یا دستگاهی را حذف کند.
+                  نشست حاصل از کد «مهمان» است و نمی‌تواند کد تاز‌های بسازد یا دستگاهی را حذف کند.
                 </p>
               </li>
             </ul>

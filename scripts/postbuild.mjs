@@ -12,7 +12,7 @@
 //
 // ⚠️ دامنه‌ی اختصاصی `https://arasanad.ir` از ریشه سرو می‌شود، پس BASE_PATH
 //    خالی است. گارد زیر عمداً سختگیر است تا خطای 404 منابع یا تزریق
-//    Repository Variable قدیمی، بیلد را بیصدا عبور نکند.
+//    Repository Variable قدیمی، بیلد را بی‌صدا عبور نکند.
 // ═══════════════════════════════════════════════════════════════════════════
 
 import { access, readdir, readFile, writeFile } from 'node:fs/promises';

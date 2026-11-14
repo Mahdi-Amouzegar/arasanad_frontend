@@ -64,7 +64,7 @@ test('نمونه‌ی متغیر محیطی به API دامنه‌ی اختصا�
 test('ورکفلوی استقرار، نشانی API را از متغیر پنهان مخزن نمی‌گیرد', () => {
   const workflow = read('.github/workflows/deploy.yml');
   assert.match(workflow, /npm run build/);
-  // تزریق متغیر قدیمی و غیرقابلمشاهده‌ی مخزن، بیلد production را بیصدا خراب می‌کند.
+  // تزریق متغیر قدیمی و غیرقابلمشاهده‌ی مخزن، بیلد production را بی‌صدا خراب می‌کند.
   assert.doesNotMatch(workflow, /vars\.NEXT_PUBLIC_API_BASE_URL/);
 });
 

@@ -36,7 +36,7 @@ export function getStoredTheme(): ThemeChoice {
   }
 }
 
-/** همرنگ کردن نوار مرورگر موبایل با تم انتخابشده. */
+/** همرنگ کردن نوار مرورگر موبایل با تم انتخاب‌شده. */
 function syncMetaThemeColor(choice: ThemeChoice): void {
   if (typeof document === 'undefined') return;
   const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
