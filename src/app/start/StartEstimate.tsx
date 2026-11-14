@@ -16,9 +16,9 @@ const FIRST = SERVICE_TYPES[0];
 /**
  * مسیر تبدیل موقت تا فاز ۷.
  *
- * ⚠️ هیچ درخواست شبکهای و هیچ «ثبت سفارش» ساختگی انجام نمیشود: برآورد از
- *    همان `calculateEstimate` نرخنامه گرفته میشود و خروجی نهایی یک متن
- *    پیشثبتنام است که کاربر کپی میکند و برای مدیر میفرستد.
+ * ⚠️ هیچ درخواست شبکهای و هیچ «ثبت سفارش» ساختگی انجام نمی‌شود: برآورد از
+ *    همان `calculateEstimate` نرخ‌نامه گرفته می‌شود و خروجی نهایی یک متن
+ *    پیشثبتنام است که کاربر کپی می‌کند و برای مدیر می‌فرستد.
  */
 export function StartEstimate() {
   const { showToast } = useAlert();
@@ -69,9 +69,9 @@ export function StartEstimate() {
       <div className="calc-card">
         <div>
           <span className="eyebrow">گام ۱ — برآورد</span>
-          <h2 className="section-head__title">هزینهی تقریبی سفارش</h2>
+          <h2 className="section-head__title">هزینه‌ی تقریبی سفارش</h2>
           <p className="login-note">
-            نرخها همان نرخنامهاند. مبلغ نهایی پس از دیدن فایل توسط مدیر تأیید میشود.
+            نرخ‌ها همان نرخنامهاند. مبلغ نهایی پس از دیدن فایل توسط مدیر تأیید می‌شود.
           </p>
         </div>
 
@@ -137,13 +137,13 @@ export function StartEstimate() {
         </div>
 
         <div className="calc-result">
-          <span>هزینهی برآوردی</span>
+          <span>هزینه‌ی برآوردی</span>
           <strong>
             <Money value={total} />
           </strong>
         </div>
         <p className="login-note">
-          بیعانهی تقریبی: <Money value={deposit} />
+          بیعانه‌ی تقریبی: <Money value={deposit} />
         </p>
       </div>
 
@@ -158,9 +158,9 @@ export function StartEstimate() {
           <div>
             <strong>ثبت سفارش آنلاین هنوز فعال نشده است</strong>
             <p>
-              پنل سفارشها در فاز ۷ راهاندازی میشود. تا آن زمان، خلاصهی درخواست
+              پنل سفارش‌ها در فاز ۷ راهاندازی می‌شود. تا آن زمان، خلاصه‌ی درخواست
               خود را کپی کنید و از طریق تلگرام برای مدیر بفرستید؛ هیچ اطلاعاتی
-              از این صفحه به سرور ارسال نمیشود.
+              از این صفحه به سرور ارسال نمی‌شود.
             </p>
           </div>
         </div>

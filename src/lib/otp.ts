@@ -1,9 +1,9 @@
 /**
  * کلاینت «کد یکبارمصرف» (ورود دستگاه دوم).
  *
- * ⚠️ قاعدهی محصول: کد فقط توسط نشستی ساخته میشود که با تلگرام وارد شده است.
+ * ⚠️ قاعده‌ی محصول: کد فقط توسط نشستی ساخته می‌شود که با تلگرام وارد شده است.
  *    سرور مرجع نهایی قابلیتهاست (`/auth/me` → `capabilities`)؛ این فایل فقط
- *    درخواستها و شکل دادهها را تایپ میکند و هیچ تصمیم امنیتی نمیگیرد.
+ *    درخواستها و شکل داده‌ها را تایپ می‌کند و هیچ تصمیم امنیتی نمی‌گیرد.
  *
  * ⚠️ خود کد فقط یک بار، در همان پاسخ ساخت، به مرورگر برمیگردد.
  *    فهرست کدها عمداً فقط `hint` (چهار کاراکتر اول) و وضعیت را دارد.
@@ -15,7 +15,7 @@ import { formatOtpInput, isValidOtpInput } from './otp-format.mjs';
 
 export { formatOtpInput, isValidOtpInput };
 
-/** آینه‌ی `OTP_SESSION_TTL_OPTIONS` در بکاند؛ اعتبارسنجی نهایی سرور است. */
+/** آینه‌ی `OTP_SESSION_TTL_OPTIONS` در بک‌اند؛ اعتبارسنجی نهایی سرور است. */
 export const OTP_SESSION_TTL_OPTIONS = [7, 30, 90] as const;
 export const DEFAULT_OTP_SESSION_TTL_DAYS = 30;
 export const OTP_CODE_TTL_MINUTES = 10;
@@ -51,12 +51,12 @@ export interface OtpCodeItem {
 }
 
 /**
- * نرمالسازی و اعتبارسنجی ورودی کد در `otp-format.mjs` نگهداری میشود تا
+ * نرمالسازی و اعتبارسنجی ورودی کد در `otp-format.mjs` نگهداری می‌شود تا
  * `node:test` بدون باندلر بتواند همان توابع واقعی UI را تست کند.
- * چون سرور خط تیرهها را حذف میکند، ارسال هر دو شکل معتبر است.
+ * چون سرور خط تیرهها را حذف می‌کند، ارسال هر دو شکل معتبر است.
  */
 
-/** ورود با کد — دستگاه جدید را به همان حساب صاحب کد وصل میکند. */
+/** ورود با کد — دستگاه جدید را به همان حساب صاحب کد وصل می‌کند. */
 export function loginWithOtpCode(code: string): Promise<OtpLoginResult> {
   return apiRequest<OtpLoginResult>('/auth/otp', {
     method: 'POST',
@@ -68,7 +68,7 @@ export function loginWithOtpCode(code: string): Promise<OtpLoginResult> {
   });
 }
 
-/** ساخت کد تازه (فقط با توکن نشست تلگرامی؛ سرور «قابلیت» را بررسی میکند). */
+/** ساخت کد تازه (فقط با توکن نشست تلگرامی؛ سرور «قابلیت» را بررسی می‌کند). */
 export function createOtpCode(token: string, sessionTtlDays: number): Promise<OtpCodeResult> {
   return apiRequest<OtpCodeResult>('/devices/link-code', {
     method: 'POST',

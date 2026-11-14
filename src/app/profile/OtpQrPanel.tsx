@@ -14,12 +14,12 @@ export interface OtpQrPanelProps {
 }
 
 /**
- * QR مخصوص کد تازهای که همینجا ساخته شده است.
+ * QR مخصوص کد تازهای که همین‌جا ساخته شده است.
  *
- * ⚠️ فقط در نشست `issueOtpCode` رندر میشود (پدرش این را تضمین میکند).
- * ⚠️ مبدأ لینک از `window.location.origin` خوانده میشود، نه یک ثابت هاردکد،
- *    تا پس از اتصال دامنهی اختصاصی (O-42) QR خودبهخود معتبر بماند.
- * ⚠️ پس از انقضا، QR پنهان میشود تا کد مرده به دستگاه دیگری نرسد.
+ * ⚠️ فقط در نشست `issueOtpCode` رندر می‌شود (پدرش این را تضمین می‌کند).
+ * ⚠️ مبدأ لینک از `window.location.origin` خوانده می‌شود، نه یک ثابت هاردکد،
+ *    تا پس از اتصال دامنه‌ی اختصاصی (O-42) QR خودبهخود معتبر بماند.
+ * ⚠️ پس از انقضا، QR پنهان می‌شود تا کد مرده به دستگاه دیگری نرسد.
  */
 export function OtpQrPanel({ code, onCopied }: OtpQrPanelProps) {
   const [origin, setOrigin] = useState<string | null>(null);
@@ -71,15 +71,15 @@ export function OtpQrPanel({ code, onCopied }: OtpQrPanelProps) {
         <div>
           <strong>ورود سریع با QR</strong>
           <p>
-            با دوربین دستگاه دوم اسکن کنید تا صفحهی ورود با کد پرشده باز شود.
-            کد در fragment لینک است و به سرور فرستاده نمیشود.
+            با دوربین دستگاه دوم اسکن کنید تا صفحه‌ی ورود با کد پرشده باز شود.
+            کد در fragment لینک است و به سرور فرستاده نمی‌شود.
           </p>
         </div>
       </div>
 
       {expired ? (
         <p className="otp-qr__expired" role="status">
-          <Icon name="clock" size={15} /> این کد منقضی شده است؛ QR دیگر نمایش داده نمیشود.
+          <Icon name="clock" size={15} /> این کد منقضی شده است؛ QR دیگر نمایش داده نمی‌شود.
         </p>
       ) : url ? (
         <div className="otp-qr__body">
@@ -97,12 +97,12 @@ export function OtpQrPanel({ code, onCopied }: OtpQrPanelProps) {
               {copied ? 'لینک کپی شد' : 'کپی لینک ورود'}
             </Button>
             <p className="otp-qr__hint">
-              یا کد را مستقیماً در صفحهی ورود وارد کنید. هر کد فقط یک بار مصرف میشود.
+              یا کد را مستقیماً در صفحه‌ی ورود وارد کنید. هر کد فقط یک بار مصرف می‌شود.
             </p>
           </div>
         </div>
       ) : (
-        <p className="otp-qr__hint">در حال آمادهسازی QR…</p>
+        <p className="otp-qr__hint">در حال آماده‌سازی QR…</p>
       )}
     </div>
   );

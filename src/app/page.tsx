@@ -22,9 +22,9 @@ import {
 import { asset } from '@/lib/config';
 
 export const metadata: Metadata = {
-  title: 'خدمات تخصصی تایپ، ویرایش و آمادهسازی اسناد',
+  title: 'خدمات تخصصی تایپ، ویرایش و آماده‌سازی اسناد',
   description:
-    'آراسند خدمات تایپ تخصصی، ویرایش، صفحهآرایی، فرمولنویسی و آمادهسازی حرفهای اسناد دانشگاهی، اداری و تجاری را با سرعت و دقت بالا ارائه میدهد.',
+    'آراسند خدمات تایپ تخصصی، ویرایش، صفحه‌آرایی، فرمول‌نویسی و آماده‌سازی حرفه‌ای اسناد دانشگاهی، اداری و تجاری را با سرعت و دقت بالا ارائه می‌دهد.',
   alternates: { canonical: '/' },
 };
 
@@ -38,11 +38,11 @@ export default function HomePage() {
       <section className="hero">
         <div className="hero__grid">
           <div className="hero__copy">
-            <span className="eyebrow">سرویس تایپ و آمادهسازی سند</span>
+            <span className="eyebrow">سرویس تایپ و آماده‌سازی سند</span>
             <h1 className="hero__title">آراستن اسناد شما، با دقت و اطمینان</h1>
             <p className="hero__desc">
-              از تایپ دستنویس و فرمولنویسی تا قالببندی پایاننامه مطابق آییننامهی دانشگاه؛
-              سند شما با کیفیت تحویل، در زمان مقرر و با محرمانگی کامل آماده میشود.
+              از تایپ دست‌نویس و فرمول‌نویسی تا قالب‌بندی پایان‌نامه مطابق آیین‌نامه‌ی دانشگاه؛
+              سند شما با کیفیت تحویل، در زمان مقرر و با محرمانگی کامل آماده می‌شود.
             </p>
             <div className="hero__actions">
               <Link href="/start/" className="btn btn--primary btn--lg">
@@ -50,7 +50,7 @@ export default function HomePage() {
                 شروع سفارش
               </Link>
               <Link href="/pricing/" className="btn btn--outline btn--lg">
-                مشاهدهی نرخنامه
+                مشاهده‌ی نرخ‌نامه
               </Link>
             </div>
             <p className="hero__micro">
@@ -73,15 +73,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── خدمات: ۳ گروه + ۱ کارت ویژه با نرخ، بهجای ۱۲ کارت همشکل ─── */}
+      {/* ─── خدمات: ۳ گروه + ۱ کارت ویژه با نرخ، به‌جای ۱۲ کارت همشکل ─── */}
       <section className="section section--alt" id="services">
         <SectionHeading
           eyebrow="خدمات ما"
-          title="هر سندی که در ذهن دارید، آمادهی تحویل است"
-          description="دوازده خدمت در سه گروه. نرخ هر خدمت مشخص است و پیش از شروع کار تأیید میشود."
+          title="هر سندی که در ذهن دارید، آماده‌ی تحویل است"
+          description="دوازده خدمت در سه گروه. نرخ هر خدمت مشخص است و پیش از شروع کار تأیید می‌شود."
           actions={
             <Link href="/services/" className="btn btn--outline btn--sm">
-              همهی خدمات
+              همه‌ی خدمات
             </Link>
           }
         />
@@ -113,9 +113,9 @@ export default function HomePage() {
               <Icon name="sparkles" size={13} />
               پرطرفدارترین
             </Badge>
-            <h3 className="service-feature__title">قالببندی پایاننامه</h3>
+            <h3 className="service-feature__title">قالب‌بندی پایان‌نامه</h3>
             <p className="service-feature__desc">
-              از جلد و فهرست تا منابع و پیوستها، دقیقاً مطابق آییننامهی دانشگاه شما.
+              از جلد و فهرست تا منابع و پیوست‌ها، دقیقاً مطابق آیین‌نامه‌ی دانشگاه شما.
             </p>
             <div className="service-feature__price">
               <span>نرخ پایه از</span>
@@ -130,12 +130,12 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── مراحل: timeline بهجای ۴ کارت همشکل ─── */}
+      {/* ─── مراحل: timeline به‌جای ۴ کارت همشکل ─── */}
       <section className="section" id="how">
         <SectionHeading
           eyebrow="نحوه سفارش"
           title="چهار قدم تا دریافت فایل نهایی"
-          description="همهی مراحل از پنل کاربری قابل پیگیری است و در هر مرحله اعلان دریافت میکنید."
+          description="همه‌ی مراحل از پنل کاربری قابل پیگیری است و در هر مرحله اعلان دریافت می‌کنید."
           actions={
             <Link href="/start/" className="btn btn--primary btn--sm">
               شروع سفارش
@@ -160,20 +160,20 @@ export default function HomePage() {
         </ol>
       </section>
 
-      {/* ─── مزیتها: لنگر بصری بهجای عکس استاک دوم ─── */}
+      {/* ─── مزیت‌ها: لنگر بصری به‌جای عکس استاک دوم ─── */}
       <section className="section section--alt">
         <div className="split">
           <div className="benefit-anchor">
             <span className="benefit-anchor__icon" aria-hidden="true">
               <Icon name="clock" size={26} />
             </span>
-            <p className="benefit-anchor__lead">مهلت تحویل، از لحظهی پرداخت بیعانه</p>
+            <p className="benefit-anchor__lead">مهلت تحویل، از لحظه‌ی پرداخت بیعانه</p>
             <p className="benefit-anchor__desc">
               زمانبندی شفاف، قابل پیگیری در پنل و همراه با اعلان در هر مرحله.
               تأخیر نقطهای نیست که بخواهیم پنهانش کنیم.
             </p>
             <Link href="/faq/" className="benefit-anchor__link">
-              پرسشهای متداول دربارهی زمان و هزینه
+              پرسش‌های متداول درباره‌ی زمان و هزینه
               <Icon name="chevronDown" size={15} />
             </Link>
           </div>
@@ -181,7 +181,7 @@ export default function HomePage() {
             <SectionHeading
               eyebrow="مزایای ما"
               title="چرا آراسند را انتخاب کنید؟"
-              description="چون فقط تایپ نمیکنیم؛ سند را برای ارائه، داوری یا بایگانی آماده میکنیم."
+              description="چون فقط تایپ نمی‌کنیم؛ سند را برای ارائه، داوری یا بایگانی آماده می‌کنیم."
             />
             <div className="benefits">
               {BENEFITS.map((benefit) => (
@@ -219,7 +219,7 @@ export default function HomePage() {
             <SectionHeading
               eyebrow="محرمانگی"
               title="اطلاعات شما نزد ما امن است"
-              description="بسیاری از اسناد — بهویژه پایاننامه و پروژههای تحقیقاتی — پیش از انتشار رسمی باید محرمانه بمانند. آراسند متعهد است محتوای هیچ سندی را با شخص یا نهاد ثالثی به اشتراک نگذارد."
+              description="بسیاری از اسناد — به‌ویژه پایان‌نامه و پروژه‌های تحقیقاتی — پیش از انتشار رسمی باید محرمانه بمانند. آراسند متعهد است محتوای هیچ سندی را با شخص یا نهاد ثالثی به اشتراک نگذارد."
             />
             <ul className="benefits">
               {QUALITY_ITEMS.map((item) => (
@@ -269,14 +269,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── پرسشهای متداول ─── */}
+      {/* ─── پرسش‌های متداول ─── */}
       <section className="section section--alt">
         <SectionHeading
-          eyebrow="پرسشهای متداول"
-          title="چیزهایی که بیشتر پرسیده میشود"
+          eyebrow="پرسش‌های متداول"
+          title="چیزهایی که بیشتر پرسیده می‌شود"
           actions={
             <Link href="/faq/" className="btn btn--outline btn--sm">
-              همهی پرسشها
+              همه‌ی پرسشها
             </Link>
           }
         />
@@ -294,12 +294,12 @@ export default function HomePage() {
       <section className="section section--tight">
         <div className="cta-band">
           <div>
-            <h2>آمادهاید سند خود را بسپارید؟</h2>
+            <h2>آماده‌اید سند خود را بسپارید؟</h2>
             <p>نوع خدمت را انتخاب کنید، برآورد بگیرید و بقیه را به ما بسپارید.</p>
           </div>
           <div className="row">
             <Link href="/pricing/" className="btn btn--outline">
-              نرخنامه
+              نرخ‌نامه
             </Link>
             <Link href="/start/" className="btn btn--primary">
               شروع سفارش

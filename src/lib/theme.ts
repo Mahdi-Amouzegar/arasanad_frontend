@@ -5,10 +5,10 @@ import { useCallback, useEffect, useState } from 'react';
 /**
  * انتخاب دستی تم — جبران عقبماندگی فاز ۶ (design.md §3.7).
  *
- * ⚠️ توکنها از `light-dark()` استفاده میکنند، یعنی نتیجه به `color-scheme`
+ * ⚠️ توکنها از `light-dark()` استفاده می‌کنند، یعنی نتیجه به `color-scheme`
  *    وابسته است. «system» یعنی همان `color-scheme: light dark` روی `:root`
- *    (مرورگر از تنظیمات سیستم میگیرد)؛ «light»/«dark» یعنی اجبار تکمقداری.
- * ⚠️ اسکریپت اولیه در `<head>` اجرا میشود تا پیش از رنگآمیزی، تم ذخیرهشده
+ *    (مرورگر از تنظیمات سیستم می‌گیرد)؛ «light»/«dark» یعنی اجبار تکمقداری.
+ * ⚠️ اسکریپت اولیه در `<head>` اجرا می‌شود تا پیش از رنگآمیزی، تم ذخیرهشده
  *    اعمال شود و پرش رنگ (FOUC) رخ ندهد.
  */
 
@@ -23,7 +23,7 @@ export const THEME_CHOICES: ReadonlyArray<{ value: ThemeChoice; label: string }>
   { value: 'dark', label: 'تاریک' },
 ];
 
-/** اسکریپت بلاکینگِ کوچک — بدون وابستگی، مستقیم در `<head>` تزریق میشود. */
+/** اسکریپت بلاکینگِ کوچک — بدون وابستگی، مستقیم در `<head>` تزریق می‌شود. */
 export const THEME_INIT_SCRIPT = `(function(){try{var v=localStorage.getItem('${THEME_STORAGE_KEY}');var e=document.documentElement;if(v==='light'||v==='dark'){e.setAttribute('data-theme',v);}else{e.removeAttribute('data-theme');}}catch(e){}})();`;
 
 export function getStoredTheme(): ThemeChoice {
@@ -63,7 +63,7 @@ export function setTheme(choice: ThemeChoice): void {
     if (choice === 'system') window.localStorage.removeItem(THEME_STORAGE_KEY);
     else window.localStorage.setItem(THEME_STORAGE_KEY, choice);
   } catch {
-    /* حالت خصوصی / مسدودبودن localStorage — تم همان نشست اعمال میشود */
+    /* حالت خصوصی / مسدودبودن localStorage — تم همان نشست اعمال می‌شود */
   }
   applyTheme(choice);
   window.dispatchEvent(new Event(THEME_EVENT));
@@ -71,7 +71,7 @@ export function setTheme(choice: ThemeChoice): void {
 
 /**
  * هوک تم. مقدار اولیه همیشه `system` است (سرور وکلاینت یکسان) تا hydration
- * mismatch رخ ندهد؛ مقدار واقعی در `useEffect` خوانده میشود.
+ * mismatch رخ ندهد؛ مقدار واقعی در `useEffect` خوانده می‌شود.
  */
 export function useTheme(): [ThemeChoice, (choice: ThemeChoice) => void] {
   const [choice, setChoice] = useState<ThemeChoice>('system');

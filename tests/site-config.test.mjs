@@ -1,8 +1,8 @@
 /**
- * رگرسیون پیکربندی دامنهی اختصاصی.
+ * رگرسیون پیکربندی دامنه‌ی اختصاصی.
  *
  * ⚠️ هدف: جلوگیری از بازگشت خاموش خطای 404 منابع (basePath قدیمی) یا
- *    ارجاع به آدرس قدیمی Worker. بدون باندلر و بدون jsdom اجرا میشود.
+ *    ارجاع به آدرس قدیمی Worker. بدون باندلر و بدون jsdom اجرا می‌شود.
  */
 
 import test from 'node:test';
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
 
-test('Next.js دیگر basePath تعریف نمیکند و خروجی استاتیک است', () => {
+test('Next.js دیگر basePath تعریف نمی‌کند و خروجی استاتیک است', () => {
   const next = read('next.config.mjs');
   assert.match(next, /output:\s*'export'/);
   assert.match(next, /trailingSlash:\s*true/);
@@ -22,20 +22,20 @@ test('Next.js دیگر basePath تعریف نمیکند و خروجی استات
   assert.doesNotMatch(next, /assetPrefix\s*:/);
 });
 
-test('مرجع واحد نشانیها، دامنهی اختصاصی و API را درست میدهد', () => {
+test('مرجع واحد نشانیها، دامنه‌ی اختصاصی و API را درست می‌دهد', () => {
   const config = read('src/lib/config.ts');
   assert.match(config, /BASE_PATH\s*=\s*''/);
   assert.match(config, /SITE_ORIGIN\s*=\s*'https:\/\/arasanad\.ir'/);
   assert.match(config, /DEFAULT_API_BASE_URL\s*=\s*'https:\/\/api\.arasanad\.ir\/api\/v1'/);
 });
 
-test('api.ts آدرس پیشفرض را از config میگیرد، نه workers.dev', () => {
+test('api.ts آدرس پیش‌فرض را از config می‌گیرد، نه workers.dev', () => {
   const api = read('src/lib/api.ts');
   assert.match(api, /import\s*\{ DEFAULT_API_BASE_URL \}\s*from\s*'\.\/config'/);
   assert.match(api, /const DEFAULT_BASE = DEFAULT_API_BASE_URL;/);
 
-  // فقط کد اجرایی بررسی میشود؛ اشارهی توضیحی به `workers.dev` در کامنت مجاز است.
-  // نگاهبانی `[^:]` جلوی برداشتن `//` درون `https://` را میگیرد.
+  // فقط کد اجرایی بررسی می‌شود؛ اشاره‌ی توضیحی به `workers.dev` در کامنت مجاز است.
+  // نگاهبانی `[^:]` جلوی برداشتن `//` درون `https://` را می‌گیرد.
   const code = api
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/(^|[^:])\/\/.*$/gm, '$1');
@@ -43,7 +43,7 @@ test('api.ts آدرس پیشفرض را از config میگیرد، نه workers.
   assert.doesNotMatch(code, /https:\/\/api\.arasanad\.ir/);
 });
 
-test('manifest و service worker از ریشه استفاده میکنند', () => {
+test('manifest و service worker از ریشه استفاده می‌کنند', () => {
   const manifest = JSON.parse(read('public/manifest.webmanifest'));
   assert.equal(manifest.start_url, '/');
   assert.equal(manifest.scope, '/');
@@ -54,17 +54,17 @@ test('manifest و service worker از ریشه استفاده میکنند', () 
   assert.doesNotMatch(sw, /arasanad_frontend/);
 });
 
-test('نمونهی متغیر محیطی به API دامنهی اختصاصی اشاره میکند', () => {
+test('نمونه‌ی متغیر محیطی به API دامنه‌ی اختصاصی اشاره می‌کند', () => {
   assert.match(
     read('.env.example'),
     /NEXT_PUBLIC_API_BASE_URL=https:\/\/api\.arasanad\.ir\/api\/v1/,
   );
 });
 
-test('ورکفلوی استقرار، نشانی API را از متغیر پنهان مخزن نمیگیرد', () => {
+test('ورکفلوی استقرار، نشانی API را از متغیر پنهان مخزن نمی‌گیرد', () => {
   const workflow = read('.github/workflows/deploy.yml');
   assert.match(workflow, /npm run build/);
-  // تزریق متغیر قدیمی و غیرقابلمشاهدهی مخزن، بیلد production را بیصدا خراب میکند.
+  // تزریق متغیر قدیمی و غیرقابلمشاهده‌ی مخزن، بیلد production را بیصدا خراب می‌کند.
   assert.doesNotMatch(workflow, /vars\.NEXT_PUBLIC_API_BASE_URL/);
 });
 

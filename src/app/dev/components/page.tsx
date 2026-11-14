@@ -313,7 +313,7 @@ export default function ComponentsPreviewPage() {
           <div className="row" style={{ flexWrap: 'wrap', marginBottom: 'var(--sp-4)' }}>
             <Button>اصلی</Button>
             <Button variant="secondary">ثانویه</Button>
-            <Button variant="outline">دورخط</Button>
+            <Button variant="outline">دور‌خط</Button>
             <PaymentStatusBadge status="pending" />
             <ProjectStatusBadge status="in_progress" />
           </div>

@@ -1,15 +1,16 @@
 // ═══════════════════════════════════════════════════════════════════════════
 // postbuild.mjs — بررسی و تکمیل خروجی استاتیک
 //
-// پس از `next build` اجرا میشود و:
-//   ۱. اطمینان از وجود .nojekyll (بدون آن GitHub Pages پوشهی _next را نادیده میگیرد)
-//   ۲. جلوگیری از انتشار فایلهای داخلی (*.md و پوشههای ممنوع)
+// پس از `next build` اجرا می‌شود و:
+//   ۱. اطمینان از وجود .nojekyll (بدون آن GitHub Pages پوشه‌ی _next را نادیده می‌گیرد)
+//   ۲. جلوگیری از انتشار فایل‌های داخلی (*.md و پوشههای ممنوع)
 //   ۳. بررسی مسیر داراییها و manifest/favicon
 //   ۴. بررسی اینکه هیچ پیشوند قدیمی /arasanad_frontend/ و هیچ آدرس
 //      قدیمی workers.dev / github.io در خروجی نمانده باشد
-//   ۵. تولید sitemap.xml و robots.txt با مبدأ دامنهی اختصاصی
+//   ۵. تولید sitemap.xml و robots.txt با مبدأ دامنه‌ی اختصاصی
+//   ۶. پایش نیمفاصله (U+200C) در HTML و JS خروجی (استاندارد ۸٫۶)
 //
-// ⚠️ دامنهی اختصاصی `https://arasanad.ir` از ریشه سرو میشود، پس BASE_PATH
+// ⚠️ دامنه‌ی اختصاصی `https://arasanad.ir` از ریشه سرو می‌شود، پس BASE_PATH
 //    خالی است. گارد زیر عمداً سختگیر است تا خطای 404 منابع یا تزریق
 //    Repository Variable قدیمی، بیلد را بیصدا عبور نکند.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -40,12 +41,12 @@ const ROUTES = [
 /** الگوهایی که نباید در خروجی نهایی باشند. */
 const FORBIDDEN = [
   { test: (p) => p.endsWith('.md'), label: 'فایل Markdown' },
-  { test: (p) => p.split(sep).includes('docs'), label: 'پوشهی docs' },
-  { test: (p) => p.split(sep).includes('_legacy'), label: 'پوشهی _legacy' },
-  { test: (p) => p.split(sep).includes('backup'), label: 'پوشهی backup' },
+  { test: (p) => p.split(sep).includes('docs'), label: 'پوشه‌ی docs' },
+  { test: (p) => p.split(sep).includes('_legacy'), label: 'پوشه‌ی _legacy' },
+  { test: (p) => p.split(sep).includes('backup'), label: 'پوشه‌ی backup' },
 ];
 
-/** رشتههای ممنوع در خروجی متنی — نشانهی استقرار نادرست یا تنظیم قدیمی. */
+/** رشتههای ممنوع در خروجی متنی — نشانه‌ی استقرار نادرست یا تنظیم قدیمی. */
 const LEGACY_STRINGS = [
   { needle: '/arasanad_frontend/', label: 'پیشوند قدیمی basePath' },
   { needle: 'arasanad-api.arasanad-for-type.workers.dev', label: 'آدرس قدیمی Worker (workers.dev)' },
@@ -82,14 +83,14 @@ async function exists(path) {
 
 // ─── ۱. بررسی وجود خروجی ───
 if (!(await exists(OUT_DIR))) {
-  console.error(`[postbuild] ✗ پوشهی ${OUT_DIR} وجود ندارد. آیا next build اجرا شد؟`);
+  console.error(`[postbuild] ✗ پوشه‌ی ${OUT_DIR} وجود ندارد. آیا next build اجرا شد؟`);
   process.exit(1);
 }
 if (!(await exists(join(OUT_DIR, 'index.html')))) {
   failures.push('out/index.html ساخته نشده است');
 }
 
-// ─── ۲. جلوگیری از انتشار فایلهای داخلی ───
+// ─── ۲. جلوگیری از انتشار فایل‌های داخلی ───
 const files = await walk(OUT_DIR);
 for (const file of files) {
   const rel = relative(OUT_DIR, file);
@@ -120,7 +121,7 @@ if (BASE_PATH && homeHtml.includes(`${BASE_PATH}${BASE_PATH}`)) {
   failures.push('basePath دو بار اعمال شده است (مسیر تکراری در HTML)');
 }
 
-// ⚠️ Next مسیر basePath را برای metadata (manifest و icons) اعمال نمیکند؛
+// ⚠️ Next مسیر basePath را برای metadata (manifest و icons) اعمال نمی‌کند؛
 //    `asset()` در layout مسئول ساخت آنهاست.
 for (const required of ['manifest.webmanifest', 'favicon.svg']) {
   if (!homeHtml.includes(`${BASE_PATH}/${required}`)) {
@@ -143,7 +144,7 @@ ${urls}
 await writeFile(join(OUT_DIR, 'sitemap.xml'), sitemap, 'utf8');
 
 // ─── ۶. robots.txt ───
-// دامنهی اختصاصی از ریشه سرو میشود، پس robots.txt و sitemap در جای درستاند.
+// دامنه‌ی اختصاصی از ریشه سرو می‌شود، پس robots.txt و sitemap در جای درستاند.
 const robots = `User-agent: *
 Allow: /
 
@@ -151,7 +152,7 @@ Sitemap: ${SITE_URL}${BASE_PATH}/sitemap.xml
 `;
 await writeFile(join(OUT_DIR, 'robots.txt'), robots, 'utf8');
 
-// ─── ۷. پویش تمام فایلهای متنی برای رشتههای قدیمی ───
+// ─── ۷. پویش تمام فایل‌های متنی برای رشتههای قدیمی ───
 const outputFiles = await walk(OUT_DIR);
 const legacyHits = new Map();
 for (const file of outputFiles) {
@@ -179,6 +180,34 @@ for (const [label, paths] of legacyHits) {
   );
 }
 
+// ─── ۸. پایش نیمفاصله در خروجی بیلد ───
+// استاندارد نگارش فارسی (بخش ۸٫۶): U+200C بخشی از متن است و نباید در
+// HTML یا JS نهایی حذف شود. این گارد صرفاً خواندنی است (read-only).
+const ZWNJ = '\u200C';
+let zwnjHtml = 0;
+let zwnjJs = 0;
+for (const file of outputFiles) {
+  const ext = extname(file);
+  if (ext !== '.html' && ext !== '.js') continue;
+  let text;
+  try {
+    text = await readFile(file, 'utf8');
+  } catch {
+    continue;
+  }
+  const count = text.split(ZWNJ).length - 1;
+  if (ext === '.html') zwnjHtml += count;
+  else zwnjJs += count;
+}
+if (zwnjHtml === 0) {
+  failures.push(
+    'هیچ نیمفاصله (U+200C) در HTML خروجی یافت نشد؛ ابزار بیلد نیمفاصله را حذف کرده است',
+  );
+}
+if (zwnjHtml + zwnjJs === 0) {
+  failures.push('نیمفاصله (U+200C) کاملاً از خروجی بیلد حذف شده است');
+}
+
 // ─── نتیجه ───
 if (failures.length > 0) {
   console.error('\n[postbuild] ✗ بررسی خروجی شکست خورد:\n');
@@ -191,11 +220,12 @@ const pages = files.filter((f) => f.endsWith('.html')).length;
 const assets = files.filter((f) => !f.endsWith('.html') && !f.endsWith(sep)).length;
 
 console.log('\n[postbuild] ✓ خروجی استاتیک سالم است');
-console.log(`  صفحههای HTML : ${pages}`);
+console.log(`  صفحه‌های HTML : ${pages}`);
 console.log(`  داراییها      : ${assets}`);
-console.log(`  مسیر پایه     : ${BASE_PATH || '/ (ریشهی دامنه)'}`);
+console.log(`  مسیر پایه     : ${BASE_PATH || '/ (ریشه‌ی دامنه)'}`);
 console.log(`  مبدأ          : ${SITE_URL}`);
 console.log(`  sitemap       : ${ROUTES.length} مسیر`);
 console.log('  .nojekyll     : موجود');
-console.log('  رشتهی قدیمی  : هیچ');
+console.log(`  نیمفاصله    : HTML ${zwnjHtml} / JS ${zwnjJs}`);
+console.log('  رشته‌ی قدیمی  : هیچ');
 console.log('  فایل داخلی    : هیچ\n');

@@ -34,13 +34,20 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      # استاندارد نگارش فارسی: موارد قطعی، بیلد را پیش از ساخت متوقف می‌کنند.
+      - name: Persian typography
+        run: npm run lint:fa
+
+      - name: Tests
+        run: npm test
+
       - name: Build
         run: npm run build
-        # ⚠️ نشانی API فقط از src/lib/config.ts خوانده میشود. عمداً هیچ
-        #    Repository Variableای تزریق نمیشود تا یک مقدار قدیمی و پنهان
+        # ⚠️ نشانی API فقط از src/lib/config.ts خوانده می‌شود. عمداً هیچ
+        #    Repository Variableای تزریق نمی‌شود تا یک مقدار قدیمی و پنهان
         #    (workers.dev) بیصدا وارد باندل نشود. برای استقرار آزمایشی، یک
         #    env صریح و بررسیشده همینجا اضافه کنید؛ گارد postbuild هر نشانی
-        #    قدیمی در خروجی را شناسایی و بیلد را متوقف میکند.
+        #    قدیمی در خروجی را شناسایی و بیلد را متوقف می‌کند.
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

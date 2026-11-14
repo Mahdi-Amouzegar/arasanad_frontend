@@ -15,10 +15,10 @@ export interface PanelPlaceholderProps {
 }
 
 /**
- * پوستهی صادقانهی صفحات پیادهسازینشده.
+ * پوسته‌ی صادقانه‌ی صفحات پیادهسازینشده.
  *
- * ⚠️ هیچ دادهی ساختگی، شمارندهی تخیلی یا دکمهی بیه effect وجود ندارد؛
- *    صریحاً میگوید این بخش در کدام فاز ساخته میشود و یک اقدام واقعی میدهد.
+ * ⚠️ هیچ داده‌ی ساختگی، شمارنده‌ی تخیلی یا دکمه‌ی بیه effect وجود ندارد؛
+ *    صریحاً میگوید این بخش در کدام فاز ساخته می‌شود و یک اقدام واقعی می‌دهد.
  */
 export function PanelPlaceholder({
   groups,
@@ -44,8 +44,8 @@ export function PanelPlaceholder({
       <div className="panel-placeholder">
         <EmptyState
           icon={<Icon name="package" size={28} />}
-          title={`${info.title} — در فاز ${info.phase} ساخته میشود`}
-          description={`${info.note}. در حال حاضر فقط پوسته و ناوبری این بخش آماده است؛ داده و عملیات آن هنوز پیادهسازی نشدهاند.`}
+          title={`${info.title} — در فاز ${info.phase} ساخته می‌شود`}
+          description={`${info.note}. در حال حاضر فقط پوسته و ناوبری این بخش آماده است؛ داده و عملیات آن هنوز پیاده‌سازی نشدهاند.`}
           action={
             <Link href={actionHref} className="btn btn--primary btn--sm">
               {actionLabel}

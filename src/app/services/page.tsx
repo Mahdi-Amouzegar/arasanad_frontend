@@ -8,7 +8,7 @@ import { SERVICES, SERVICE_GROUPS, STEPS } from '@/content/site';
 export const metadata: Metadata = {
   title: 'خدمات',
   description:
-    'فهرست کامل خدمات تایپ، صفحهآرایی، فرمولنویسی، ویراستاری و آمادهسازی اسناد دانشگاهی و اداری در آراسند.',
+    'فهرست کامل خدمات تایپ، صفحه‌آرایی، فرمول‌نویسی، ویراستاری و آماده‌سازی اسناد دانشگاهی و اداری در آراسند.',
   alternates: { canonical: '/services/' },
 };
 
@@ -19,7 +19,7 @@ export default function ServicesPage() {
         <SectionHeading
           eyebrow="خدمات ما"
           title="دوازده خدمت، یک استاندارد تحویل"
-          description="هر سند — از یک نامهی اداری کوتاه تا پایاننامهی چندصد صفحهای — با تعرفهی مشخص، زمانبندی روشن و محرمانگی کامل آماده میشود."
+          description="هر سند — از یک نامه‌ی اداری کوتاه تا پایاننامه‌ی چندصد صفحهای — با تعرفه‌ی مشخص، زمانبندی روشن و محرمانگی کامل آماده می‌شود."
           actions={
             <Link href="/start/" className="btn btn--primary btn--sm">
               شروع سفارش
@@ -65,7 +65,7 @@ export default function ServicesPage() {
         <SectionHeading
           eyebrow="پس از درخواست"
           title="روند کار چگونه است؟"
-          description="همهی مراحل از پنل کاربری قابل پیگیری است."
+          description="همه‌ی مراحل از پنل کاربری قابل پیگیری است."
         />
         <ol className="steps-timeline">
           {STEPS.map((step, index) => (
@@ -89,11 +89,11 @@ export default function ServicesPage() {
         <div className="cta-band">
           <div>
             <h2>نرخ هر خدمت را ببینید</h2>
-            <p>نرخ پایه بهازای هر صفحه، پیش از ثبت درخواست قابل مشاهده است.</p>
+            <p>نرخ پایه به‌ازای هر صفحه، پیش از ثبت درخواست قابل مشاهده است.</p>
           </div>
           <div className="row">
             <Link href="/pricing/" className="btn btn--outline">
-              نرخنامه
+              نرخ‌نامه
             </Link>
             <Link href="/start/" className="btn btn--primary">
               شروع سفارش

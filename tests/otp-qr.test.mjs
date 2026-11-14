@@ -19,7 +19,7 @@ const CODE = 'X7K9-2MNP-8QRS';
 const ORIGIN = 'https://example.github.io';
 const BASE = '/arasanad_frontend';
 
-test('لینک فقط در fragment کد دارد و به query نمیرود', () => {
+test('لینک فقط در fragment کد دارد و به query نمی‌رود', () => {
   const url = buildOtpLoginUrl({ origin: ORIGIN, basePath: BASE, code: CODE });
   assert.equal(url, 'https://example.github.io/arasanad_frontend/login/#code=X7K92MNP8QRS');
   assert.equal(url.includes('?'), false);
@@ -27,7 +27,7 @@ test('لینک فقط در fragment کد دارد و به query نمیرود', (
   assert.equal(new URL(url).hash, '#code=X7K92MNP8QRS');
 });
 
-test('مبدأ با / اضافی و basePath خالی درست نرمال میشود', () => {
+test('مبدأ با / اضافی و basePath خالی درست نرمال می‌شود', () => {
   assert.equal(
     buildOtpLoginUrl({ origin: 'https://api.arasanad.ir///', basePath: '', code: CODE }),
     'https://api.arasanad.ir/login/#code=X7K92MNP8QRS',
@@ -38,7 +38,7 @@ test('مبدأ با / اضافی و basePath خالی درست نرمال میش
   );
 });
 
-test('کد ناقص یا دارای نویسهی مبهم هرگز QR نسازد', () => {
+test('کد ناقص یا دارای نویسه‌ی مبهم هرگز QR نسازد', () => {
   assert.throws(() => buildOtpLoginUrl({ origin: ORIGIN, basePath: BASE, code: 'X7K9-2MNP' }));
   assert.throws(() => buildOtpLoginUrl({ origin: ORIGIN, basePath: BASE, code: 'X7K92MNP8QR0' }));
   assert.throws(() => buildOtpLoginUrl({ origin: ORIGIN, basePath: BASE, code: '' }));
@@ -58,19 +58,19 @@ test('fragment نامعتبر، خالی یا پارامتر اشتباه → nu
   assert.equal(readOtpCodeFromUrl('https://example.com/login/'), null);
 });
 
-test('نتیجهی اسکنر با query هم کد را از fragment میگیرد', () => {
+test('نتیجه‌ی اسکنر با query هم کد را از fragment می‌گیرد', () => {
   const scanned = `${ORIGIN}${BASE}/login/?utm=camera#code=X7K92MNP8QRS`;
   assert.equal(readOtpCodeFromUrl(scanned), CODE);
 });
 
-test('hashOf / stripHash fragment را جدا و حذف میکند', () => {
+test('hashOf / stripHash fragment را جدا و حذف می‌کند', () => {
   const url = `${ORIGIN}${BASE}/login/#code=X7K92MNP8QRS`;
   assert.equal(hashOf(url), '#code=X7K92MNP8QRS');
   assert.equal(stripHash(url), `${ORIGIN}${BASE}/login/`);
   assert.equal(stripHash(`${ORIGIN}${BASE}/login/`), `${ORIGIN}${BASE}/login/`);
 });
 
-test('شمارش معکوس، منفی نمیشود و قالب mm:ss میدهد', () => {
+test('شمارش معکوس، منفی نمی‌شود و قالب mm:ss می‌دهد', () => {
   const now = 1_700_000_000_000;
   assert.equal(remainingSeconds(new Date(now + 600_000).toISOString(), now), 600);
   assert.equal(remainingSeconds(new Date(now - 5_000).toISOString(), now), 0);

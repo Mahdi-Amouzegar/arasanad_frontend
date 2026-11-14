@@ -1,10 +1,10 @@
 /**
  * ساخت و خواندن لینک «ورود با کد یکبارمصرف» برای QR.
  *
- * ⚠️ امنیت: کد فقط در **fragment** (`#code=…`) قرار میگیرد، نه query string.
- *    fragment به سرور فرستاده نمیشود، در لاگ وبسرور/Workers ذخیره نمیشود و
- *    بهصورت پیشفرض در Referer هم نیست. کلاینت بلافاصله پس از خواندن، آن را
- *    با history.replaceState پاک میکند تا در تاریخچه نماند.
+ * ⚠️ امنیت: کد فقط در **fragment** (`#code=…`) قرار می‌گیرد، نه query string.
+ *    fragment به سرور فرستاده نمی‌شود، در لاگ وبسرور/Workers ذخیره نمی‌شود و
+ *    به‌صورت پیش‌فرض در Referer هم نیست. کلاینت بلافاصله پس از خواندن، آن را
+ *    با history.replaceState پاک می‌کند تا در تاریخچه نماند.
  *
  * ⚠️ این فایل خالص است (بدون React/Next/DOM) تا node:test بتواند مستقیم،
  *    بدون باندلر و jsdom، همان منطق واقعی UI را تست کند.
@@ -16,8 +16,8 @@ export const OTP_CODE_HASH_KEY = 'code';
 export const OTP_LOGIN_PATH = '/login/';
 
 /**
- * ساخت آدرس کامل صفحهی ورود همراه با کد.
- * فقط کدهای ۱۲ کاراکتری معتبر پذیرفته میشوند؛ در غیر این صورت خطا میدهد
+ * ساخت آدرس کامل صفحه‌ی ورود همراه با کد.
+ * فقط کدهای ۱۲ کاراکتری معتبر پذیرفته می‌شوند؛ در غیر این صورت خطا می‌دهد
  * تا هرگز QR حاوی کد ناقص ساخته نشود.
  */
 export function buildOtpLoginUrl({ origin = '', basePath = '', code }) {
@@ -43,14 +43,14 @@ export function hashOf(value) {
   return index >= 0 ? text.slice(index) : '';
 }
 
-/** حذف fragment از یک لینک (برای پاکسازی history). */
+/** حذف fragment از یک لینک (برای پاک‌سازی history). */
 export function stripHash(value) {
   const text = String(value ?? '');
   const index = text.indexOf('#');
   return index >= 0 ? text.slice(0, index) : text;
 }
 
-/** خواندن کد از fragment؛ فقط کد معتبر برمیگرداند، وگرنه null. */
+/** خواندن کد از fragment؛ فقط کد معتبر برمی‌گرداند، وگرنه null. */
 export function readOtpCodeFromHash(hash) {
   const raw = String(hash ?? '').replace(/^#/, '');
   if (!raw) return null;
@@ -67,12 +67,12 @@ export function readOtpCodeFromHash(hash) {
   return isValidOtpInput(normalized) ? normalized : null;
 }
 
-/** خواندن کد از نتیجهی اسکنر (لینک کامل). */
+/** خواندن کد از نتیجه‌ی اسکنر (لینک کامل). */
 export function readOtpCodeFromUrl(url) {
   return readOtpCodeFromHash(hashOf(url));
 }
 
-/** ثانیههای باقیمانده تا انقضا — هیچوقت منفی نمیشود. */
+/** ثانیههای باقیمانده تا انقضا — هیچوقت منفی نمی‌شود. */
 export function remainingSeconds(expiresAt, now = Date.now()) {
   const target = Date.parse(expiresAt);
   if (!Number.isFinite(target)) return 0;

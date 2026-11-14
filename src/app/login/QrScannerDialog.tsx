@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { readOtpCodeFromUrl } from '@/lib/otp-qr.mjs';
 
-/** تنها متدهایی که از اسکنر استفاده میکنیم — نیازی به تایپ وارداتی نیست. */
+/** تنها متدهایی که از اسکنر استفاده می‌کنیم — نیازی به تایپ وارداتی نیست. */
 type ScannerInstance = {
   start(): Promise<void>;
   stop(): void;
@@ -21,12 +21,12 @@ export interface QrScannerDialogProps {
 /**
  * اسکن QR روی «دستگاه دوم».
  *
- * ⚠️ `qr-scanner` (MIT) فقط هنگام بازشدن پنجره بهصورت پویا import میشود،
- *    پس هیچ کد دوربین/worker در باندل اولیهی صفحات وجود ندارد.
+ * ⚠️ `qr-scanner` (MIT) فقط هنگام بازشدن پنجره به‌صورت پویا import می‌شود،
+ *    پس هیچ کد دوربین/worker در باندل اولیه‌ی صفحات وجود ندارد.
  * ⚠️ کتابخانه در مرورگرهای دارای `BarcodeDetector` از همان API بومی استفاده
- *    میکند و در iOS/Safari به موتور محلیِ باندلشده falling back میکند؛
+ *    می‌کند و در iOS/Safari به موتور محلیِ باندلشده falling back می‌کند؛
  *    هیچ CDN، WASM خارجی یا سرویس پولی لازم نیست.
- * ⚠️ کد از fragment لینک خوانده میشود و بلافاصله پردازش میگردد.
+ * ⚠️ کد از fragment لینک خوانده می‌شود و بلافاصله پردازش می‌گردد.
  */
 export function QrScannerDialog({ onCode, onClose }: QrScannerDialogProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -84,7 +84,7 @@ export function QrScannerDialog({ onCode, onClose }: QrScannerDialogProps) {
         if (!cancelled) setStarting(false);
       } catch {
         showError(
-          'دوربین در دسترس نیست یا اجازهی دسترسی داده نشد. میتوانید کد را بهصورت دستی وارد کنید.',
+          'دوربین در دسترس نیست یا اجازه‌ی دسترسی داده نشد. می‌توانید کد را به‌صورت دستی وارد کنید.',
         );
       }
     })();
@@ -130,7 +130,7 @@ export function QrScannerDialog({ onCode, onClose }: QrScannerDialogProps) {
 
         <p className="login-note">
           QR نمایشدادهشده در پروفایل دستگاه اصلی را مقابل دوربین بگیرید.
-          کد بهصورت خودکار وارد میشود.
+          کد به‌صورت خودکار وارد می‌شود.
         </p>
 
         <div className="qr-modal__viewport">

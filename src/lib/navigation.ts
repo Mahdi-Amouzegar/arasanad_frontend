@@ -82,12 +82,12 @@ export const PUBLIC_NAV: NavGroup[] = [
 /** لنگرهای درون صفحه‌ی اصلی — در ستون کنار راست، زیر ناوبری. */
 export const PUBLIC_ANCHORS: NavItem[] = [
   { href: '/#services', label: 'خدمات ما', icon: 'sparkles' },
-  { href: '/#how', label: 'نحوهی سفارش', icon: 'clock' },
+  { href: '/#how', label: 'نحوه‌ی سفارش', icon: 'clock' },
 ];
 
 /**
  * نوار پایین موبایل (design.md §4.6 — حداکثر ۵ آیتم).
- * «شروع سفارش» آیتم میانی و برجسته است؛ بقیهی صفحات از Drawer در دسترساند.
+ * «شروع سفارش» آیتم میانی و برجسته است؛ بقیه‌ی صفحات از Drawer در دسترساند.
  */
 export const PUBLIC_MOBILE_NAV: NavItem[] = [
   { href: '/', label: 'خانه', icon: 'activity' },

@@ -5,9 +5,9 @@ import { SectionHeading } from '@/components/public/SectionHeading';
 import { FAQ } from '@/content/site';
 
 export const metadata: Metadata = {
-  title: 'پرسشهای متداول',
+  title: 'پرسش‌های متداول',
   description:
-    'پاسخ پرسشهای پرتکرار دربارهی زمان تحویل، نرخ، محرمانگی، ارسال فایل، اصلاحات و پیگیری سفارش در آراسند.',
+    'پاسخ پرسش‌های پرتکرار درباره‌ی زمان تحویل، نرخ، محرمانگی، ارسال فایل، اصلاحات و پیگیری سفارش در آراسند.',
   alternates: { canonical: '/faq/' },
 };
 
@@ -17,8 +17,8 @@ export default function FaqPage() {
       <section>
         <SectionHeading
           eyebrow="راهنما"
-          title="پرسشهای متداول"
-          description="اگر پاسخ خود را پیدا نکردید، از صفحهی تماس با ما پیام بدهید؛ مستقیم پاسخ میدهیم."
+          title="پرسش‌های متداول"
+          description="اگر پاسخ خود را پیدا نکردید، از صفحه‌ی تماس با ما پیام بدهید؛ مستقیم پاسخ می‌دهیم."
           actions={
             <Link href="/contact/" className="btn btn--outline btn--sm">
               تماس با ما
@@ -38,12 +38,12 @@ export default function FaqPage() {
       <section className="section section--tight">
         <div className="cta-band">
           <div>
-            <h2>آمادهاید شروع کنید؟</h2>
-            <p>برآورد هزینه بگیرید و خلاصهی درخواست را برای ما بفرستید.</p>
+            <h2>آماده‌اید شروع کنید؟</h2>
+            <p>برآورد هزینه بگیرید و خلاصه‌ی درخواست را برای ما بفرستید.</p>
           </div>
           <div className="row">
             <Link href="/pricing/" className="btn btn--outline">
-              نرخنامه
+              نرخ‌نامه
             </Link>
             <Link href="/start/" className="btn btn--primary">
               شروع سفارش

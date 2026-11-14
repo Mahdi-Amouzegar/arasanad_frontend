@@ -4,21 +4,21 @@ import { useMemo } from 'react';
 import qrcode from 'qrcode-generator';
 
 export interface QrCodeProps {
-  /** متنی که در QR رمزگذاری میشود (اینجا: لینک ورود همراه با #code=…) */
+  /** متنی که در QR رمزگذاری می‌شود (اینجا: لینک ورود همراه با #code=…) */
   value: string;
   size?: number;
-  /** توضیح برای صفحهخوان؛ خود کد هرگز در aria گنجانده نمیشود */
+  /** توضیح برای صفحه‌خوان؛ خود کد هرگز در aria گنجانده نمی‌شود */
   label: string;
   className?: string;
 }
 
 /**
- * رندر QR بهصورت SVG خالص، بدون Canvas، بدون CDN و بدون درخواست شبکه.
+ * رندر QR به‌صورت SVG خالص، بدون Canvas، بدون CDN و بدون درخواست شبکه.
  *
- * ⚠️ `qrcode-generator` (MIT) بهصورت محلی باندل میشود و هیچ تصویر/فونت
- *    خارجی لازم ندارد. رنگها از توکنها میآیند تا در تم تاریک، ماژولهای
- *    تیره روی زمینهی تیره محو نشوند.
- * ⚠️ سطح تصحیح خطا `M` و حاشیهی ۲ ماژول (quiet zone) رعایت شده است.
+ * ⚠️ `qrcode-generator` (MIT) به‌صورت محلی باندل می‌شود و هیچ تصویر/فونت
+ *    خارجی لازم ندارد. رنگها از توکنها می‌آیند تا در تم تاریک، ماژولهای
+ *    تیره روی زمینه‌ی تیره محو نشوند.
+ * ⚠️ سطح تصحیح خطا `M` و حاشیه‌ی ۲ ماژول (quiet zone) رعایت شده است.
  */
 export function QrCode({ value, size = 208, label, className }: QrCodeProps) {
   const { modules, path } = useMemo(() => {

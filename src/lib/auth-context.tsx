@@ -24,10 +24,10 @@ export interface AuthUser {
 }
 
 /**
- * قابلیتهای نشست — دقیقاً همان چیزی که سرور در `/auth/me` محاسبه میکند.
- * ⚠️ فرانتاند این پرچمها را بازسازی نمیکند؛ فقط نمایش میدهد تا دکمهای
+ * قابلیتهای نشست — دقیقاً همان چیزی که سرور در `/auth/me` محاسبه می‌کند.
+ * ⚠️ فرانتاند این پرچمها را بازسازی نمی‌کند؛ فقط نمایش می‌دهد تا دکمهای
  *    اضافهای نشان ندهد. امنیت واقعی همچنان سمت سرور است.
- * ⚠️ مقدار پیشفرض «همه بسته» است: تا پیش از پاسخ سرور، هیچ عملیاتی مجاز نیست.
+ * ⚠️ مقدار پیش‌فرض «همه بسته» است: تا پیش از پاسخ سرور، هیچ عملیاتی مجاز نیست.
  */
 export interface Capabilities {
   issueOtpCode: boolean;
@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const data = await apiRequest<MeResponse>('/auth/me', { token: activeToken });
         setUser(normalizeUser(data.user));
-        // اگر پاسخ قدیمی سرور فاقد capabilities باشد، حالت امن (مهمان) حفظ میشود.
+        // اگر پاسخ قدیمی سرور فاقد capabilities باشد، حالت امن (مهمان) حفظ می‌شود.
         setCapabilities(data.capabilities ?? GUEST_CAPABILITIES);
       } catch (error) {
         if (error instanceof ApiError && error.status === 401) clear();
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.localStorage.setItem(TOKEN_KEY, nextToken);
       setToken(nextToken);
       setUser(normalizeUser(nextUser));
-      // پاسخ ورود (ربات/کد) قابلیتها ندارد؛ بلافاصله از `/auth/me` میگیریم.
+      // پاسخ ورود (ربات/کد) قابلیتها ندارد؛ بلافاصله از `/auth/me` می‌گیریم.
       // تا آن لحظه حالت مهمان برقرار است تا دکمهای حساس زودتر ظاهر نشوند.
       setCapabilities(GUEST_CAPABILITIES);
       void loadMe(nextToken);

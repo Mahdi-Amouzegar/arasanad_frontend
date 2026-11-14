@@ -14,8 +14,8 @@ import { useAdminTelegram } from '@/lib/site-config';
 /**
  * ستون کنار راست صفحات عمومی.
  * ⚠️ روی دسکتاپ ثابت است؛ در موبایل پنهان و از طریق Drawer هدر باز می‌شود.
- * ⚠️ بند ۴٫۵ design.md: کارت اقدام/حساب **پایین** ستون قرار میگیرد،
- *    نه بالا؛ بههمین دلیل CTA و تم به `public-side__foot` منتقل شدند.
+ * ⚠️ بند ۴٫۵ design.md: کارت اقدام/حساب **پایین** ستون قرار می‌گیرد،
+ *    نه بالا؛ به‌همین دلیل CTA و تم به `public-side__foot` منتقل شدند.
  */
 export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();

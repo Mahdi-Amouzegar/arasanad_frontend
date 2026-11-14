@@ -15,7 +15,7 @@ import { THEME_INIT_SCRIPT } from '@/lib/theme';
 
 /**
  * آدرس پایه برای ساخت URLهای مطلق (OG و…).
- * ⚠️ دامنهی اختصاصی از ریشه سرو میشود؛ basePath تعریف نشده است.
+ * ⚠️ دامنه‌ی اختصاصی از ریشه سرو می‌شود؛ basePath تعریف نشده است.
  */
 const SITE_URL = `${SITE_ORIGIN}${BASE_PATH}`;
 
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     locale: 'fa_IR',
     siteName: 'آراسند',
   },
-  // ⚠️ این فیلدها مسیر نسبی لازم دارند و با `asset()` ساخته میشوند؛
+  // ⚠️ این فیلدها مسیر نسبی لازم دارند و با `asset()` ساخته می‌شوند؛
   //    بدون asset() آدرس‌ها به ریشه‌ی دامنه اشاره می‌کنند و ۴۰۴ می‌دهند.
   manifest: asset('/manifest.webmanifest'),
   icons: {
@@ -51,8 +51,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fa" dir="rtl">
-      {/* اسکریپت بلاکینگ تم: پیش از اولین رنگآمیزی اجرا میشود تا پرش رنگ ندهد.
-          رشته ثابت و بدون ورودی کاربر است؛ هیچ دادهی پویایی تزریق نمیشود. */}
+      {/* اسکریپت بلاکینگ تم: پیش از اولین رنگآمیزی اجرا می‌شود تا پرش رنگ ندهد.
+          رشته ثابت و بدون ورودی کاربر است؛ هیچ داده‌ی پویایی تزریق نمی‌شود. */}
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>

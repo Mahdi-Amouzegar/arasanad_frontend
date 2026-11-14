@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** تمام مسیرهای `CUSTOMER_NAV` در بیلد استاتیک تولید میشود تا لینک مرده نماند. */
+/** تمام مسیرهای `CUSTOMER_NAV` در بیلد استاتیک تولید می‌شود تا لینک مرده نماند. */
 export function generateStaticParams() {
   return slugsFor(CUSTOMER_GROUPS, '/panel');
 }

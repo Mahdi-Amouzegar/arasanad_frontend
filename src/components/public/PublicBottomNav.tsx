@@ -12,7 +12,7 @@ import { PUBLIC_MOBILE_NAV } from '@/lib/navigation';
  * ⚠️ تا پیش از این، `.mobile-nav` فقط داخل `AppShell` پنل وجود داشت و
  *    صفحات عمومی موبایل فقط هamburger داشتند.
  * ⚠️ حداکثر ۵ آیتم؛ آیتم میانی «شروع سفارش» همان CTA چسبان P0 است.
- * ⚠️ `env(safe-area-inset-bottom)` در CSS رعایت میشود.
+ * ⚠️ `env(safe-area-inset-bottom)` در CSS رعایت می‌شود.
  */
 export function PublicBottomNav() {
   const pathname = usePathname();
