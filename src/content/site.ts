@@ -143,7 +143,7 @@ export interface ServiceGroup {
   title: string;
   description: string;
   icon: IconName;
-  /** عنوان خدمتها، منطبق بر `SERVICES` */
+  /** عنوان خدمت‌ها، منطبق بر `SERVICES` */
   items: string[];
 }
 

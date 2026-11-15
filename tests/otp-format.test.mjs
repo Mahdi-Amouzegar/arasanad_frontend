@@ -1,5 +1,5 @@
 /**
- * تست توابع خالص نرمالسازی کد یکبارمصرف.
+ * تست توابع خالص نرمالسازی کد یک‌بارمصرف.
  *
  * ⚠️ بدون باندلر، بدون jsdom، بدون وابستگی اضافه: فقط `node:test` و
  *    `node:assert/strict` داخلی Node 22. همان ماژولی تست می‌شود که UI
@@ -8,7 +8,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { formatOtpInput, isValidOtpInput } from '../src/lib/otp-format.mjs';
+import { formatOtpInput, isValidOtpInput } from '../src/lib/account/core/otp-format.mjs';
 
 test('کد ۱۲ کاراکتری به سه گروه چهارتایی تبدیل می‌شود', () => {
   assert.equal(formatOtpInput('x7k92mnp8qrs'), 'X7K9-2MNP-8QRS');

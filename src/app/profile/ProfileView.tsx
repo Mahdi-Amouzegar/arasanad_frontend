@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/Badge';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { OtpQrPanel } from './OtpQrPanel';
-import { useAuth, type AuthUser } from '@/lib/auth-context';
+import { useAuth, type AuthUser } from '@/lib/account';
 import { ApiError, apiRequest } from '@/lib/api';
 import { formatBytes, processAvatar, uploadAvatar } from '@/lib/avatar';
 import { BASE_PATH } from '@/lib/config';
@@ -27,7 +27,7 @@ import {
   revokeOtpCode,
   type OtpCodeItem,
   type OtpCodeResult,
-} from '@/lib/otp';
+} from '@/lib/account';
 
 interface SessionItem {
   id: string;
@@ -322,7 +322,7 @@ export function ProfileView() {
         <div className="guest-notice" role="note">
           <Icon name="alert" size={18} />
           <div>
-            <strong>نشست مهمان — ورود با کد یکبارمصرف</strong>
+            <strong>نشست مهمان — ورود با کد یک‌بارمصرف</strong>
             <p>
               ویرایش پروفایل، ساخت کد تازه و ابطال دستگاه‌ها فقط از نشستی ممکن است
               که با تلگرام وارد شده باشد. سفارش‌ها و اطلاعات حساب همچنان در دسترساند.
@@ -520,10 +520,10 @@ export function ProfileView() {
         </div>
       </div>
 
-      {/* کدهای یکبارمصرف — فقط نشست تلگرامی */}
+      {/* کدهای یک‌بارمصرف — فقط نشست تلگرامی */}
       <div className="calc-card">
         <h2 className="section-head__title" style={{ fontSize: 'var(--fs-section)' }}>
-          کدهای ورود یکبارمصرف
+          کدهای ورود یک‌بارمصرف
         </h2>
 
         {!capabilities.issueOtpCode ? (

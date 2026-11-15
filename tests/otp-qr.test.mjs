@@ -13,7 +13,7 @@ import {
   readOtpCodeFromUrl,
   remainingSeconds,
   formatCountdown,
-} from '../src/lib/otp-qr.mjs';
+} from '../src/lib/account/core/otp-qr.mjs';
 
 const CODE = 'X7K9-2MNP-8QRS';
 const ORIGIN = 'https://example.github.io';

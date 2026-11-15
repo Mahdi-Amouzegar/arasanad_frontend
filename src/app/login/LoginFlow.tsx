@@ -6,10 +6,14 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
-import { useAuth, startBotLogin, checkBotStatus } from '@/lib/auth-context';
+import {
+  useAuth,
+  startBotLogin,
+  checkBotStatus,
+  readOtpCodeFromHash,
+} from '@/lib/account';
 import { ApiError } from '@/lib/api';
 import { serverNow } from '@/lib/connectivity/index.mjs';
-import { readOtpCodeFromHash } from '@/lib/otp-qr.mjs';
 import { OtpLoginForm } from './OtpLoginForm';
 
 type Phase = 'idle' | 'starting' | 'waiting' | 'expired' | 'error';
@@ -18,7 +22,7 @@ type Mode = 'choose' | 'telegram' | 'otp';
 const POLL_INTERVAL_MS = 2500;
 
 /**
- * انتخاب روش ورود: تلگرام (اصلی) یا کد یکبارمصرف (دستگاه بدون تلگرام).
+ * انتخاب روش ورود: تلگرام (اصلی) یا کد یک‌بارمصرف (دستگاه بدون تلگرام).
  *
  * ⚠️ کد فقط روی نشست تلگرامی ساخته می‌شود؛ نشست حاصل از کد «مهمان» است
  *    و اجازه‌ی ساخت کد زنجیرهای، ویرایش پروفایل یا ابطال دستگاه‌ها ندارد.
@@ -195,7 +199,7 @@ export function LoginFlow() {
               <Icon name="key" size={20} />
             </span>
             <span className="login-choice__body">
-              <strong>ورود با کد یکبارمصرف</strong>
+              <strong>ورود با کد یک‌بارمصرف</strong>
               <span>برای دستگاه‌های بدون تلگرام؛ کد را از پروفایل حساب خود بسازید.</span>
             </span>
           </button>

@@ -6,9 +6,10 @@ import '@/styles/tokens.css';
 import './globals.css';
 import '@/styles/components.css';
 import '@/styles/public.css';
+import '@/styles/projects.css';
 
 import { AlertProvider } from '@/components/ui/AlertProvider';
-import { AuthProvider } from '@/lib/auth-context';
+import { AccountProvider } from '@/components/system/AccountProvider';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
 import { ConnectivityBootstrap } from '@/components/system/ConnectivityBootstrap';
 import { SITE_ORIGIN, BASE_PATH, asset } from '@/lib/config';
@@ -59,7 +60,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <AlertProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AccountProvider>{children}</AccountProvider>
         </AlertProvider>
         <ServiceWorkerRegister />
         <ConnectivityBootstrap />

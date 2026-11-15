@@ -5,8 +5,12 @@ import { QrCode } from '@/components/ui/QrCode';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { BASE_PATH } from '@/lib/config';
-import { buildOtpLoginUrl, formatCountdown, remainingSeconds } from '@/lib/otp-qr.mjs';
-import type { OtpCodeResult } from '@/lib/otp';
+import {
+  buildOtpLoginUrl,
+  formatCountdown,
+  remainingSeconds,
+  type OtpCodeResult,
+} from '@/lib/account';
 
 export interface OtpQrPanelProps {
   code: OtpCodeResult;

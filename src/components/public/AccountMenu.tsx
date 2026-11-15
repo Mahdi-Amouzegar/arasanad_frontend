@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/Icon';
 import { useAlert } from '@/components/ui/AlertProvider';
-import { useAuth } from '@/lib/auth-context';
+import { useAuth } from '@/lib/account';
 
 const PANEL_WIDTH = 224;
 const GAP = 8;

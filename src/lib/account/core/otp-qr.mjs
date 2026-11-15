@@ -1,5 +1,5 @@
 /**
- * ساخت و خواندن لینک «ورود با کد یکبارمصرف» برای QR.
+ * ساخت و خواندن لینک «ورود با کد یک‌بارمصرف» برای QR.
  *
  * ⚠️ امنیت: کد فقط در **fragment** (`#code=…`) قرار می‌گیرد، نه query string.
  *    fragment به سرور فرستاده نمی‌شود، در لاگ وبسرور/Workers ذخیره نمی‌شود و
@@ -23,7 +23,7 @@ export const OTP_LOGIN_PATH = '/login/';
 export function buildOtpLoginUrl({ origin = '', basePath = '', code }) {
   const normalized = formatOtpInput(String(code ?? ''));
   if (!isValidOtpInput(normalized)) {
-    throw new Error('کد یکبارمصرف نامعتبر است');
+    throw new Error('کد یک‌بارمصرف نامعتبر است');
   }
 
   const cleanOrigin = String(origin).replace(/\/+$/, '');

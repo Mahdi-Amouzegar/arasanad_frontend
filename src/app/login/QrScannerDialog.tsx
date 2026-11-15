@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
-import { readOtpCodeFromUrl } from '@/lib/otp-qr.mjs';
+import { readOtpCodeFromUrl } from '@/lib/account';
 
 /** تنها متدهایی که از اسکنر استفاده می‌کنیم — نیازی به تایپ وارداتی نیست. */
 type ScannerInstance = {

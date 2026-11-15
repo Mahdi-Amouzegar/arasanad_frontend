@@ -18,11 +18,16 @@ export default function StartPage() {
         <SectionHeading
           eyebrow="شروع سفارش"
           title="از برآورد تا ارسال درخواست"
-          description="دو گام ساده: هزینه‌ی تقریبی را ببینید، سپس خلاصه‌ی درخواست را برای مدیر بفرستید. نیازی به حساب کاربری نیست، ولی با ورود، پیگیری ساده‌تر می‌شود."
+          description="هزینه‌ی تقریبی را همین‌جا ببینید؛ برای ثبت سفارش واقعی و پیگیری کامل، وارد پنل کاربری شوید. متن درخواست همچنان به‌صورت دستی هم قابل کپی‌کردن است."
           actions={
-            <Link href="/login/" className="btn btn--outline btn--sm">
-              ورود به حساب
-            </Link>
+            <>
+              <Link href="/panel/projects/new/" className="btn btn--primary btn--sm">
+                ثبت سفارش آنلاین
+              </Link>
+              <Link href="/login/" className="btn btn--outline btn--sm">
+                ورود به حساب
+              </Link>
+            </>
           }
         />
         <StartEstimate />
@@ -39,7 +44,7 @@ export default function StartPage() {
             'برآورد بر اساس نرخ پایه است، نه قیمت نهایی.',
             'نرخ نهایی پس از دیدن فایل و پیش از شروع کار اعلام می‌شود.',
             'این صفحه هیچ اطلاعاتی به سرور ارسال نمی‌کند.',
-            'ثبت سفارش و پیگیری کامل در فاز ۷ از پنل کاربری فعال می‌شود.',
+            'ثبت سفارش و پیگیری کامل اکنون در پنل کاربری فعال است؛ نرخ‌ها و بیعانه را سرور محاسبه می‌کند.',
           ].map((item) => (
             <div className="value-card" key={item}>
               <span className="value-card__title">{item}</span>

@@ -200,6 +200,33 @@ const now = serverNow();                               // جایگزین new Dat
 
 ---
 
+### انتخاب صریح منبع زمان (SERVER / SYSTEM / ترجیح سرور)
+
+هر درخواست «زمان فعلی» اکنون می‌تواند منبع خود را مشخص کند. تابع `getCurrentTime()` تنها نقطه‌ی ورود این درخواست است و سه حالت دارد:
+
+| حالت | ثابت | رفتار |
+|---|---|---|
+| فقط سرور | `TIME_SOURCE_MODE.SERVER_ONLY` (`'server-only'`) | فقط سرور؛ ساعت سیستم جایگزین نمی‌شود |
+| فقط سیستم | `TIME_SOURCE_MODE.SYSTEM_ONLY` (`'system-only'`) | فقط ساعت سیستم؛ درخواستی به سرور ارسال نمی‌شود |
+| ترجیح سرور (پیش‌فرض) | `TIME_SOURCE_MODE.PREFER_SERVER` (`'prefer-server'`) | نخست سرور؛ در نبود سرور یا قطعی شبکه، ساعت سیستم |
+
+حالت پیش‌فرض «سرور با پشتیبان ساعت سیستم» است؛ `DEFAULT_TIME_SOURCE_MODE` و `DEFAULT_CONFIG.timeSourceMode` هر دو `'prefer-server'` هستند. مقدار ناشناخته به همین پیش‌فرض نرمال می‌شود و `getConfiguredTimeSourceMode()` آن را اعلام می‌کند.
+
+```js
+import { getCurrentTime, systemNow } from '@/lib/connectivity/index.mjs';
+
+const reading = await getCurrentTime();                          // پیش‌فرض: سرور، وگرنه ساعت سیستم
+const strict = await getCurrentTime({ source: 'server-only' });   // فقط سرور
+const local = await getCurrentTime({ source: 'system-only' });    // فقط سیستم، بدون شبکه
+const wall = systemNow();                                        // ساعت خام سیستم، مستقل از لنگر سرور
+```
+
+برای ساعت خام سیستم، `systemNow()` و `nowMs({ source: 'system-only' })` همواره `Date.now()` می‌دهند.
+
+> **توجه:** در حالت `server-only` ساعت سیستم هرگز جایگزین نمی‌شود؛ اگر سروری در دسترس نباشد نتیجه `{ ok: false }` است (بدون `ms` و `iso`). تنها `prefer-server` («هیچ سروری در دسترس نبود؛ از ساعت سیستم استفاده شد») و `system-only` («ساعت سیستم به‌صورت صریح درخواست شد؛ درخواستی به سرور ارسال نشد») از ساعت سیستم استفاده می‌کنند. `getCurrentTime()` در خطای شبکه استثنا پرتاب نمی‌کند.
+
+---
+
 ## ۶. ابزار‌های مکمل
 
 ```js

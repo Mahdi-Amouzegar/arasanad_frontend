@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { SERVICE_TYPES } from '@/content/catalog';
 import { BRAND } from '@/content/site';
 import { calculateDeposit, calculateEstimate } from '@/lib/pricing';
@@ -16,7 +17,7 @@ const FIRST = SERVICE_TYPES[0];
 /**
  * مسیر تبدیل موقت تا فاز ۷.
  *
- * ⚠️ هیچ درخواست شبکهای و هیچ «ثبت سفارش» ساختگی انجام نمی‌شود: برآورد از
+ * ⚠️ هیچ درخواست شبکه‌ای و هیچ «ثبت سفارش» ساختگی انجام نمی‌شود: برآورد از
  *    همان `calculateEstimate` نرخ‌نامه گرفته می‌شود و خروجی نهایی یک متن
  *    پیشثبتنام است که کاربر کپی می‌کند و برای مدیر می‌فرستد.
  */
@@ -153,15 +154,19 @@ export function StartEstimate() {
           <h2 className="section-head__title">پیشثبتنام</h2>
         </div>
 
-        <div className="guest-notice guest-notice--inline" role="note">
-          <Icon name="alert" size={18} />
+        <div className="start-flow__cta" role="note">
+          <Icon name="checkCircle" size={18} />
           <div>
-            <strong>ثبت سفارش آنلاین هنوز فعال نشده است</strong>
+            <strong>ثبت سفارش آنلاین فعال است</strong>
             <p>
-              پنل سفارش‌ها در فاز ۷ راه‌اندازی می‌شود. تا آن زمان، خلاصه‌ی درخواست
-              خود را کپی کنید و از طریق تلگرام برای مدیر بفرستید؛ هیچ اطلاعاتی
-              از این صفحه به سرور ارسال نمی‌شود.
+              برای ثبت واقعی سفارش، مشخصات و استاندارد طراحی را در پنل کاربری
+              وارد کنید؛ نرخ‌ها و بیعانه را سرور محاسبه می‌کند و وضعیت‌ها
+              در پنل پیگیری می‌شوند. متن زیر همچنان به‌صورت دستی و از طریق
+              تلگرام قابل ارسال است و هیچ اطلاعاتی به‌صورت خودکار فرستاده نمی‌شود.
             </p>
+            <Link className="btn btn--primary btn--sm" href="/panel/projects/new/">
+              رفتن به فرم ثبت سفارش
+            </Link>
           </div>
         </div>
 

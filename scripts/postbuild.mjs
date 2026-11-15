@@ -30,6 +30,7 @@ const ROUTES = [
   '/portfolio/',
   '/faq/',
   '/start/',
+  '/projects/',
   '/about/',
   '/contact/',
   '/login/',

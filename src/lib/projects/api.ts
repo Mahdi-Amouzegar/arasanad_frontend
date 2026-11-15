@@ -1,0 +1,289 @@
+/** Typed client for the Phase 7 projects API. Public calls use `apiRequest`;
+ *  authenticated calls are bound to `authedRequest` from `useAuth()`. */
+
+import { apiRequest } from '@/lib/api';
+import { publicProjectFields } from './core.mjs';
+
+/* ─────────────────────────── Types ─────────────────────────── */
+
+export interface ServiceType {
+  id: string;
+  slug: string;
+  name: string;
+  pricePerPage: number;
+  unit: string;
+  description: string | null;
+  isPopular: boolean;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface DesignPreset {
+  id: string;
+  name: string;
+  description: string | null;
+  spec: Record<string, unknown>;
+  isActive: boolean;
+  sortOrder: number;
+}
+
+export interface PricingRules {
+  urgencyMultiplier: number;
+  depositRatio: number;
+  roundStep: number;
+  deliveryHoursDefault: number;
+}
+
+/** Exactly the fields the public endpoint is allowed to expose. */
+export interface PublicProject {
+  id: string;
+  code: string;
+  name: string;
+  serviceName: string;
+  language: string;
+  sourceType: string;
+  sourcePageCount: number;
+  description: string | null;
+  createdAt: string;
+  status: string;
+  deliveryHours: number;
+  customerDisplayName: string | null;
+}
+
+export interface ProjectNote {
+  id: string;
+  text: string;
+  authorRole: string;
+  createdAt: string;
+}
+
+export interface ProjectHistoryItem {
+  fromStatus: string | null;
+  toStatus: string;
+  reason: string | null;
+  changedByRole: string;
+  createdAt: string;
+}
+
+/** Owner/admin view — camelCase, exactly as returned by the backend. */
+export interface Project {
+  id: string;
+  code: string;
+  name: string;
+  serviceTypeId: string;
+  serviceName: string;
+  language: string;
+  sourceType: string;
+  description: string | null;
+  sourcePageCount: number;
+  deliveryHours: number;
+  outputFormat: string;
+  specialRequirements: string | null;
+  basePricePerPage: number;
+  quotedPricePerPage: number | null;
+  quoteReason: string | null;
+  estimateAmount: number;
+  depositAmount: number;
+  designMode: string;
+  designSubmode: string | null;
+  designPresetId: string | null;
+  designSpec: Record<string, unknown>;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  submittedAt: string | null;
+  depositPaidAt: string | null;
+  deadlineAt: string | null;
+  deliveredAt: string | null;
+  cancelledAt: string | null;
+  depositSource: string | null;
+  customerId?: string;
+  customerDisplayName: string | null;
+  deliveryState: string | null;
+  finalTotal: number;
+}
+
+export interface ProjectDetail {
+  project: Project;
+  history: ProjectHistoryItem[];
+  notes: ProjectNote[];
+}
+
+export interface CreateProjectDesign {
+  mode: 'standard' | 'custom';
+  submode?: 'like_original' | 'custom';
+  presetId?: string | null;
+  spec: Record<string, unknown>;
+}
+
+export interface CreateProjectBody {
+  name: string;
+  serviceTypeId: string;
+  language: string;
+  sourceType: string;
+  description: string;
+  sourcePageCount: number;
+  deliveryHours: number;
+  outputFormat: string;
+  specialRequirements: string;
+  design: CreateProjectDesign;
+  urgent?: boolean;
+}
+
+export interface ProjectListFilters {
+  status?: string;
+  q?: string;
+  sort?: 'new' | 'old';
+  limit?: number;
+  offset?: number;
+}
+
+export type AuthedRequest = <T>(
+  path: string,
+  options?: { method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'; body?: unknown },
+) => Promise<T>;
+
+/* ─────────────────────────── Public catalog ─────────────────────────── */
+
+export async function getServiceTypes(): Promise<ServiceType[]> {
+  const data = await apiRequest<{ services: ServiceType[] }>('/service-types');
+  return Array.isArray(data.services) ? data.services : [];
+}
+
+export async function getDesignPresets(): Promise<DesignPreset[]> {
+  const data = await apiRequest<{ presets: DesignPreset[] }>('/design-presets');
+  return Array.isArray(data.presets) ? data.presets : [];
+}
+
+export async function getPricingRules(): Promise<PricingRules> {
+  const data = await apiRequest<{ rules: PricingRules }>('/pricing-rules');
+  return data.rules;
+}
+
+/**
+ * Public list. The defensive client-side filter drops any unexpected key
+ * (prices, customerId, contact info) before it ever reaches a component.
+ */
+export async function getPublicProjects(): Promise<PublicProject[]> {
+  const data = await apiRequest<{ projects: unknown[] }>('/projects/public');
+  const rows = Array.isArray(data.projects) ? data.projects : [];
+  return rows.map((row) => {
+    const source = (row && typeof row === 'object' ? row : {}) as Record<string, unknown>;
+    const view: Record<string, unknown> = {};
+    for (const key of publicProjectFields) {
+      if (Object.hasOwn(source, key)) view[key] = source[key];
+    }
+    return view as unknown as PublicProject;
+  });
+}
+
+/* ─────────────────────────── Authenticated client ─────────────────────────── */
+
+export interface ProjectsApi {
+  listProjects(filters?: ProjectListFilters): Promise<Project[]>;
+  getProject(id: string): Promise<ProjectDetail>;
+  getHistory(id: string): Promise<ProjectHistoryItem[]>;
+  addNote(id: string, text: string): Promise<ProjectNote>;
+  createProject(body: CreateProjectBody): Promise<Project>;
+  submitQuote(id: string, quotedPricePerPage: number, reason: string): Promise<Project>;
+  acceptQuote(id: string): Promise<Project>;
+  requestQuoteReview(id: string): Promise<Project>;
+  cancelProject(id: string, reason: string): Promise<Project>;
+  decideCancel(id: string, approve: boolean, reason: string): Promise<Project>;
+  changeStatus(id: string, status: string, reason: string): Promise<Project>;
+}
+
+function projectPath(id: string, suffix = ''): string {
+  return `/projects/${encodeURIComponent(id)}${suffix}`;
+}
+
+export function createProjectsApi(request: AuthedRequest): ProjectsApi {
+  return {
+    async listProjects(filters = {}) {
+      const params = new URLSearchParams();
+      if (filters.status) params.set('status', filters.status);
+      if (filters.q) params.set('q', filters.q);
+      params.set('sort', filters.sort ?? 'new');
+      if (typeof filters.limit === 'number') params.set('limit', String(filters.limit));
+      if (typeof filters.offset === 'number') params.set('offset', String(filters.offset));
+      const data = await request<{ projects: Project[] }>(`/projects?${params.toString()}`);
+      return Array.isArray(data.projects) ? data.projects : [];
+    },
+
+    async getProject(id) {
+      const data = await request<ProjectDetail>(projectPath(id));
+      return {
+        project: data.project,
+        history: Array.isArray(data.history) ? data.history : [],
+        notes: Array.isArray(data.notes) ? data.notes : [],
+      };
+    },
+
+    async getHistory(id) {
+      const data = await request<{ history: ProjectHistoryItem[] }>(projectPath(id, '/history'));
+      return Array.isArray(data.history) ? data.history : [];
+    },
+
+    async addNote(id, text) {
+      const data = await request<{ note: ProjectNote }>(projectPath(id, '/notes'), {
+        method: 'POST',
+        body: { text },
+      });
+      return data.note;
+    },
+
+    async createProject(body) {
+      const data = await request<{ project: Project }>('/projects', {
+        method: 'POST',
+        body,
+      });
+      return data.project;
+    },
+
+    async submitQuote(id, quotedPricePerPage, reason) {
+      const data = await request<{ project: Project }>(projectPath(id, '/quote'), {
+        method: 'POST',
+        body: { quotedPricePerPage, reason },
+      });
+      return data.project;
+    },
+
+    async acceptQuote(id) {
+      const data = await request<{ project: Project }>(projectPath(id, '/quote/accept'), {
+        method: 'POST',
+      });
+      return data.project;
+    },
+
+    async requestQuoteReview(id) {
+      const data = await request<{ project: Project }>(projectPath(id, '/quote/review'), {
+        method: 'POST',
+      });
+      return data.project;
+    },
+
+    async cancelProject(id, reason) {
+      const data = await request<{ project: Project }>(projectPath(id, '/cancel'), {
+        method: 'POST',
+        body: { reason },
+      });
+      return data.project;
+    },
+
+    async decideCancel(id, approve, reason) {
+      const data = await request<{ project: Project }>(projectPath(id, '/cancel/decision'), {
+        method: 'POST',
+        body: { approve, reason },
+      });
+      return data.project;
+    },
+
+    async changeStatus(id, status, reason) {
+      const data = await request<{ project: Project }>(projectPath(id, '/status'), {
+        method: 'POST',
+        body: { status, reason },
+      });
+      return data.project;
+    },
+  };
+}

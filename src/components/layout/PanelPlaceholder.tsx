@@ -45,7 +45,7 @@ export function PanelPlaceholder({
         <EmptyState
           icon={<Icon name="package" size={28} />}
           title={`${info.title} — در فاز ${info.phase} ساخته می‌شود`}
-          description={`${info.note}. در حال حاضر فقط پوسته و ناوبری این بخش آماده است؛ داده و عملیات آن هنوز پیاده‌سازی نشدهاند.`}
+          description={`${info.note}. در حال حاضر فقط پوسته و ناوبری این بخش آماده است؛ داده و عملیات آن هنوز پیاده‌سازی نشده‌اند.`}
           action={
             <Link href={actionHref} className="btn btn--primary btn--sm">
               {actionLabel}

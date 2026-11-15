@@ -42,6 +42,8 @@ export const DEFAULT_CONFIG = Object.freeze({
   connectionImpl: undefined,
   /** فهرست منابع زمان سفارشی (اختیاری)؛ در غیر این صورت منابع پیش‌فرض ساخته می‌شوند. */
   timeSources: undefined,
+  /** حالت منبع زمان: سرور، ساعت سیستم، یا سرور با پشتیبان ساعت سیستم. */
+  timeSourceMode: 'prefer-server',
   /** انبار سفارشی صف آفلاین (اختیاری). */
   storageImpl: undefined,
 });
@@ -50,6 +52,12 @@ let config = {
   ...DEFAULT_CONFIG,
   probeUrls: [...DEFAULT_CONFIG.probeUrls],
 };
+
+const VALID_TIME_SOURCE_MODES = new Set(['server-only', 'system-only', 'prefer-server']);
+
+function normalizeTimeSourceMode(value) {
+  return VALID_TIME_SOURCE_MODES.has(value) ? value : DEFAULT_CONFIG.timeSourceMode;
+}
 
 /**
  * تنظیم کتابخانه. فراخوانی چندباره بی‌خطر است و مقادیر جدید را ادغام می‌کند.
@@ -60,6 +68,9 @@ export function configureConnectivity(options = {}) {
     ...config,
     ...options,
     probeUrls: options.probeUrls ? [...options.probeUrls] : [...config.probeUrls],
+    timeSourceMode: normalizeTimeSourceMode(
+      options.timeSourceMode !== undefined ? options.timeSourceMode : config.timeSourceMode,
+    ),
   };
   return getConnectivityConfig();
 }

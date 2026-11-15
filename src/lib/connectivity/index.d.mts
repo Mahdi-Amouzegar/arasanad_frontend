@@ -1,7 +1,8 @@
 /** اعلان نوع برای هسته‌ی ESM کتابخانه (بدون نیاز به allowJs در tsconfig). */
 
 export type NetworkStatus = 'unknown' | 'online' | 'offline';
-export type ServerTimePhase = 'idle' | 'checking' | 'searching' | 'synced' | 'unavailable';
+export type ServerTimePhase = 'idle' | 'checking' | 'searching' | 'synced' | 'unavailable' | 'system';
+export type TimeSourceMode = 'server-only' | 'system-only' | 'prefer-server';
 export type ConnectionQuality = 'unknown' | 'offline' | 'slow' | 'fast';
 
 export interface NetworkSnapshot {
@@ -31,6 +32,7 @@ export interface ServerTimeSnapshot {
   syncedAt: number | null;
   trusted: boolean;
   error: string | null;
+  fallbackSource: 'system' | null;
 }
 
 export interface ServerTimeResult {
@@ -41,6 +43,40 @@ export interface ServerTimeResult {
   sourceLabel: string;
   syncedAt: string;
 }
+
+export interface CurrentTimeOptions {
+  source?: TimeSourceMode;
+  force?: boolean;
+}
+
+export interface TimeSourceOption {
+  source?: TimeSourceMode;
+}
+
+/** Result of an explicit "current time" request with a chosen source. */
+export type TimeReading =
+  | {
+      ok: true;
+      mode: TimeSourceMode;
+      source: 'server' | 'system';
+      trusted: boolean;
+      ms: number;
+      iso: string;
+      offsetMs: number | null;
+      roundTripMs: number | null;
+      reason: string | null;
+    }
+  | {
+      ok: false;
+      mode: TimeSourceMode;
+      source: null;
+      trusted: false;
+      ms: null;
+      iso: null;
+      offsetMs: null;
+      roundTripMs: null;
+      error: string;
+    };
 
 export interface TimeSource {
   id: string;
@@ -76,6 +112,7 @@ export interface ConnectivityConfig {
   navigatorImpl?: Navigator | null;
   connectionImpl?: Record<string, unknown> | null;
   timeSources?: TimeSource[];
+  timeSourceMode: TimeSourceMode;
   storageImpl?: Storage | null;
 }
 
@@ -113,19 +150,26 @@ export declare function resetNetworkForTests(): void;
 /* ───────── server time ───────── */
 export declare const SERVER_TIME_PHASE: Readonly<{
   IDLE: 'idle'; CHECKING: 'checking'; SEARCHING: 'searching';
-  SYNCED: 'synced'; UNAVAILABLE: 'unavailable';
+  SYNCED: 'synced'; UNAVAILABLE: 'unavailable'; SYSTEM: 'system';
 }>;
+export declare const TIME_SOURCE_MODE: Readonly<{
+  SERVER_ONLY: 'server-only'; SYSTEM_ONLY: 'system-only'; PREFER_SERVER: 'prefer-server';
+}>;
+export declare const DEFAULT_TIME_SOURCE_MODE: 'prefer-server';
 export declare const serverTimeStore: Store<ServerTimeSnapshot>;
 export declare function getServerTimeSnapshot(): ServerTimeSnapshot;
 export declare function subscribeServerTime(listener: (state: ServerTimeSnapshot) => void): () => void;
 export declare function defaultTimeSources(apiBaseUrl?: string): TimeSource[];
-export declare function syncServerTime(options?: { force?: boolean }): Promise<ServerTimeResult | null>;
-export declare function nowMs(): number;
-export declare function serverNow(): Date;
-export declare function timestampForEvent(): string;
+export declare function getConfiguredTimeSourceMode(): TimeSourceMode;
+export declare function syncServerTime(options?: { force?: boolean; source?: TimeSourceMode }): Promise<ServerTimeResult | null>;
+export declare function getCurrentTime(options?: CurrentTimeOptions): Promise<TimeReading>;
+export declare function systemNow(): Date;
+export declare function nowMs(options?: TimeSourceOption): number;
+export declare function serverNow(options?: TimeSourceOption): Date;
+export declare function timestampForEvent(options?: TimeSourceOption): string;
 export declare function isServerTimeTrusted(): boolean;
 export declare function describeServerTimePhase(snapshot?: ServerTimeSnapshot): string;
-export declare function startServerTimeSync(): Promise<ServerTimeResult | null>;
+export declare function startServerTimeSync(options?: { source?: TimeSourceMode }): Promise<ServerTimeResult | null>;
 export declare function stopServerTimeSync(): void;
 export declare function resetServerTimeForTests(): void;
 

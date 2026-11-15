@@ -6,19 +6,20 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { TextField } from '@/components/ui/Field';
 import { useAlert } from '@/components/ui/AlertProvider';
-import { useAuth } from '@/lib/auth-context';
-import { ApiError } from '@/lib/api';
-import { readOtpCodeFromHash, stripHash } from '@/lib/otp-qr.mjs';
-import { QrScannerDialog } from './QrScannerDialog';
 import {
+  useAuth,
+  readOtpCodeFromHash,
+  stripHash,
   formatOtpInput,
   isValidOtpInput,
   loginWithOtpCode,
   OTP_CODE_TTL_MINUTES,
-} from '@/lib/otp';
+} from '@/lib/account';
+import { ApiError } from '@/lib/api';
+import { QrScannerDialog } from './QrScannerDialog';
 
 /**
- * ورود با کد یکبارمصرف — ویژه‌ی دستگاههایی که تلگرام در دسترس نیست.
+ * ورود با کد یک‌بارمصرف — ویژه‌ی دستگاههایی که تلگرام در دسترس نیست.
  *
  * ⚠️ کد از بخش پروفایل، روی دستگاهی که با تلگرام وارد شده، ساخته می‌شود.
  *    این فرم فقط کد را مصرف می‌کند؛ هیچ حساب تاز‌های نمی‌سازد و سرور کاربر
@@ -82,7 +83,7 @@ export function OtpLoginForm({ onBack }: { onBack: () => void }) {
     <div className="calc-card">
       <div>
         <span className="eyebrow">ورود روی دستگاه دیگر</span>
-        <h2 className="section-head__title">ورود با کد یکبارمصرف</h2>
+        <h2 className="section-head__title">ورود با کد یک‌بارمصرف</h2>
         <p className="login-lead">
           کد ۱۲ کاراکتری را که در پروفایل حساب خود (روی دستگاهی که با تلگرام وارد شدهاید)
           ساختهاید، اینجا وارد کنید.
@@ -91,7 +92,7 @@ export function OtpLoginForm({ onBack }: { onBack: () => void }) {
 
       <form onSubmit={submit} style={{ display: 'grid', gap: 'var(--sp-4)' }}>
         <TextField
-          label="کد یکبارمصرف"
+          label="کد یک‌بارمصرف"
           value={code}
           onChange={(event) => {
             setCode(formatOtpInput(event.target.value));

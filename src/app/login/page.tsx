@@ -6,7 +6,7 @@ import { LoginFlow } from './LoginFlow';
 
 export const metadata: Metadata = {
   title: 'ورود',
-  description: 'ورود به حساب کاربری آراسند با ربات تلگرام یا کد یکبارمصرف (همراه با QR).',
+  description: 'ورود به حساب کاربری آراسند با ربات تلگرام یا کد یک‌بارمصرف (همراه با QR).',
   robots: { index: false, follow: false },
 };
 
@@ -36,7 +36,7 @@ export default function LoginPage() {
                   <Icon name="key" size={16} />
                 </span>
                 <p className="benefit__desc">
-                  دستگاه بدون تلگرام: کد یکبارمصرف یا اسکن QR ساختهشده در پروفایل دستگاه اصلی.
+                  دستگاه بدون تلگرام: کد یک‌بارمصرف یا اسکن QR ساختهشده در پروفایل دستگاه اصلی.
                 </p>
               </li>
               <li className="benefit">
