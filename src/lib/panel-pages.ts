@@ -35,6 +35,7 @@ export const ADMIN_PAGES: Record<string, PanelPageInfo> = {
   '/admin/payments': { title: 'بررسی پرداخت‌ها', phase: 10, note: 'تأیید رسیدها و پرداخت‌ها' },
   '/admin/wallets': { title: 'کیف پول‌ها', phase: 10, note: 'موجودی و تراکنشهای کاربران' },
   '/admin/refunds': { title: 'برگشت وجه', phase: 11, note: 'درخواست‌ها و پردازش استرداد' },
+  '/admin/reconciliation': { title: 'گزارش مغایرت', phase: 10, note: 'معادله بنیادی و مغایرت مالی' },
   '/admin/users': { title: 'کاربران', phase: 12, note: 'فهرست کاربران و نقشها' },
   '/admin/settings': { title: 'تنظیمات', phase: 12, note: 'نرخ‌ها، استانداردها و تنظیمات سامانه' },
 };

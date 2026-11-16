@@ -52,6 +52,7 @@ export const ADMIN_NAV: NavGroup[] = [
     items: [
       { href: '/admin/wallets', label: 'کیف پول‌ها', icon: 'wallet' },
       { href: '/admin/refunds', label: 'برگشت وجه', icon: 'bank' },
+      { href: '/admin/reconciliation', label: 'گزارش مغایرت', icon: 'receipt' },
     ],
   },
   {
