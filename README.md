@@ -285,7 +285,7 @@ Next یا DOM ندارند. تست‌ها: `tests/chat-core.test.mjs` و
   `useAuth().authedRequest` میپیماید و هیچ Secretی در کد یا خروجی استاتیک
   نمی‌نویسد.
 - **تست و بیلد:** `npm test` → ۱۳۵/۱۳۵ PASS، `npm run typecheck` PASS،
-  `npm run lint:fa` → ۰ خطای قطعی / ۱۸۸ هشدار، `npm run build` +
+  `npm run lint:fa` → ۰ خطای قطعی / ۱۹۰ هشدار، `npm run build` +
   `postbuild` → ۴۱ صفحه‌ی HTML و ۱۱۴ دارایی. جستجوی `PanelPlaceholder` و
   الگو‌های Secret در `out/` صفر است.
 
