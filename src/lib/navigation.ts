@@ -28,6 +28,7 @@ export const CUSTOMER_NAV: NavGroup[] = [
     items: [
       { href: '/panel/messages', label: 'پیام‌ها', icon: 'message' },
       { href: '/panel/wallet', label: 'کیف پول', icon: 'wallet' },
+      { href: '/panel/pay', label: 'پرداخت / شارژ', icon: 'card' },
       { href: '/panel/notifications', label: 'اعلان‌ها', icon: 'inbox' },
     ],
   },

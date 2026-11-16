@@ -8,6 +8,7 @@
  */
 
 import { useMemo, useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
 import { useAlert } from '@/components/ui/AlertProvider';
@@ -56,6 +57,7 @@ export function ProjectActionDialog({
   onClose,
   onDone,
 }: ProjectActionDialogProps) {
+  const router = useRouter();
   const { authedRequest } = useAuth();
   const { showToast } = useAlert();
   const [amount, setAmount] = useState(String(action.amount ?? ''));
@@ -76,6 +78,15 @@ export function ProjectActionDialog({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // فاز ۱۰٫۵: اعلام واریز و پرداخت آنلاین از سفارش وارد مرکز پرداخت واحد
+    // می‌شوند؛ مبلغ و مرجع دوباره توسط سرور محاسبه می‌گردد.
+    if (intent === 'declare_payment' || intent === 'pay_online') {
+      const stage = project.status === 'awaiting_final_payment' ? 'final' : 'deposit';
+      const query = new URLSearchParams({ purpose: 'order', projectId: project.id, stage });
+      onClose();
+      router.push(`/panel/pay/?${query.toString()}`);
+      return;
+    }
     const checked = validateAmount(amount);
     if (!checked.ok) {
       setError(checked.reason);

@@ -8,6 +8,7 @@ import { PanelMessages } from '@/components/chat/PanelMessages';
 import { PanelNotifications } from '@/components/chat/PanelNotifications';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { WalletPanel } from '@/components/finance/FinancePanels';
+import { PaymentCenter, PaymentResult } from '@/components/finance/PaymentCenter';
 import { CUSTOMER_GROUPS, CUSTOMER_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
 
 export const metadata: Metadata = {
@@ -18,17 +19,19 @@ export const metadata: Metadata = {
 
 /** تمام مسیرهای `CUSTOMER_NAV` در بیلد استاتیک تولید می‌شود تا لینک مرده نماند. */
 export function generateStaticParams() {
-  return slugsFor(CUSTOMER_GROUPS, '/panel', ['projects/operations']);
+  return slugsFor(CUSTOMER_GROUPS, '/panel', ['projects/operations', 'pay', 'pay/result']);
 }
 
 /** سفارش‌ها در فاز ۷ و گفتگو/اعلان در فاز ۹ واقعی‌اند؛ بقیه پوسته‌ی صادقانه دارند. */
-const REAL_VIEWS: Record<string, 'list' | 'new' | 'messages' | 'notifications' | 'operations' | 'wallet'> = {
+const REAL_VIEWS: Record<string, 'list' | 'new' | 'messages' | 'notifications' | 'operations' | 'wallet' | 'pay' | 'pay-result'> = {
   '/panel/projects': 'list',
   '/panel/projects/new': 'new',
   '/panel/projects/operations': 'operations',
   '/panel/messages': 'messages',
   '/panel/notifications': 'notifications',
   '/panel/wallet': 'wallet',
+  '/panel/pay': 'pay',
+  '/panel/pay/result': 'pay-result',
 };
 
 export default async function PanelPage({ params }: { params: Promise<{ slug?: string[] }> }) {
@@ -43,7 +46,7 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
     return (
       <AppShell
         groups={CUSTOMER_GROUPS}
-        activeHref={href}
+        activeHref={view === 'pay-result' ? '/panel/pay' : href}
         title={info.title}
         mobileItems={mobile}
         actions={
@@ -63,6 +66,14 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
             <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
               فهرست سفارش‌ها
             </Link>
+          ) : view === 'pay' ? (
+            <Link href="/panel/wallet/" className="btn btn--ghost btn--sm">
+              کیف پول
+            </Link>
+          ) : view === 'pay-result' ? (
+            <Link href="/panel/pay/" className="btn btn--ghost btn--sm">
+              پرداخت تازه
+            </Link>
           ) : (
             <Link href="/panel/projects/new/" className="btn btn--primary btn--sm">
               ثبت سفارش تازه
@@ -80,6 +91,10 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
           <ProjectOperations />
         ) : view === 'wallet' ? (
           <WalletPanel />
+        ) : view === 'pay' ? (
+          <PaymentCenter />
+        ) : view === 'pay-result' ? (
+          <PaymentResult />
         ) : (
           <ProjectList />
         )}

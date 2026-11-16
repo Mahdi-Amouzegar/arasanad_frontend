@@ -22,6 +22,8 @@ export const CUSTOMER_PAGES: Record<string, PanelPageInfo> = {
   '/panel/projects/operations': { title: 'ثبت عملیات سفارش', phase: 9.5, note: 'سابقه‌ی فقطالحاقی عملیاتها، جدیدترین در بالا' },
   '/panel/messages': { title: 'پیام‌ها', phase: 9, note: 'گفتگوی درون‌برنامه‌ای؛ فعال در فاز ۹' },
   '/panel/wallet': { title: 'کیف پول', phase: 10, note: 'موجودی، شارژ و تراکنشها' },
+  '/panel/pay': { title: 'پرداخت و شارژ', phase: 10.5, note: 'دو مقصد پرداخت و دو روش واریز' },
+  '/panel/pay/result': { title: 'نتیجه پرداخت', phase: 10.5, note: 'موفق، ناموفق یا در انتظار بررسی' },
   '/panel/notifications': { title: 'اعلان‌ها', phase: 9, note: 'اعلان‌های درون‌سامانه‌ای و تلگرام؛ فعال در فاز ۹' },
   '/panel/profile': { title: 'پروفایل من', phase: 6, note: 'تنظیمات حساب — در `/profile/` فعال است' },
 };

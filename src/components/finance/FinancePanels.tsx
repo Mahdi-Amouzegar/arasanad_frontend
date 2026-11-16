@@ -9,6 +9,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/lib/account';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { Button } from '@/components/ui/Button';
@@ -102,7 +103,14 @@ export function WalletPanel() {
     <div className="prj-stack">
       {error ? <ErrorBar message={error} retry={reload} /> : null}
       <Card>
-        <CardHeader title="موجودی کیفپول" actions={<Icon name="wallet" size={20} />} />
+        <CardHeader
+          title="موجودی کیفپول"
+          actions={
+            <Link href="/panel/pay/?purpose=wallet" className="btn btn--primary btn--sm">
+              شارژ کیفپول
+            </Link>
+          }
+        />
         <CardBody>
           {loading ? <Skeleton height={72} /> : (
             <div className="fin-stats">
@@ -168,13 +176,14 @@ export function AdminPaymentsPanel() {
   const [reloadKey, setReloadKey] = useState(0);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [purpose, setPurpose] = useState<'all' | 'wallet_topup' | 'order_deposit' | 'order_final'>('all');
 
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    void api.adminPayments()
+    void api.adminPayments(purpose)
       .then((data) => {
         if (!alive) return;
         setPending(data.pending);
@@ -184,7 +193,7 @@ export function AdminPaymentsPanel() {
       .catch((caught) => { if (alive) setError(errorText(caught)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [api, reloadKey]);
+  }, [api, reloadKey, purpose]);
 
   async function approve(row: PendingPayment) {
     const checked = validateAmount(drafts[row.id] ?? row.declaredAmount);
@@ -214,19 +223,37 @@ export function AdminPaymentsPanel() {
       <ReconciliationCard />
       <RefundsCard />
       <Card>
-        <CardHeader title="اعلامهای در انتظار تأیید" actions={<Button variant="ghost" size="sm" onClick={reload} aria-label="بازخوانی"><Icon name="refresh" size={16} /></Button>} />
+        <CardHeader
+          title="اعلامهای در انتظار تأیید"
+          actions={
+            <div className="prj-action-cell">
+              <Select
+                aria-label="فیلتر مقصد پرداخت"
+                value={purpose}
+                onChange={(event) => setPurpose(event.target.value as typeof purpose)}
+              >
+                <option value="all">همه مقصدها</option>
+                <option value="wallet_topup">شارژ کیفپول</option>
+                <option value="order_deposit">بیعانه</option>
+                <option value="order_final">تسویه نهایی</option>
+              </Select>
+              <Button variant="ghost" size="sm" onClick={reload} aria-label="بازخوانی"><Icon name="refresh" size={16} /></Button>
+            </div>
+          }
+        />
         <CardBody>
           {loading ? <Skeleton height={96} /> : pending.length === 0 ? (
             <EmptyState icon={<Icon name="checkCircle" size={26} />} title="اعلام واریزی در انتظار نیست" description="همه درخواست‌ها بررسی شده‌اند." />
           ) : (
             <div className="prj-table-wrap">
               <table className="prj-table">
-                <thead><tr><th scope="col">سفارش</th><th scope="col">مرحله</th><th scope="col">مبلغ اعلامی</th><th scope="col">قدمت</th><th scope="col">مبلغ واقعی</th><th scope="col">اقدام</th></tr></thead>
+                <thead><tr><th scope="col">سفارش / مرجع</th><th scope="col">مقصد</th><th scope="col">مرحله</th><th scope="col">مبلغ اعلامی</th><th scope="col">قدمت</th><th scope="col">مبلغ واقعی</th><th scope="col">اقدام</th></tr></thead>
                 <tbody>
                   {pending.map((row) => (
                     <tr key={row.id}>
-                      <td className="prj-muted">{String(row.paymentReference ?? row.projectId)}</td>
-                      <td>{row.stage === 'final' ? 'نهایی' : 'بیعانه'}</td>
+                      <td className="prj-muted">{String(row.paymentReference ?? row.projectId ?? '—')}</td>
+                      <td>{row.purpose === 'wallet_topup' ? 'شارژ کیفپول' : row.purpose === 'order_final' ? 'تسویه نهایی' : 'بیعانه'}</td>
+                      <td>{row.stage === 'final' ? 'نهایی' : row.stage === 'deposit' ? 'بیعانه' : '—'}</td>
                       <td><Money value={Number(row.declaredAmount ?? 0)} /></td>
                       <td>{Number(row.agingDays ?? 0)} روز</td>
                       <td>

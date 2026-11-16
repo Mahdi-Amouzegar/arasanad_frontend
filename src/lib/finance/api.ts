@@ -18,17 +18,54 @@ export interface WalletTransaction {
   createdAt?: string;
 }
 
+export type PaymentPurpose = 'wallet_topup' | 'order_deposit' | 'order_final';
+export type PaymentRail = 'manual' | 'online';
+
 export interface PendingPayment {
   id: string;
-  projectId: string;
-  stage: string;
-  rail: string;
+  purpose: PaymentPurpose;
+  projectId: string | null;
+  stage: string | null;
+  rail: PaymentRail;
   status: string;
   declaredAmount?: number;
   paymentReference?: string | null;
   createdAt?: string;
   agingDays?: number;
   [key: string]: unknown;
+}
+
+export interface PaymentIntent {
+  intentId: string;
+  purpose: PaymentPurpose;
+  projectId: string | null;
+  stage: string | null;
+  rail: PaymentRail;
+  amount: number;
+  paymentReference: string;
+  bankName: string;
+  dedupeKey: string;
+  authority: string | null;
+  redirectUrl: string | null;
+  onlineEnabled: boolean;
+  expiresAt: string;
+  serverTime: string;
+}
+
+export interface PaymentConfig {
+  onlineEnabled: boolean;
+  bankName: string;
+  purposes: PaymentPurpose[];
+  rails: PaymentRail[];
+}
+
+export interface SavedPaymentReference {
+  id: string;
+  label: string;
+  referenceMask: string;
+  bankName: string | null;
+  kind: 'deposit_reference' | 'refund_account';
+  createdAt: string;
 }
 
 export interface WalletRow {
@@ -71,11 +108,34 @@ export type AuthedRequest = <T>(
 ) => Promise<T>;
 
 export interface FinanceApi {
-  wallet(): Promise<{ wallet: WalletSummary; transactions: WalletTransaction[] }>;
-  adminPayments(): Promise<{ pending: PendingPayment[]; serverTime: string }>;
+  wallet(): Promise<{
+    wallet: WalletSummary;
+    transactions: WalletTransaction[];
+    payments: PendingPayment[];
+  }>;
+  adminPayments(purpose?: PaymentPurpose | 'all'): Promise<{ pending: PendingPayment[]; serverTime: string }>;
   adminWallets(): Promise<{ wallets: WalletRow[]; serverTime: string }>;
   adminRefunds(): Promise<{ refunds: RefundRequestView[]; serverTime: string }>;
   reconciliation(): Promise<ReconciliationView>;
+  paymentConfig(): Promise<PaymentConfig>;
+  createPaymentIntent(input: {
+    purpose: PaymentPurpose;
+    rail: PaymentRail;
+    amount?: number;
+    projectId?: string | null;
+    stage?: 'deposit' | 'final';
+    clientNonce?: string;
+  }): Promise<PaymentIntent>;
+  attachPaymentReceipt(id: string, fileIds: string[], note?: string): Promise<unknown>;
+  listPaymentReferences(): Promise<{ references: SavedPaymentReference[] }>;
+  savePaymentReference(input: {
+    label: string;
+    reference: string;
+    bankName?: string;
+    kind?: 'deposit_reference' | 'refund_account';
+  }): Promise<{ saved: boolean; referenceMask: string }>;
+  updatePaymentReference(id: string, label: string, bankName?: string): Promise<unknown>;
+  deletePaymentReference(id: string): Promise<unknown>;
   approvePayment(id: string, amount: number, fileIds?: string[]): Promise<unknown>;
   rejectPayment(id: string): Promise<unknown>;
   requestRefund(projectId: string, amount: number, kind: 'bank' | 'wallet'): Promise<unknown>;
@@ -88,6 +148,7 @@ export function createFinanceApi(request: AuthedRequest): FinanceApi {
       const data = await request<{
         wallet: WalletSummary;
         transactions: WalletTransaction[];
+        payments?: PendingPayment[];
       }>('/wallet');
       return {
         wallet: {
@@ -95,14 +156,59 @@ export function createFinanceApi(request: AuthedRequest): FinanceApi {
           reserved: Number(data.wallet?.reserved ?? 0) || 0,
         },
         transactions: Array.isArray(data.transactions) ? data.transactions : [],
+        payments: Array.isArray(data.payments) ? data.payments : [],
       };
     },
-    async adminPayments() {
-      const data = await request<{ pending: PendingPayment[]; serverTime: string }>('/admin/payments');
+    async adminPayments(purpose = 'all') {
+      const suffix = purpose === 'all' ? '' : `?purpose=${encodeURIComponent(purpose)}`;
+      const data = await request<{ pending: PendingPayment[]; serverTime: string }>(`/admin/payments${suffix}`);
       return {
         pending: Array.isArray(data.pending) ? data.pending : [],
         serverTime: data.serverTime,
       };
+    },
+    async paymentConfig() {
+      const data = await request<PaymentConfig>('/payments/config');
+      return {
+        onlineEnabled: Boolean(data.onlineEnabled),
+        bankName: String(data.bankName ?? ''),
+        purposes: Array.isArray(data.purposes) ? data.purposes : [],
+        rails: Array.isArray(data.rails) ? data.rails : [],
+      };
+    },
+    createPaymentIntent(input) {
+      return request<PaymentIntent>('/payment-intents', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    attachPaymentReceipt(id, fileIds, note) {
+      return request(`/payment-requests/${encodeURIComponent(id)}/receipts`, {
+        method: 'POST',
+        body: { fileIds, note },
+      });
+    },
+    async listPaymentReferences() {
+      const data = await request<{ references: SavedPaymentReference[] }>('/payment-references');
+      return { references: Array.isArray(data.references) ? data.references : [] };
+    },
+    savePaymentReference(input) {
+      return request<{ saved: boolean; referenceMask: string }>('/payment-references', {
+        method: 'POST',
+        body: input,
+      });
+    },
+    updatePaymentReference(id, label, bankName) {
+      return request(`/payment-references/${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        body: { label, bankName },
+      });
+    },
+    deletePaymentReference(id) {
+      return request(`/payment-references/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        body: {},
+      });
     },
     async adminWallets() {
       const data = await request<{ wallets: WalletRow[]; serverTime: string }>('/admin/wallets');
