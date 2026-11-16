@@ -20,6 +20,7 @@ export const CUSTOMER_PAGES: Record<string, PanelPageInfo> = {
   '/panel/projects': { title: 'سفارش‌های من', phase: 7, note: 'فهرست و تاریخچه‌ی سفارش‌ها، فعال در فاز ۷' },
   '/panel/projects/new': { title: 'ثبت سفارش جدید', phase: 7, note: 'فرم ثبت سفارش‌ها؛ بارگذاری فایل در فاز ۸' },
   '/panel/projects/operations': { title: 'ثبت عملیات سفارش', phase: 9.5, note: 'سابقه‌ی فقطالحاقی عملیاتها، جدیدترین در بالا' },
+  '/panel/projects/delivery': { title: 'تحویل و اصلاح', phase: 11, note: 'نسخه‌های تحویل، قفل دانلود و درخواست اصلاح' },
   '/panel/messages': { title: 'پیام‌ها', phase: 9, note: 'گفتگوی درون‌برنامه‌ای؛ فعال در فاز ۹' },
   '/panel/wallet': { title: 'کیف پول', phase: 10, note: 'موجودی، شارژ و تراکنشها' },
   '/panel/pay': { title: 'پرداخت و شارژ', phase: 10.5, note: 'دو مقصد پرداخت و دو روش واریز' },
@@ -32,12 +33,13 @@ export const ADMIN_PAGES: Record<string, PanelPageInfo> = {
   '/admin': { title: 'داشبورد مدیر', phase: 8, note: 'نمای کلی سفارش‌ها و صف کاری' },
   '/admin/projects': { title: 'سفارش‌ها', phase: 7, note: 'صف کاری، تعیین نرخ و گردش وضعیت‌ها، فعال در فاز ۷' },
   '/admin/projects/operations': { title: 'ثبت عملیات سفارش', phase: 9.5, note: 'سابقه‌ی فقطالحاقی عملیاتها، جدیدترین در بالا' },
+  '/admin/projects/delivery': { title: 'تحویل و اصلاح', phase: 11, note: 'ثبت نسخه‌ها، پاسخ اصلاح و تکمیل سفارش' },
   '/admin/payments': { title: 'بررسی پرداخت‌ها', phase: 10, note: 'تأیید رسیدها و پرداخت‌ها' },
   '/admin/wallets': { title: 'کیف پول‌ها', phase: 10, note: 'موجودی و تراکنشهای کاربران' },
   '/admin/refunds': { title: 'برگشت وجه', phase: 11, note: 'درخواست‌ها و پردازش استرداد' },
   '/admin/reconciliation': { title: 'گزارش مغایرت', phase: 10, note: 'معادله بنیادی و مغایرت مالی' },
   '/admin/users': { title: 'کاربران', phase: 12, note: 'فهرست کاربران و نقشها' },
-  '/admin/settings': { title: 'تنظیمات', phase: 12, note: 'نرخ‌ها، استانداردها و تنظیمات سامانه' },
+  '/admin/settings': { title: 'تنظیمات', phase: 11, note: 'سیاست اصلاح و تنظیمات سامانه' },
 };
 
 /**

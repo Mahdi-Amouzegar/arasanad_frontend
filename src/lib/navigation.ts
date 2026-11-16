@@ -21,6 +21,7 @@ export const CUSTOMER_NAV: NavGroup[] = [
       { href: '/panel', label: 'داشبورد', icon: 'activity' },
       { href: '/panel/projects', label: 'سفارش‌های من', icon: 'file' },
       { href: '/panel/projects/new', label: 'ثبت سفارش جدید', icon: 'plus' },
+      { href: '/panel/projects/delivery', label: 'تحویل و اصلاح', icon: 'package' },
     ],
   },
   {
@@ -44,6 +45,7 @@ export const ADMIN_NAV: NavGroup[] = [
     items: [
       { href: '/admin', label: 'داشبورد', icon: 'activity' },
       { href: '/admin/projects', label: 'سفارش‌ها', icon: 'file' },
+      { href: '/admin/projects/delivery', label: 'تحویل و اصلاح', icon: 'package' },
       { href: '/admin/payments', label: 'بررسی پرداخت‌ها', icon: 'card' },
     ],
   },
@@ -75,6 +77,7 @@ export const PUBLIC_NAV: NavGroup[] = [
       { href: '/pricing/', label: 'نرخ‌نامه', icon: 'receipt' },
       { href: '/portfolio/', label: 'نمونه‌کارها', icon: 'package' },
       { href: '/faq/', label: 'پرسش‌های متداول', icon: 'message' },
+      { href: '/revision-policy/', label: 'سیاست اصلاح', icon: 'shield' },
       { href: '/about/', label: 'درباره ما', icon: 'user' },
       { href: '/contact/', label: 'تماس با ما', icon: 'message' },
     ],

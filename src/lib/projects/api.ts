@@ -93,6 +93,9 @@ export interface ProjectOpenDispute {
 }
 
 export interface ProjectFinanceSummary {
+  /** Snapshot اهداف مالی سرور (فاز ۱۰/۱۱). */
+  depositTarget?: number;
+  finalTarget?: number;
   approvedTotal: number;
   pendingCount: number;
   escrowStatus: string | null;
@@ -129,6 +132,8 @@ export interface Project {
   depositPaidAt: string | null;
   deadlineAt: string | null;
   deliveredAt: string | null;
+  /** فاز ۱۱ — زمان تکمیل؛ فقط پس از انتقال مدیر به `completed` پر می‌شود. */
+  completedAt?: string | null;
   cancelledAt: string | null;
   depositSource: string | null;
   customerId?: string;

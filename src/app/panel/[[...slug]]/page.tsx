@@ -9,6 +9,7 @@ import { PanelNotifications } from '@/components/chat/PanelNotifications';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { WalletPanel } from '@/components/finance/FinancePanels';
 import { PaymentCenter, PaymentResult } from '@/components/finance/PaymentCenter';
+import { DeliveryWorkspace } from '@/components/delivery/DeliveryWorkspace';
 import { CUSTOMER_GROUPS, CUSTOMER_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
 
 export const metadata: Metadata = {
@@ -19,14 +20,20 @@ export const metadata: Metadata = {
 
 /** تمام مسیرهای `CUSTOMER_NAV` در بیلد استاتیک تولید می‌شود تا لینک مرده نماند. */
 export function generateStaticParams() {
-  return slugsFor(CUSTOMER_GROUPS, '/panel', ['projects/operations', 'pay', 'pay/result']);
+  return slugsFor(CUSTOMER_GROUPS, '/panel', [
+    'projects/operations',
+    'projects/delivery',
+    'pay',
+    'pay/result',
+  ]);
 }
 
 /** سفارش‌ها در فاز ۷ و گفتگو/اعلان در فاز ۹ واقعی‌اند؛ بقیه پوسته‌ی صادقانه دارند. */
-const REAL_VIEWS: Record<string, 'list' | 'new' | 'messages' | 'notifications' | 'operations' | 'wallet' | 'pay' | 'pay-result'> = {
+const REAL_VIEWS: Record<string, 'list' | 'new' | 'messages' | 'notifications' | 'operations' | 'delivery' | 'wallet' | 'pay' | 'pay-result'> = {
   '/panel/projects': 'list',
   '/panel/projects/new': 'new',
   '/panel/projects/operations': 'operations',
+  '/panel/projects/delivery': 'delivery',
   '/panel/messages': 'messages',
   '/panel/notifications': 'notifications',
   '/panel/wallet': 'wallet',
@@ -62,7 +69,7 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
             <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
               سفارش‌های من
             </Link>
-          ) : view === 'operations' ? (
+          ) : view === 'operations' || view === 'delivery' ? (
             <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
               فهرست سفارش‌ها
             </Link>
@@ -89,6 +96,8 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
           <PanelNotifications />
         ) : view === 'operations' ? (
           <ProjectOperations />
+        ) : view === 'delivery' ? (
+          <DeliveryWorkspace />
         ) : view === 'wallet' ? (
           <WalletPanel />
         ) : view === 'pay' ? (

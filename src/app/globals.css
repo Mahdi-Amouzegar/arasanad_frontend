@@ -170,3 +170,114 @@ table {
     padding-inline: var(--sp-3);
   }
 }
+
+/* ═══════════════ فاز ۱۱ — تحویل، نسخه‌ها و سیاست اصلاح ═══════════════ */
+
+.dlv-timeline {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.dlv-card {
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  background: var(--c-surface);
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.dlv-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.dlv-card__head h3 {
+  margin-top: var(--sp-2);
+  font-size: var(--fs-card-title);
+}
+
+.dlv-card__date {
+  color: var(--c-text-muted);
+  font-size: var(--fs-xs);
+}
+
+.dlv-card__meta {
+  display: flex;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.dlv-files {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.dlv-file {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  padding: var(--sp-2) var(--sp-3);
+}
+
+.dlv-file > div {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.dlv-file code {
+  color: var(--c-text-muted);
+  font-size: var(--fs-xs);
+}
+
+.dlv-text {
+  color: var(--c-text);
+  white-space: pre-wrap;
+}
+
+.dlv-response {
+  border-right: 3px solid var(--c-primary);
+  padding: var(--sp-3);
+  background: var(--c-bg);
+  border-radius: var(--r-sm);
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.dlv-policy {
+  margin-bottom: var(--sp-4);
+}
+
+.dlv-policy__text {
+  margin-bottom: var(--sp-3);
+  line-height: var(--lh-normal);
+}
+
+.dlv-policy__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-3);
+}
+
+.dlv-policy__grid > div {
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  padding: var(--sp-3);
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.dlv-policy__grid span {
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+}

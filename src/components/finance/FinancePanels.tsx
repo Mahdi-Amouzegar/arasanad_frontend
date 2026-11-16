@@ -321,7 +321,7 @@ function RefundsCard() {
   const pending = refunds.filter((row) => row.status === 'pending');
   return (
     <Card>
-      <CardHeader title="درخواستهای برگشت وجه" actions={<Button variant="ghost" size="sm" onClick={reload} aria-label="بازخوانی"><Icon name="refresh" size={16} /></Button>} />
+      <CardHeader title="درخواست‌های برگشت وجه" actions={<Button variant="ghost" size="sm" onClick={reload} aria-label="بازخوانی"><Icon name="refresh" size={16} /></Button>} />
       <CardBody>
         {error ? <ErrorBar message={error} retry={reload} /> : null}
         {pending.length === 0 ? (

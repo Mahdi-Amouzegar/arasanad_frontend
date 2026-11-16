@@ -37,6 +37,10 @@ export interface ExternalLink {
 
 export interface DeliveryFile {
   id: string;
+  /** فاز ۱۱ — شماره نسخه؛ تحویلهای قدیمی `1`اند. */
+  version?: number;
+  projectId?: string;
+  deliveredBy?: string;
   pageCount: number | null;
   amount: number | null;
   description: string | null;
