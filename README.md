@@ -181,7 +181,7 @@ TimeAPI.io و هدر `Date` همان مبدأ؛ بنابراین فیلتر‌ش
 - فرم ثبت سفارش، فهرست مشتری/مدیر، جزئیات، تاریخچه، یادداشت‌ها و نمای عمومی در `src/components/projects/` و `src/app/projects/`.
 - صفحات `/panel/projects`، `/panel/projects/new` و `/admin/projects` اکنون واقعی‌اند؛ `/start/` به جای پیام «فعال نشده» یک CTA واقعی دارد.
 - مبالغ، کد سفارش و snapshot طراحی فقط سرور محاسبه می‌کند؛ شناسه‌ی سفارش در صفحه‌ی جزئیات از `?id=` خوانده می‌شود تا خروجی استاتیک بماند.
-- بارگذاری فایل (فاز ۸)، گفتگو/اعلان (فاز ۹) و ثبت عملیات سفارش (پیشفاز ۹٫۵) پیاده‌سازی شده‌اند؛ کیفپول و پرداخت (فاز ۱۰) همچنان فقط طراحی شده‌اند.
+- بارگذاری فایل (فاز ۸)، گفتگو/اعلان (فاز ۹)، ثبت عملیات سفارش (پیشفاز ۹٫۵) و کیفپول/پرداخت (فاز ۱۰) پیاده‌سازی شده‌اند.
 
 گزارش کامل: `../docs/13-phase-7-report.md` (اسناد مادر بیرون از این مخزن‌اند).
 
@@ -208,7 +208,7 @@ TimeAPI.io و هدر `Date` همان مبدأ؛ بنابراین فیلتر‌ش
 
 هسته‌های خالص (`src/lib/chat/`, `src/lib/notifications/`) هیچ وابسته‌ای به React،
 Next یا DOM ندارند. تست‌ها: `tests/chat-core.test.mjs` و
-`tests/notifications-core.test.mjs`؛ مجموعه کامل `npm test` → ۱۲۱/۱۲۱.
+`tests/notifications-core.test.mjs`؛ مجموعه کامل `npm test` → ۱۲۶/۱۲۶.
 
 گزارش کامل: `../docs/15-phase-9-report.md`.
 
@@ -232,18 +232,40 @@ Next یا DOM ندارند. تست‌ها: `tests/chat-core.test.mjs` و
 - **استایل:** `src/styles/activities.css` فقط از متغیرهای `tokens.css`
   استفاده می‌کند تا تم تیره و `prefers-reduced-motion` خودکار خوانا بمانند.
 - **تست‌ها:** `tests/activities-core.test.mjs` (P95-F01…05)؛
-  `npm test` → ۱۲۱/۱۲۱ و `lint:fa` → ۰ خطا.
+  `npm test` → ۱۲۶/۱۲۶ و `lint:fa` → ۰ خطای قطعی / ۱۵۱ هشدار.
 
 گزارش کامل: `../docs/16-phase-9-5-report.md`.
 
-## برنامه‌ی فاز ۱۰ (فقط طراحی، بدون کد)
+## فاز ۱۰ — رابط مالی، فلگ اعتراض و پایش کممصرف (اجرا شد)
 
-- **۱۰ — مالی:** حساب میانی یکتا به‌ازای هر سفارش، کیفپول مجازی، حلقههای
-  پرداخت بیعانه و نهایی، و برگشت وجه با قفل تا واریز واقعی.
-- **توسعهپذیری:** دو ریل `manual` (فعال) و `online` (فعلاً خاموش، بدون
-  تأیید مدیر و با تغییر خودکار مرحله) پشت یک قرارداد `PaymentProvider`
-  طراحی شده‌اند؛ پرچم `ONLINE_PAYMENTS="off"` است.
-- **سادگی:** بیشینه دو کلیک، مقادیر پیشپر و بدون کتابخانه یا صفحه‌ی
-  تازه؛ جزئیات در `../phases.md` §9.5 و §10.0.
+- **پنلهای واقعی:** `/panel/wallet` ← `WalletPanel`؛
+  `/admin/payments` ← `AdminPaymentsPanel`؛ `/admin/wallets` ←
+  `AdminWalletsPanel`؛ به‌همراه `RefundsCard` و `ReconciliationCard`
+  در `src/components/finance/FinancePanels.tsx` و کلاینت تایپشده
+  `src/lib/finance/api.ts`. جای Placeholderها را گرفتند.
+- **ستون «اقدام» و جزئیات:** `ProjectActionDialog` از `intent` و
+  `amount` سرور در `availableActions[]` تغذیه می‌شود؛ اعلام واریز،
+  تأیید مدیر، پرداخت از کیفپول، مبلغ نهایی و درخواست برگشت وجه حداکثر
+  به دو کلیک نیاز دارند و همان سلول پس از موفقیت متن وضعیت می‌شود.
+  درخواست ریل آنلاین خاموش با پیام روشن رد می‌شود.
+- **فلگ اعتراض:** `DisputeFlag` کنار نام سفارش در فهرست و جزئیات؛
+  مدیر با کلیک پاسخ متنی ارسال می‌کند، فلگ ناپدید می‌شود و
+  اعتراض تازه دوباره آن را آشکار می‌کند. وضعیت و مهلت سفارش
+  دستنخوردهاند و هر رویداد در سابقه‌ی عملیات دیده می‌شود.
+- **پایش کممصرف:** `src/lib/connectivity/poll-leader.ts` و
+  `poll-governor.mjs` تنها یک تب را پایشگر می‌کنند؛ تب مخفی،
+  آفلاین و پیرو بدون درخواستاند. `apiConditionalGet()` در `src/lib/api.ts`
+  هدر `If-None-Match` ارسال می‌کند و پاسخ `304` بدون بدنه را
+  بدون تغییر وضعیت می‌پذیرد. `saveData` و شبکه‌ی کند
+  فاصلهها را افزایش می‌دهند.
+- **هسته‌ی خالص:** `src/lib/finance/core.mjs` و `.d.mts` بدون هیچ
+  وابستگی به React، Next، DOM یا fetchاند.
+- **تست‌ها:** `tests/poll-governor.test.mjs` (P10-POLL-F01…05)؛
+  مجموعه کامل `npm test` → ۱۲۶/۱۲۶، `npm run typecheck` PASS،
+  `lint:fa` → ۰ خطای قطعی / ۱۵۱ هشدار `ambiguous-plural`.
+- **استقرار:** push به `main` (کامیت `0d84576`) ← GitHub Actions
+  `Deploy to GitHub Pages` ← سایت زنده `https://arasanad.ir`.
+
+گزارش کامل: `../docs/17-phase-10-report.md`.
 
 © آراسند — تمامی حقوق محفوظ است.
