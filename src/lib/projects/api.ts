@@ -65,6 +65,40 @@ export interface ProjectHistoryItem {
   createdAt: string;
 }
 
+/**
+ * فاز ۹٫۵: قرارداد اقدامات سرورمحور. فرانت‌اند هیچ دکمهای را خودش
+ * تصمیم نمی‌گیرد؛ `href` فقط برای `kind: 'link'` وجود دارد.
+ */
+export interface ProjectAction {
+  id: string;
+  label: string;
+  kind: 'link' | 'button' | 'status' | 'flag' | 'future';
+  href?: string;
+  hint?: string;
+  /** نام اقدام سرور (declare_payment / approve_payment / dispute_reply / …). */
+  intent?: string;
+  /** مبلغ پیشپر مودال مالی. */
+  amount?: number;
+  paymentRequestId?: string | null;
+  /** شناسه کارت اعتراض باز، برای replyToActivityId. */
+  activityId?: string | null;
+  phase?: number;
+  primary?: boolean;
+}
+
+/** فاز ۱۰ (بند ۲ مالک): اعتراض باز هیچ اثری بر وضعیت سفارش ندارد. */
+export interface ProjectOpenDispute {
+  activityId: string;
+  openedAt: string | null;
+}
+
+export interface ProjectFinanceSummary {
+  approvedTotal: number;
+  pendingCount: number;
+  escrowStatus: string | null;
+  downloadUnlocked: boolean;
+}
+
 /** Owner/admin view — camelCase, exactly as returned by the backend. */
 export interface Project {
   id: string;
@@ -101,6 +135,12 @@ export interface Project {
   customerDisplayName: string | null;
   deliveryState: string | null;
   finalTotal: number;
+  /** فاز ۹٫۵: اقدامات مجاز همین نقش در همین وضعیت. */
+  availableActions?: ProjectAction[];
+  /** فاز ۱۰: فلگ اعتراض باز؛ null یعنی پاسخ داده شده یا اعتراضی نیست. */
+  openDispute?: ProjectOpenDispute | null;
+  /** فاز ۱۰: خلاصه مالی سرورمحور همان سفارش. */
+  finance?: ProjectFinanceSummary | null;
 }
 
 export interface ProjectDetail {

@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { Icon } from '@/components/ui/Icon';
+import { ChatEntryButton } from '@/components/chat/ChatEntryButton';
 import type { NavGroup } from '@/lib/navigation';
 
 export interface SidebarProps {
@@ -24,6 +27,12 @@ export function Sidebar({ groups, activeHref, open = false, onNavigate }: Sideba
         <span aria-hidden="true">آ</span>
         <span className="sidebar__brand-text">آراسند</span>
       </Link>
+
+      {/* فاز ۹: دراور گفتگو‌ها مستقیماً از ستون راست فعال می‌شود، بی‌آنکه
+          صفحه‌ای عوض شود؛ همان وضعیت سراسری لانچر شناور را دارد. */}
+      <nav className="sidebar__nav" aria-label="گفتگو‌ها">
+        <ChatEntryButton onNavigate={onNavigate} />
+      </nav>
 
       {groups.map((group, index) => (
         <div key={group.label ?? `group-${index}`}>

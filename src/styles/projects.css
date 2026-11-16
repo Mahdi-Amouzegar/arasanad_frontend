@@ -482,3 +482,23 @@
   font-size: var(--fs-sm);
   line-height: var(--lh-normal);
 }
+
+/* فاز ۹٫۵: سلول «اقدام» سرورمحور */
+.prj-action-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-1);
+}
+
+.prj-action-future,
+.prj-action-status {
+  display: inline-block;
+  color: var(--c-text-muted);
+  font-size: var(--fs-xs);
+}
+
+.prj-action-status {
+  flex-basis: 100%;
+  color: var(--c-text-secondary);
+}

@@ -4,6 +4,10 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
 import { ProjectList } from '@/components/projects/ProjectList';
 import { ProjectNewForm } from '@/components/projects/ProjectNewForm';
+import { PanelMessages } from '@/components/chat/PanelMessages';
+import { PanelNotifications } from '@/components/chat/PanelNotifications';
+import { ProjectOperations } from '@/components/activities/ProjectOperations';
+import { WalletPanel } from '@/components/finance/FinancePanels';
 import { CUSTOMER_GROUPS, CUSTOMER_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
 
 export const metadata: Metadata = {
@@ -14,13 +18,17 @@ export const metadata: Metadata = {
 
 /** تمام مسیرهای `CUSTOMER_NAV` در بیلد استاتیک تولید می‌شود تا لینک مرده نماند. */
 export function generateStaticParams() {
-  return slugsFor(CUSTOMER_GROUPS, '/panel');
+  return slugsFor(CUSTOMER_GROUPS, '/panel', ['projects/operations']);
 }
 
-/** سفارش‌ها در فاز ۷ واقعی‌اند؛ بقیه همچنان پوسته‌ی صادقانه دارند. */
-const REAL_VIEWS: Record<string, 'list' | 'new'> = {
+/** سفارش‌ها در فاز ۷ و گفتگو/اعلان در فاز ۹ واقعی‌اند؛ بقیه پوسته‌ی صادقانه دارند. */
+const REAL_VIEWS: Record<string, 'list' | 'new' | 'messages' | 'notifications' | 'operations' | 'wallet'> = {
   '/panel/projects': 'list',
   '/panel/projects/new': 'new',
+  '/panel/projects/operations': 'operations',
+  '/panel/messages': 'messages',
+  '/panel/notifications': 'notifications',
+  '/panel/wallet': 'wallet',
 };
 
 export default async function PanelPage({ params }: { params: Promise<{ slug?: string[] }> }) {
@@ -39,9 +47,21 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
         title={info.title}
         mobileItems={mobile}
         actions={
-          view === 'new' ? (
+          view === 'messages' ? (
+            <Link href="/panel/notifications/" className="btn btn--ghost btn--sm">
+              اعلان‌ها
+            </Link>
+          ) : view === 'notifications' ? (
+            <Link href="/panel/messages/" className="btn btn--ghost btn--sm">
+              گفتگو‌ها
+            </Link>
+          ) : view === 'new' ? (
             <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
               سفارش‌های من
+            </Link>
+          ) : view === 'operations' ? (
+            <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
+              فهرست سفارش‌ها
             </Link>
           ) : (
             <Link href="/panel/projects/new/" className="btn btn--primary btn--sm">
@@ -50,7 +70,19 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
           )
         }
       >
-        {view === 'new' ? <ProjectNewForm /> : <ProjectList />}
+        {view === 'new' ? (
+          <ProjectNewForm />
+        ) : view === 'messages' ? (
+          <PanelMessages />
+        ) : view === 'notifications' ? (
+          <PanelNotifications />
+        ) : view === 'operations' ? (
+          <ProjectOperations />
+        ) : view === 'wallet' ? (
+          <WalletPanel />
+        ) : (
+          <ProjectList />
+        )}
       </AppShell>
     );
   }

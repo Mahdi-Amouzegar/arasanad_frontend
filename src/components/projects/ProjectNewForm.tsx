@@ -34,20 +34,28 @@ import { Icon } from '@/components/ui/Icon';
 import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
+import { FileManagerModal, type SelectedFile, type SelectedLink } from '@/components/files/FileManagerModal';
+import { createFilesApi } from '@/lib/files/api';
 import { errorText, formatHours } from './ui-utils';
 
 const EMPTY_RULES = { urgencyMultiplier: 1.3, depositRatio: 0.5, roundStep: 500 };
 
 /**
- * Phase 7 order form. The server computes and snapshots every price; this
+ * Phase 7+8 order form. The server computes and snapshots every price; this
  * screen only shows a live estimate and never sends an amount.
- * File upload belongs to Phase 8 and is intentionally absent.
+ * File attachment is handled by the reusable FileManagerModal (Phase 8).
  */
 export function ProjectNewForm() {
   const router = useRouter();
   const { user, loading, authedRequest } = useAuth();
   const { showToast } = useAlert();
   const api = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
+  const filesApi = useMemo(() => authedRequest ? createFilesApi(authedRequest) : null, [authedRequest]);
+
+  // Phase 8: file attachment state
+  const [fmOpen, setFmOpen] = useState(false);
+  const [attachedFiles, setAttachedFiles] = useState<SelectedFile[]>([]);
+  const [attachedLinks, setAttachedLinks] = useState<SelectedLink[]>([]);
 
   const [services, setServices] = useState<ServiceType[]>([]);
   const [presets, setPresets] = useState<DesignPreset[]>([]);
@@ -176,6 +184,29 @@ export function ProjectNewForm() {
     setSubmitting(true);
     try {
       const project = await api.createProject(body);
+
+      // Phase 8: attach files and links to the new project
+      if (filesApi && attachedFiles.length > 0) {
+        await filesApi.attachFiles(
+          attachedFiles.map((f) => f.id),
+          'project_initial',
+          project.id,
+          'initial_file',
+        );
+      }
+      if (filesApi && attachedLinks.length > 0) {
+        // Links need to be attached via external-links API
+        await authedRequest('/external-links/attach', {
+          method: 'POST',
+          body: {
+            linkIds: attachedLinks.map((l) => l.id),
+            entityType: 'project_initial',
+            entityId: project.id,
+            role: 'initial_file',
+          },
+        });
+      }
+
       showToast({
         type: 'success',
         title: 'سفارش ثبت شد',
@@ -384,10 +415,74 @@ export function ProjectNewForm() {
             </FormField>
           </div>
 
-          <p className="prj-note">
-            <Icon name="file" size={15} /> بارگذاری فایل منبع در فاز ۸ فعال می‌شود. اکنون
-            فقط مشخصات سفارش ثبت می‌شود.
-          </p>
+          {/* Phase 8: File attachment section */}
+          <div className="prj-grid prj-grid--one">
+            <FormField label="فایل‌های ضمیمه" htmlFor="prj-files">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setFmOpen(true)}
+                  leadingIcon={<Icon name="paperclip" size={14} />}
+                >
+                  افزودن فایل یا لینک
+                </Button>
+                {attachedFiles.length > 0 && (
+                  <div className="fm-list">
+                    {attachedFiles.map((file) => (
+                      <div key={file.id} className="fm-item fm-item--uploaded">
+                        <div className="fm-item__icon">
+                          <Icon name="fileText" size={20} />
+                        </div>
+                        <div className="fm-item__body">
+                          <div className="fm-item__name">{file.originalName}</div>
+                          <div className="fm-item__meta">
+                            <span>{file.fileCode || 'جدید'}</span>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          iconOnly
+                          onClick={() => setAttachedFiles((prev) => prev.filter((f) => f.id !== file.id))}
+                        >
+                          <Icon name="x" size={16} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {attachedLinks.length > 0 && (
+                  <div className="fm-list">
+                    {attachedLinks.map((link) => (
+                      <div key={link.id} className="fm-link-item">
+                        <div className="fm-link-item__icon">
+                          <Icon name="link" size={20} />
+                        </div>
+                        <div className="fm-link-item__body">
+                          <div className="fm-link-item__url">{link.url}</div>
+                          {link.description && (
+                            <div className="fm-link-item__desc">{link.description}</div>
+                          )}
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          iconOnly
+                          onClick={() => setAttachedLinks((prev) => prev.filter((l) => l.id !== link.id))}
+                        >
+                          <Icon name="x" size={16} />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </FormField>
+          </div>
         </CardBody>
       </Card>
 
@@ -550,6 +645,21 @@ export function ProjectNewForm() {
           </div>
         </CardBody>
       </Card>
+
+      {/* Phase 8: File Manager Modal */}
+      <FileManagerModal
+        open={fmOpen}
+        onClose={() => setFmOpen(false)}
+        config={{
+          role: user?.role === 'admin' ? 'admin' : 'customer',
+          defaultTab: 'upload',
+          title: 'فایل‌های ضمیمه سفارش',
+        }}
+        onSelect={(result) => {
+          setAttachedFiles((prev) => [...prev, ...result.files]);
+          setAttachedLinks((prev) => [...prev, ...result.links]);
+        }}
+      />
     </form>
   );
 }

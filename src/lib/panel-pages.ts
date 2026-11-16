@@ -19,15 +19,17 @@ export const CUSTOMER_PAGES: Record<string, PanelPageInfo> = {
   '/panel': { title: 'داشبورد', phase: 7, note: 'خلاصه‌ی سفارش‌ها و وضعیت‌ها' },
   '/panel/projects': { title: 'سفارش‌های من', phase: 7, note: 'فهرست و تاریخچه‌ی سفارش‌ها، فعال در فاز ۷' },
   '/panel/projects/new': { title: 'ثبت سفارش جدید', phase: 7, note: 'فرم ثبت سفارش‌ها؛ بارگذاری فایل در فاز ۸' },
-  '/panel/messages': { title: 'پیام‌ها', phase: 9, note: 'گفتگو با مدیر پیرامون هر سفارش' },
+  '/panel/projects/operations': { title: 'ثبت عملیات سفارش', phase: 9.5, note: 'سابقه‌ی فقطالحاقی عملیاتها، جدیدترین در بالا' },
+  '/panel/messages': { title: 'پیام‌ها', phase: 9, note: 'گفتگوی درون‌برنامه‌ای؛ فعال در فاز ۹' },
   '/panel/wallet': { title: 'کیف پول', phase: 10, note: 'موجودی، شارژ و تراکنشها' },
-  '/panel/notifications': { title: 'اعلان‌ها', phase: 9, note: 'اعلان‌های درونسامانهای و تلگرام' },
+  '/panel/notifications': { title: 'اعلان‌ها', phase: 9, note: 'اعلان‌های درون‌سامانه‌ای و تلگرام؛ فعال در فاز ۹' },
   '/panel/profile': { title: 'پروفایل من', phase: 6, note: 'تنظیمات حساب — در `/profile/` فعال است' },
 };
 
 export const ADMIN_PAGES: Record<string, PanelPageInfo> = {
   '/admin': { title: 'داشبورد مدیر', phase: 8, note: 'نمای کلی سفارش‌ها و صف کاری' },
   '/admin/projects': { title: 'سفارش‌ها', phase: 7, note: 'صف کاری، تعیین نرخ و گردش وضعیت‌ها، فعال در فاز ۷' },
+  '/admin/projects/operations': { title: 'ثبت عملیات سفارش', phase: 9.5, note: 'سابقه‌ی فقطالحاقی عملیاتها، جدیدترین در بالا' },
   '/admin/payments': { title: 'بررسی پرداخت‌ها', phase: 10, note: 'تأیید رسیدها و پرداخت‌ها' },
   '/admin/wallets': { title: 'کیف پول‌ها', phase: 10, note: 'موجودی و تراکنشهای کاربران' },
   '/admin/refunds': { title: 'برگشت وجه', phase: 11, note: 'درخواست‌ها و پردازش استرداد' },
@@ -35,8 +37,16 @@ export const ADMIN_PAGES: Record<string, PanelPageInfo> = {
   '/admin/settings': { title: 'تنظیمات', phase: 12, note: 'نرخ‌ها، استانداردها و تنظیمات سامانه' },
 };
 
-/** تمام پارامترهای لازم برای `generateStaticParams` در خروجی استاتیک. */
-export function slugsFor(groups: NavGroup[], prefix: string): Array<{ slug: string[] }> {
+/**
+ * تمام پارامترهای لازم برای `generateStaticParams` در خروجی استاتیک.
+ * `extraPaths` صفحه‌های واقعیای هستند که در ناوبری لینک ندارند ولی باید در
+ * بیلد ساخته شوند (مثلاً فاز ۹٫۵: `/panel/projects/operations`).
+ */
+export function slugsFor(
+  groups: NavGroup[],
+  prefix: string,
+  extraPaths: string[] = [],
+): Array<{ slug: string[] }> {
   const seen = new Set<string>();
   const result: Array<{ slug: string[] }> = [{ slug: [] }];
   seen.add('');
@@ -49,6 +59,12 @@ export function slugsFor(groups: NavGroup[], prefix: string): Array<{ slug: stri
       seen.add(rest);
       result.push({ slug: rest.split('/') });
     }
+  }
+  for (const raw of extraPaths) {
+    const rest = raw.replace(/^\/+|\/+$/g, '');
+    if (!rest || seen.has(rest)) continue;
+    seen.add(rest);
+    result.push({ slug: rest.split('/') });
   }
   return result;
 }

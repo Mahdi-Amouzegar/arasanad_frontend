@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
-import { createProjectsApi, type Project } from '@/lib/projects/api';
+import { createProjectsApi, type Project, type ProjectAction } from '@/lib/projects/api';
 import { PROJECT_STATUS, PROJECT_STATUS_FLOW, type ProjectStatus } from '@/lib/status';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -13,11 +13,111 @@ import { JalaliDate } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { DisputeFlag } from '@/components/activities/DisputeFlag';
+import { ProjectActionDialog } from './ProjectActionDialog';
 import { errorText, formatHours, formatProjectCodeSafe } from './ui-utils';
+
+/** فقط مسیرهای نسبی درون‌برنامه‌ای؛ پاسخ سرور هرگز کورکورانه لینک نمی‌شود. */
+function safeActionHref(href: string | undefined, fallback: string): string {
+  return href && href.startsWith('/') && !href.startsWith('//') ? href : fallback;
+}
+
+/**
+ * سلول «اقدام» سرورمحور (فاز ۹٫۵، زیرفاز ژ).
+ * ⚠️ هیچ تصمیم نقشی در فرانت‌اند گرفته نمی‌شود؛ `availableActions[]` از
+ *    `ownerProjectView` می‌آید. اقدام `future` عمداً لینک ندارد تا لینک
+ *    مرده یا دکمه‌ی بیکار ساخته نشود.
+ */
+function ProjectActionsCell({
+  project,
+  role,
+  onDone,
+}: {
+  project: Project;
+  role: 'admin' | 'customer';
+  onDone: () => void;
+}) {
+  const fallback = `/projects/detail/?id=${encodeURIComponent(project.id)}`;
+  const actions = Array.isArray(project.availableActions) ? project.availableActions : [];
+  const [active, setActive] = useState<ProjectAction | null>(null);
+
+  if (actions.length === 0) {
+    return (
+      <Link className="btn btn--outline btn--sm" href={fallback}>
+        جزئیات
+      </Link>
+    );
+  }
+
+  const links = actions.filter((action) => action.kind === 'link');
+  const buttons = actions.filter((action) => action.kind === 'button');
+  const flags = actions.filter((action) => action.kind === 'flag');
+  const future = actions.filter((action) => action.kind === 'future');
+  const status = actions.find((action) => action.kind === 'status');
+
+  return (
+    <>
+      <div className="prj-action-cell">
+        {links.map((action: ProjectAction, index) => (
+          <Link
+            key={action.id}
+            className={`btn btn--sm ${index === 0 && buttons.length === 0 ? 'btn--primary' : 'btn--outline'}`}
+            href={safeActionHref(action.href, fallback)}
+            title={action.hint ?? action.label}
+          >
+            {action.label}
+          </Link>
+        ))}
+        {buttons.map((action: ProjectAction, index) => (
+          <button
+            key={action.id}
+            type="button"
+            className={`btn btn--sm ${index === 0 ? 'btn--primary' : 'btn--outline'}`}
+            title={action.hint ?? action.label}
+            onClick={() => setActive(action)}
+          >
+            {action.label}
+          </button>
+        ))}
+        {flags.map((action) => (
+          <DisputeFlag
+            key={action.id}
+            projectId={project.id}
+            projectName={project.name}
+            openDispute={project.openDispute}
+            role={role}
+            label={action.label}
+            variant="action"
+            onResolved={onDone}
+          />
+        ))}
+        {future.map((action) => (
+          <span key={action.id} className="prj-action-future" title={action.hint ?? undefined}>
+            {action.label} <small>(فاز {action.phase ?? 10})</small>
+          </span>
+        ))}
+        {status ? <span className="prj-action-status">{status.label}</span> : null}
+      </div>
+      {active ? (
+        <ProjectActionDialog
+          action={active}
+          project={project}
+          role={role}
+          onClose={() => setActive(null)}
+          onDone={() => {
+            setActive(null);
+            onDone();
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
 
 /** Shared list for the customer panel and the admin queue. */
 export function ProjectList({ admin = false }: { admin?: boolean }) {
-  const { authedRequest } = useAuth();
+  const { authedRequest, user } = useAuth();
+  const role: 'admin' | 'customer' = admin || user?.role === 'admin' ? 'admin' : 'customer';
   const api = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -156,6 +256,14 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                   <td data-label="کد / عنوان">
                     <span className="prj-code">{formatProjectCodeSafe(project.code)}</span>
                     <span className="prj-name">{project.name}</span>
+                    {/* فاز ۱۰: نشانگر اعتراض کنار نام سفارش، بدون اثر بر وضعیت. */}
+                    <DisputeFlag
+                      projectId={project.id}
+                      projectName={project.name}
+                      openDispute={project.openDispute}
+                      role={role}
+                      onResolved={refresh}
+                    />
                   </td>
                   <td data-label="خدمت">{project.serviceName}</td>
                   <td data-label="وضعیت">
@@ -173,23 +281,12 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                     <JalaliDate value={project.createdAt} variant="short" />
                   </td>
                   <td data-label="اقدام">
-                    <Link
-                      className="btn btn--outline btn--sm"
-                      href={`/projects/detail/?id=${encodeURIComponent(project.id)}`}
-                    >
-                      جزئیات
-                    </Link>
+                    <ProjectActionsCell project={project} role={role} onDone={refresh} />
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {admin ? (
-            <p className="prj-note">
-              نمای مدیر شامل همه‌ی سفارش‌هاست. تغییر نرخ و وضعیت از صفحه‌ی جزئیات
-              انجام می‌شود.
-            </p>
-          ) : null}
         </div>
       )}
     </div>

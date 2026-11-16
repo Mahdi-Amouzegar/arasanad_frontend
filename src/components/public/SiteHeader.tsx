@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Logo } from './Logo';
 import { SiteSidebar } from './SiteSidebar';
 import { Icon } from '@/components/ui/Icon';
+import { NotificationCenter } from '@/components/chat/NotificationCenter';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 /**
@@ -36,6 +37,7 @@ export function SiteHeader() {
       <header className="public-topbar">
         <Logo />
         <div className="public-topbar__actions">
+          <NotificationCenter />
           <ThemeToggle variant="compact" />
           <button
             type="button"

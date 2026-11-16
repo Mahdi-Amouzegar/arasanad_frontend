@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from './Logo';
 import { AccountMenu } from './AccountMenu';
+import { ChatEntryButton } from '@/components/chat/ChatEntryButton';
+import { NotificationCenter } from '@/components/chat/NotificationCenter';
 import { Icon } from '@/components/ui/Icon';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { cx } from '@/lib/cx';
@@ -30,10 +32,13 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
     <div className="public-side__inner">
       <div className="public-side__top">
         <Logo className="public-side__brand" />
+        <NotificationCenter />
         <AccountMenu />
       </div>
 
       <nav className="public-side__nav" aria-label="ناوبری اصلی">
+        {/* فاز ۹: گفتگو از همان ستون راست صفحات عمومی هم در دسترس است. */}
+        <ChatEntryButton className="public-side__link" onNavigate={onNavigate} />
         {PUBLIC_NAV[0]?.items.map((item) => (
           <Link
             key={item.href}

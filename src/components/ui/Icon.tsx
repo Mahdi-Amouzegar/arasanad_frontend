@@ -61,7 +61,25 @@ export type IconName =
   /* صفحات عمومی */
   | 'star'
   | 'shield'
-  | 'sparkles';
+  | 'sparkles'
+  /* فاز ۸: مدیریت فایل */
+  | 'upload'
+  | 'uploadCloud'
+  | 'link'
+  | 'trash'
+  | 'fileText'
+  | 'archive'
+  | 'paperclip'
+  | 'wifiOff'
+  /* فاز ۹: گفتگو و اعلان */
+  | 'chat'
+  | 'bell'
+  | 'chevronRight'
+  | 'chevronLeft'
+  | 'phone'
+  | 'checkDouble'
+  /* فاز ۹٫۵: زنگوله‌ی عملیات، متمایز از زنگوله‌ی اعلان */
+  | 'activityBell';
 
 const PATHS: Record<IconName, string> = {
   /* ─── پیش‌نویس و ویرایش ─── */
@@ -123,6 +141,27 @@ const PATHS: Record<IconName, string> = {
   shield: 'M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6ZM9 12l2 2 4-4',
   sparkles:
     'M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6ZM18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8Z',
+
+  /* ─── فاز ۸: مدیریت فایل ─── */
+  upload: 'M12 21V9M7 13l5-5 5 5M5 3h14',
+  uploadCloud:
+    'M7.5 17H6a4 4 0 0 1-.5-7.97A6 6 0 0 1 17.5 9.5a4 4 0 0 1-.5 7.5h-1.5M12 12v6',
+  link: 'M10 13a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5M14 11a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13',
+  fileText: 'M6 3h9l5 5v13H6zM15 3v5h5M9 13h6M9 17h4',
+  archive: 'M3 7h18v3H3zM5 10v11h14V10M10 14h4',
+  paperclip: 'M21 11l-9.5 9.5a5 5 0 0 1-7-7L14 4a3.5 3.5 0 0 1 5 5l-9.5 9.5a2 2 0 0 1-3-3L15 8',
+  wifiOff: 'M2 4l20 16M8.5 12.5a5 5 0 0 1 7 0M5 9a10 10 0 0 1 4-2.6M19 9a10 10 0 0 0-4-2.6M12 18h.5',
+
+  /* ─── فاز ۹: گفتگو و اعلان ─── */
+  chat: 'M20 15a3 3 0 0 1-3 3H9l-5 3 1.3-4A3 3 0 0 1 4 14V7a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3zM8 10h8M8 13h5',
+  bell: 'M18 9a6 6 0 1 0-12 0c0 6-2 7-2 7h16s-2-1-2-7M10 20h4',
+  chevronRight: 'M9 5l7 7-7 7',
+  chevronLeft: 'M15 5l-7 7 7 7',
+  phone: 'M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 18h2',
+  checkDouble: 'M2 13l4 4 7-8M10 17l1.5 1.5L22 8',
+  /* زنگولهای با خط ضربان — قابل تشخیص از `bell` ساده‌ی اعلان */
+  activityBell: 'M18 9a6 6 0 0 0-12 0c0 5-1.5 6.5-2 7h16c-.5-.5-2-2-2-7M10 20h4M6.5 9H9l1.5 3 2-5 1.5 2h3.5',
 };
 
 export interface IconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {

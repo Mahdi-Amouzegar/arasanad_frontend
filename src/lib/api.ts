@@ -104,6 +104,66 @@ export async function apiRequest<T>(
   return payload.data;
 }
 
+/**
+ * فاز ۱۰ (O-99): درخواست شرطی پایش. وقتی نسخه سرور همان ETag ذخیرهشده
+ * باشد، پاسخ ۳۰۴ بدون بدنه است و هیچ بار JSON به شبکه تحمیل نمی‌شود.
+ * کش مرورگر عمداً `no-store` است تا نسخه فقط در حافظه همین تب نگهداری شود.
+ */
+export interface ConditionalGetResult<T> {
+  notModified: boolean;
+  data: T | null;
+  etag: string | null;
+}
+
+export async function apiConditionalGet<T>(
+  path: string,
+  {
+    token,
+    etag,
+    signal,
+  }: { token?: string | null; etag?: string | null; signal?: AbortSignal } = {},
+): Promise<ConditionalGetResult<T>> {
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (etag) headers['If-None-Match'] = etag;
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE}${path}`, {
+      method: 'GET',
+      headers,
+      signal,
+      cache: 'no-store',
+    });
+    noteRequestOutcome({ ok: true });
+  } catch {
+    noteRequestOutcome({ ok: false, reason: 'api-request-failed' });
+    throw new ApiError('NETWORK', 'ارتباط با سرور برقرار نشد', 0);
+  }
+
+  const responseEtag = response.headers.get('ETag') ?? etag ?? null;
+  if (response.status === 304) {
+    return { notModified: true, data: null, etag: responseEtag };
+  }
+  if (!response.ok) {
+    throw new ApiError('BAD_RESPONSE', 'پاسخ سرور قابل خواندن نبود', response.status);
+  }
+  let payload: Envelope<T> | null = null;
+  try {
+    payload = (await response.json()) as Envelope<T>;
+  } catch {
+    payload = null;
+  }
+  if (!payload || !payload.ok || payload.data === null) {
+    throw new ApiError(
+      payload?.error?.code ?? 'BAD_RESPONSE',
+      payload?.error?.message ?? 'پاسخ سرور قابل خواندن نبود',
+      response.status,
+    );
+  }
+  return { notModified: false, data: payload.data, etag: responseEtag };
+}
+
 /* ─────────────────────── شناسه‌ی دستگاه ─────────────────────── */
 
 const DEVICE_KEY = 'arasanad_device_id';

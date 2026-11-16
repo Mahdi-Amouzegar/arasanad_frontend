@@ -3,6 +3,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Icon } from '@/components/ui/Icon';
+import { NotificationCenter } from '@/components/chat/NotificationCenter';
+import { ActivityBell } from '@/components/activities/ActivityBell';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import type { NavGroup } from '@/lib/navigation';
@@ -81,7 +83,13 @@ export function AppShell({
         <Topbar
           title={title}
           search={search}
-          actions={actions}
+          actions={
+            <>
+              <ActivityBell />
+              <NotificationCenter />
+              {actions}
+            </>
+          }
           onMenu={() => setOpen(true)}
         />
         <main className="shell__content">{children}</main>

@@ -1,13 +1,13 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Service Worker آراسند
-   ⚠️ هدف در این فاز: پوسته‌ی آفلاین و بارگذاری سریع‌تر دارایی‌های ثابت.
-      Push و Background Sync در فازهای بعدی اضافه می‌شوند.
+   ⚠️ هدف: پوسته‌ی آفلاین، بارگذاری سریع‌تر دارایی‌های ثابت و کلیک روی اعلان‌های فاز ۹.
+      Web Push و Background Sync در فاز تکمیلی اضافه می‌شوند.
    ⚠️ این فایل در `public/` است و بدون باندل شدن، عیناً منتشر می‌شود.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 // ⚠️ نسخه هنگام تغییر مسیر پایه بالا رفت تا کش پوسته‌ی قدیمی
 //    (با مسیرپایه‌ی مخزن قدیمی) در activate پاک شود و HTML کهنه نماند.
-const VERSION = 'arasanad-v2';
+const VERSION = 'arasanad-v3';
 // دامنه‌ی اختصاصی از ریشه سرو می‌شود؛ مسیر پایه خالی است.
 const BASE = '';
 const SHELL = `${BASE}/`;
@@ -60,4 +60,33 @@ self.addEventListener('fetch', (event) => {
       }),
     );
   }
+});
+
+/* ── فاز ۹: کلیک روی اعلان (architecture.md §14.3) ── */
+/* ⚠️ فقط مسیرهای داخلی مجازند؛ `data.href` از سمت
+      کلاینت می‌آید و نباید به آن اعتماد کرد.
+   ⚠️ پنجره‌ی باز فعال می‌شود؛ در نبود پنجره، یکی باز می‌کنیم. */
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const data = event.notification.data || {};
+  const candidate = typeof data.href === 'string' ? data.href : '';
+  const href = candidate.startsWith('/') && !candidate.startsWith('//') ? candidate : '/panel/';
+  const target = new URL(href, self.location.origin).href;
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (typeof client.focus === 'function') {
+          client.focus();
+          if (typeof client.navigate === 'function' && client.url !== target) {
+            return client.navigate(target);
+          }
+          return undefined;
+        }
+      }
+      return typeof self.clients.openWindow === 'function'
+        ? self.clients.openWindow(target)
+        : undefined;
+    }),
+  );
 });

@@ -1,0 +1,819 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   فاز ۹٫۵ — ثبت عملیات سفارش (زنگوله، صفحه و کارت)
+   قاعده: همه‌ی رنگ‌ها از tokens.css می‌آیند تا تم تیره خودکار کار کند.
+   قاعده: هیچ کامپوننتی margin بیرونی ندارد؛ فاصله‌گذاری وظیفه‌ی والد است.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── زنگوله‌ی جداگانه ─── */
+
+.act-bell {
+  position: relative;
+  display: inline-flex;
+}
+
+.act-bell__trigger {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.act-bell__trigger:hover {
+  background: var(--c-surface-sunken);
+  color: var(--c-text);
+}
+
+.act-bell__trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--sh-focus);
+}
+
+/* نقطه‌ی کوچک نارنجی/سبز؛ عددی نشان داده نمی‌شود تا با بج اعلان اشتباه نشود */
+.act-bell__dot {
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline-end: 5px;
+  width: 9px;
+  height: 9px;
+  border: 2px solid var(--c-surface);
+  border-radius: var(--r-full);
+  background: var(--c-warning);
+}
+
+.act-bell__panel {
+  position: absolute;
+  inset-block-start: calc(100% + var(--sp-2));
+  inset-inline-end: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  width: min(560px, calc(100vw - var(--sp-4) * 2));
+  max-height: min(520px, calc(100dvh - 100px));
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--sh-lg);
+  overflow: hidden;
+}
+
+.act-bell__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-block-end: 1px solid var(--c-border);
+  font-size: var(--fs-body);
+}
+
+.act-bell__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  overflow: auto;
+}
+
+.act-bell__columns:has(.act-bell__submenu) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.act-bell__projects,
+.act-bell__submenu {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.act-bell__submenu {
+  border-inline-start: 1px solid var(--c-border);
+  background: var(--c-surface-sunken);
+}
+
+.act-bell__project {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border: 0;
+  border-block-end: 1px solid var(--c-border);
+  background: transparent;
+  color: var(--c-text);
+  text-align: start;
+  cursor: pointer;
+}
+
+.act-bell__project:hover,
+.act-bell__project--active {
+  background: var(--c-primary-subtle);
+}
+
+.act-bell__project-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+  font-size: var(--fs-sm);
+}
+
+.act-bell__project-body strong {
+  font-size: var(--fs-body);
+}
+
+.act-bell__project-body span {
+  color: var(--c-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.act-bell__count {
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding-inline: 4px;
+  border-radius: var(--r-full);
+  background: var(--c-warning-bg);
+  color: var(--c-warning);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.act-bell__submenu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-block-end: 1px solid var(--c-border);
+  font-size: var(--fs-sm);
+}
+
+.act-bell__item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border-block-end: 1px solid var(--c-border);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.act-bell__item:hover {
+  background: var(--c-surface);
+}
+
+.act-bell__item-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-block-start: 6px;
+  border-radius: var(--r-full);
+  background: var(--c-primary);
+}
+
+.act-bell__item-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+  font-size: var(--fs-xs);
+  color: var(--c-text-secondary);
+}
+
+.act-bell__item-body strong {
+  font-size: var(--fs-sm);
+  color: var(--c-text);
+}
+
+.act-bell__item-time {
+  color: var(--c-text-muted);
+}
+
+@media (max-width: 640px) {
+  .act-bell__columns:has(.act-bell__submenu) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .act-bell__submenu {
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--c-border);
+  }
+}
+
+/* ─── صفحه‌ی کامل ─── */
+
+.act-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.act-page__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.act-page__code {
+  display: block;
+  color: var(--c-primary);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.act-page__title {
+  margin: 0;
+  font-size: var(--fs-section);
+  font-weight: var(--fw-bold);
+}
+
+.act-page__hint {
+  margin: var(--sp-1) 0 0;
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.act-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.act-page__skeleton,
+.act-page__timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+/* ─── کادر ارسال ─── */
+
+.act-composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  box-shadow: var(--sh-xs);
+}
+
+.act-composer__reply {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-info-bg);
+  color: var(--c-info);
+  font-size: var(--fs-sm);
+}
+
+.act-composer__reply span {
+  flex: 1;
+  min-width: 0;
+}
+
+.act-composer__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+}
+
+.act-composer__text {
+  width: 100%;
+  min-height: 84px;
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-sunken);
+  color: var(--c-text);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  line-height: 1.8;
+  resize: vertical;
+}
+
+.act-composer__text:focus-visible {
+  outline: none;
+  box-shadow: var(--sh-focus);
+}
+
+.act-composer__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.act-composer__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  max-width: 240px;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-full);
+  background: var(--c-surface-sunken);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.act-composer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.act-composer__spacer {
+  flex: 1;
+}
+
+.act-composer__error,
+.act-card__error {
+  color: var(--c-danger);
+  font-size: var(--fs-sm);
+}
+
+/* ─── کارت عملیات: سه استایل کنشگر ─── */
+
+.act-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  padding-inline-start: var(--sp-8);
+  border: 1px solid var(--c-border);
+  border-inline-start: 4px solid var(--c-border-strong);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-text);
+}
+
+.act-card--system {
+  border-inline-start-color: var(--c-info);
+  background: var(--c-info-bg);
+}
+
+.act-card--admin {
+  border-inline-start-color: var(--c-primary);
+  background: var(--c-primary-subtle);
+}
+
+.act-card--customer {
+  border-inline-start-color: var(--c-success);
+  background: var(--c-success-bg);
+}
+
+.act-card--typist {
+  border-inline-start-color: var(--c-warning);
+  background: var(--c-warning-bg);
+}
+
+.act-card__corner {
+  position: absolute;
+  inset-block-start: var(--sp-3);
+  inset-inline-start: var(--sp-3);
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-full);
+  background: var(--c-surface);
+  color: var(--c-text-secondary);
+  box-shadow: var(--sh-xs);
+}
+
+.act-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.act-card__title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-card-title);
+  font-weight: var(--fw-bold);
+}
+
+.act-card__event {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 2px var(--sp-2);
+  border-radius: var(--r-full);
+  background: var(--c-surface);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+.act-card__event--system { color: var(--c-info); }
+.act-card__event--admin { color: var(--c-primary); }
+.act-card__event--customer { color: var(--c-success); }
+
+.act-card__actor {
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+}
+
+.act-card__time {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+}
+
+.act-card__body {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.9;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.act-card__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-1) var(--sp-4);
+  margin: 0;
+  font-size: var(--fs-xs);
+}
+
+.act-card__meta-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding-block: 2px;
+  border-block-end: 1px dashed var(--c-border);
+}
+
+.act-card__meta-row dt {
+  color: var(--c-text-secondary);
+}
+
+.act-card__meta-row dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.act-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  padding-block-start: var(--sp-1);
+  font-size: var(--fs-xs);
+}
+
+.act-card__seen {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  color: var(--c-warning);
+}
+
+.act-card__seen--yes {
+  color: var(--c-success);
+}
+
+.act-card__auto {
+  padding: 2px var(--sp-2);
+  border-radius: var(--r-full);
+  background: var(--c-surface);
+  color: var(--c-info);
+}
+
+.act-card__spacer {
+  flex: 1;
+}
+
+.act-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-primary);
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.act-card__link:hover {
+  text-decoration: underline;
+}
+
+.act-card__attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  padding-block-start: var(--sp-2);
+  border-block-start: 1px solid var(--c-border);
+}
+
+.act-card__file {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  max-width: 260px;
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-primary);
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.act-card__file:hover {
+  background: var(--c-primary-subtle);
+}
+
+/* ───────────── فاز ۱۰: نشانگر اعتراض کنار نام سفارش (D-355) ───────────── */
+
+.dsp-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 2px var(--sp-2);
+  border: 1px solid var(--c-warning);
+  border-radius: var(--r-full, 999px);
+  background: var(--c-warning-bg);
+  color: var(--c-warning);
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1.6;
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: default;
+}
+
+.dsp-flag--clickable {
+  cursor: pointer;
+}
+
+.dsp-flag--clickable:hover {
+  background: var(--c-warning);
+  color: var(--c-text-inverse);
+}
+
+.dsp-flag:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.dsp-flag--action {
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.dsp-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  background: rgb(0 0 0 / 45%);
+}
+
+.dsp-dialog {
+  width: min(520px, 100%);
+  padding: var(--sp-5);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg, 16px);
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 25%);
+}
+
+.dsp-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.dsp-dialog__head h2 {
+  margin: 0;
+  font-size: var(--fs-lg);
+}
+
+.dsp-dialog__close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--c-text-secondary);
+  cursor: pointer;
+}
+
+.dsp-dialog__close:hover {
+  background: var(--c-surface-sunken);
+}
+
+.dsp-dialog__hint {
+  margin: var(--sp-3) 0;
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+  line-height: 1.9;
+}
+
+.dsp-dialog textarea {
+  width: 100%;
+  resize: vertical;
+}
+
+.dsp-dialog__error {
+  margin: var(--sp-2) 0 0;
+  color: var(--c-danger);
+  font-size: var(--fs-sm);
+}
+
+.dsp-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.dsp-dialog__link {
+  display: inline-block;
+  margin-top: var(--sp-3);
+  color: var(--c-primary);
+  font-size: var(--fs-sm);
+}
+
+/* ─────────── فاز ۱۰: مودال اقدام مالی سرورمحور (§10.0.11) ─────────── */
+
+.pad-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  background: rgb(0 0 0 / 45%);
+}
+
+.pad-dialog {
+  width: min(480px, 100%);
+  padding: var(--sp-5);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg, 16px);
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 25%);
+}
+
+.pad-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.pad-dialog__head h2 {
+  margin: 0;
+  font-size: var(--fs-lg);
+}
+
+.pad-dialog__close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--c-text-secondary);
+  cursor: pointer;
+}
+
+.pad-dialog__close:hover {
+  background: var(--c-surface-sunken);
+}
+
+.pad-dialog__hint {
+  margin: var(--sp-2) 0 var(--sp-4);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.pad-dialog__label {
+  display: block;
+  margin: var(--sp-3) 0 var(--sp-1);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.pad-dialog input,
+.pad-dialog textarea {
+  width: 100%;
+}
+
+.pad-dialog__receipts {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+}
+
+.pad-dialog__error {
+  margin: var(--sp-2) 0 0;
+  color: var(--c-danger);
+  font-size: var(--fs-sm);
+}
+
+.pad-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.pad-dialog__link {
+  display: inline-block;
+  margin-top: var(--sp-3);
+  color: var(--c-primary);
+  font-size: var(--fs-sm);
+}
+
+/* Phase 10 finance panels: compact stat grid and inline action form. */
+
+.fin-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
+
+.fin-stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 150px;
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md, 10px);
+  background: var(--c-surface-sunken);
+}
+
+.fin-stats span {
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+}
+
+.fin-stats strong {
+  font-size: var(--fs-lg);
+}
+
+.fin-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.fin-form input,
+.fin-form select {
+  flex: 1 1 160px;
+  min-width: 140px;
+}

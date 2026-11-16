@@ -7,11 +7,20 @@ import './globals.css';
 import '@/styles/components.css';
 import '@/styles/public.css';
 import '@/styles/projects.css';
+import '@/styles/files.css';
+import '@/styles/chat.css';
+import '@/styles/activities.css';
 
+import { ChatProvider } from '@/components/chat/ChatProvider';
+import { ChatDock } from '@/components/chat/ChatDock';
+import { ChatLauncher } from '@/components/chat/ChatLauncher';
+import { NotificationProvider } from '@/components/chat/NotificationProvider';
+import { ActivityProvider } from '@/components/activities/ActivityProvider';
 import { AlertProvider } from '@/components/ui/AlertProvider';
 import { AccountProvider } from '@/components/system/AccountProvider';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
 import { ConnectivityBootstrap } from '@/components/system/ConnectivityBootstrap';
+import { ConnectivityIndicator } from '@/components/ui/ConnectivityIndicator';
 import { SITE_ORIGIN, BASE_PATH, asset } from '@/lib/config';
 import { THEME_INIT_SCRIPT } from '@/lib/theme';
 
@@ -60,10 +69,26 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <AlertProvider>
-          <AccountProvider>{children}</AccountProvider>
+          <AccountProvider>
+            {/* فاز ۹: گفتگو و اعلان، یک وضعیت سراسری در تمام صفحات.
+                ⚠️ ترتیب وابستگی: هر دو Provider به useAuth نیاز دارند،
+                   پس حتماً درون AccountProvider قرار می‌گیرند. */}
+            <NotificationProvider>
+              {/* فاز ۹٫۵: زنگوله‌ی عملیات، مستقل از اعلان فاز ۹. */}
+              <ActivityProvider>
+                <ChatProvider>
+                  {children}
+                  <ChatDock />
+                  <ChatLauncher />
+                </ChatProvider>
+              </ActivityProvider>
+            </NotificationProvider>
+          </AccountProvider>
         </AlertProvider>
         <ServiceWorkerRegister />
         <ConnectivityBootstrap />
+        {/* بنر «شبکه قطع است» + اسپینر، سراسری و فقط هنگام قطعی اتصال */}
+        <ConnectivityIndicator hideWhenOnline className="conn-indicator--fixed" />
       </body>
     </html>
   );
