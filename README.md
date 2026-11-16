@@ -268,4 +268,27 @@ Next یا DOM ندارند. تست‌ها: `tests/chat-core.test.mjs` و
 
 گزارش کامل: `../docs/17-phase-10-report.md`.
 
+## فاز ۱۲ — پنل مدیریت (اجرا شد)
+
+- **صفحات واقعی:** `/admin` با هشت کارت از D1، `/admin/users` با جستجو و
+  جزئیات فقطخواندنی مالی، `/admin/settings`، `/admin/audit`،
+  `/admin/messages`، `/admin/refunds` و `/admin/reconciliation` جای تمام
+  `PanelPlaceholder`ها را گرفتند. دوازده مسیر `/admin` در
+  `generateStaticParams` ساخته میشوند.
+- **ویرایش درجا:** نرخنامه در `/pricing` فقط برای مدیر قابل ویرایش است؛
+  استانداردهای ظاهری در همان فرم مرحلهی ظاهر پیشنمایش زنده، کلون و
+  غیرفعالسازی دارند؛ سفارشهای قبلی تحت تأثیر قرار نمیگیرند.
+- **نمونهکارها:** `/portfolio` از `/api/v1/portfolio` میخواند، در نبود
+  دادهٔ بکند به تصاویر ثابت محلی برمیگردد و مدیر میتواند عنوان، دسته،
+  ترتیب، انتشار و تصویر Parspack را ویرایش کند. حذف فیزیکی وجود ندارد.
+- **کلاینت تایپشده:** `src/lib/admin/api.ts` همهٔ متدهای فاز ۱۲ را با
+  `useAuth().authedRequest` میپیماید و هیچ Secretی در کد یا خروجی استاتیک
+  نمینویسد.
+- **تست و بیلد:** `npm test` → ۱۳۵/۱۳۵ PASS، `npm run typecheck` PASS،
+  `npm run lint:fa` → ۰ خطای قطعی / ۱۸۸ هشدار، `npm run build` +
+  `postbuild` → ۴۱ صفحهی HTML و ۱۱۴ دارایی. جستجوی `PanelPlaceholder` و
+  الگوهای Secret در `out/` صفر است.
+
+گزارش کامل: `../docs/19-phase-12-report.md`.
+
 © آراسند — تمامی حقوق محفوظ است.

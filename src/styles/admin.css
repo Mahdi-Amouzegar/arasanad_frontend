@@ -1,0 +1,161 @@
+/* ═══════════════════════════════════════════════════════════════════
+   فاز ۱۲ — استایل‌های پنل مدیریت و ویرایشگرهای کاتالوگ.
+   تمام رنگ‌ها از توکنهای tokens.cssاند تا تم تیره خودکار خوانا بماند.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.adm-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-3);
+}
+
+.adm-stat-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-md);
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+.adm-stat-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+.adm-stat-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.adm-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.adm-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+}
+.adm-field input,
+.adm-field textarea {
+  width: 100%;
+}
+
+.adm-form-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: flex-end;
+  margin-bottom: var(--sp-3);
+}
+.adm-form-inline input {
+  flex: 1 1 220px;
+}
+
+.adm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.adm-json {
+  max-width: 220px;
+  overflow-wrap: anywhere;
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono, monospace);
+  color: var(--text-secondary);
+}
+
+.adm-preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.adm-preset-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.adm-preset-preview {
+  padding: var(--sp-4);
+  margin: var(--sp-3) 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-primary);
+}
+.adm-preset-preview p {
+  margin: var(--sp-2) 0 0;
+}
+
+.adm-portfolio-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.adm-portfolio-item {
+  display: flex;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.adm-portfolio-thumb {
+  flex: none;
+  width: 96px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2, var(--bg));
+  color: var(--text-secondary);
+}
+.adm-portfolio-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.adm-portfolio-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+  flex: 1;
+}
+.adm-portfolio-body input[type='file'] {
+  max-width: 100%;
+  font-size: var(--fs-xs);
+}
+
+.adm-public-editor {
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: var(--sp-4);
+}
+.adm-public-editor .prj-stack {
+  gap: var(--sp-3);
+}
+
+@media (max-width: 640px) {
+  .adm-form-grid,
+  .adm-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .adm-portfolio-item {
+    flex-direction: column;
+  }
+  .adm-portfolio-thumb {
+    width: 100%;
+    height: 140px;
+  }
+}

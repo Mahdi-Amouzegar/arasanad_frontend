@@ -10,6 +10,7 @@ import '@/styles/projects.css';
 import '@/styles/files.css';
 import '@/styles/chat.css';
 import '@/styles/activities.css';
+import '@/styles/admin.css';
 
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import { ChatDock } from '@/components/chat/ChatDock';

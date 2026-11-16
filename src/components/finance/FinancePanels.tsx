@@ -285,6 +285,15 @@ export function AdminPaymentsPanel() {
 
 /* ───────────────────── تصمیم برگشت وجه (۱۰-ژ) ───────────────────── */
 
+/** فاز ۱۲: صفحه مستقل برگشت وجه در منوی مدیر. */
+export function AdminRefundsPanel() {
+  return (
+    <div className="prj-stack">
+      <RefundsCard />
+    </div>
+  );
+}
+
 function RefundsCard() {
   const api = useFinanceApi();
   const { showToast } = useAlert();
@@ -356,6 +365,15 @@ function RefundsCard() {
 }
 
 /* ───────────────────── کیفپولها و تطبیق مدیر ───────────────────── */
+
+/** فاز ۱۲: صفحه مستقل تطبیق و مغایرت در منوی مدیر. */
+export function AdminReconciliationPanel() {
+  return (
+    <div className="prj-stack">
+      <ReconciliationCard />
+    </div>
+  );
+}
 
 function ReconciliationCard() {
   const api = useFinanceApi();

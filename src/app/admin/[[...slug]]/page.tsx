@@ -4,9 +4,16 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
 import { ProjectList } from '@/components/projects/ProjectList';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
-import { AdminPaymentsPanel, AdminWalletsPanel } from '@/components/finance/FinancePanels';
+import { AdminPaymentsPanel, AdminWalletsPanel, AdminRefundsPanel, AdminReconciliationPanel } from '@/components/finance/FinancePanels';
 import { DeliveryWorkspace } from '@/components/delivery/DeliveryWorkspace';
 import { RevisionPolicySettings } from '@/components/delivery/RevisionPolicySettings';
+import {
+  AdminDashboard,
+  AdminUsers,
+  AdminSettings,
+  AdminAudit,
+  AdminMessages,
+} from '@/components/admin/AdminPanels';
 import { ADMIN_GROUPS, ADMIN_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
 
 export const metadata: Metadata = {
@@ -20,99 +27,74 @@ export function generateStaticParams() {
   return slugsFor(ADMIN_GROUPS, '/admin', ['projects/operations', 'projects/delivery']);
 }
 
+const backToProjects = (
+  <Link href="/admin/projects/" className="btn btn--ghost btn--sm">فهرست سفارش‌ها</Link>
+);
+
 export default async function AdminPage({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
   const href = hrefFromSlug('/admin', slug);
   const info = infoFor(ADMIN_PAGES, href);
+  const mobile = (ADMIN_GROUPS[0]?.items ?? []).slice(0, 5);
+
+  const shell = (title: string, actions: React.ReactNode, content: React.ReactNode, activeHref = href) => (
+    <AppShell groups={ADMIN_GROUPS} activeHref={activeHref} title={title} mobileItems={mobile} actions={actions}>
+      {content}
+    </AppShell>
+  );
+
+  // فاز ۱۲: داشبورد واقعی با اعداد D1.
+  if (href === '/admin') {
+    return shell(info.title, null, <AdminDashboard />);
+  }
+
+  // فاز ۱۲: فهرست و جزئیات کاربران (بدون تغییر موجودی مستقیم).
+  if (href === '/admin/users') {
+    return shell(info.title, null, <AdminUsers />);
+  }
+
+  // فاز ۱۲: تنظیمات سایت (جدای از سیاست اصلاح فاز ۱۱).
+  if (href === '/admin/settings') {
+    return shell(info.title, backToProjects, (
+      <div className="prj-stack">
+        <RevisionPolicySettings />
+        <AdminSettings />
+      </div>
+    ));
+  }
+
+  // فاز ۱۲: Audit Log و پیام‌ها.
+  if (href === '/admin/audit') {
+    return shell(info.title, null, <AdminAudit />);
+  }
+  if (href === '/admin/messages') {
+    return shell(info.title, null, <AdminMessages />);
+  }
+
+  // فاز ۱۲: صفحات مالی واقعی (جای Placeholder).
+  if (href === '/admin/refunds') {
+    return shell(info.title, null, <AdminRefundsPanel />);
+  }
+  if (href === '/admin/reconciliation') {
+    return shell(info.title, null, <AdminReconciliationPanel />);
+  }
 
   if (href === '/admin/projects') {
-    const mobile = (ADMIN_GROUPS[0]?.items ?? []).slice(0, 5);
-    return (
-      <AppShell
-        groups={ADMIN_GROUPS}
-        activeHref={href}
-        title={info.title}
-        mobileItems={mobile}
-        actions={
-          <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
-            نمای مشتری
-          </Link>
-        }
-      >
-        <ProjectList admin />
-      </AppShell>
-    );
+    return shell(info.title, backToProjects, <ProjectList admin />);
   }
 
   if (href === '/admin/projects/operations') {
-    return (
-      <AppShell
-        groups={ADMIN_GROUPS}
-        activeHref="/admin/projects"
-        title={info.title}
-        actions={
-          <Link href="/admin/projects/" className="btn btn--ghost btn--sm">
-            بازگشت به فهرست
-          </Link>
-        }
-      >
-        <ProjectOperations admin />
-      </AppShell>
-    );
+    return shell(info.title, backToProjects, <ProjectOperations admin />, '/admin/projects');
   }
 
   // فاز ۱۱: تحویل، نسخه‌ها، اصلاح و تکمیل.
   if (href === '/admin/projects/delivery') {
-    return (
-      <AppShell
-        groups={ADMIN_GROUPS}
-        activeHref="/admin/projects"
-        title={info.title}
-        actions={
-          <Link href="/admin/projects/" className="btn btn--ghost btn--sm">
-            بازگشت به فهرست
-          </Link>
-        }
-      >
-        <DeliveryWorkspace admin />
-      </AppShell>
-    );
+    return shell(info.title, backToProjects, <DeliveryWorkspace admin />, '/admin/projects');
   }
 
-  // فاز ۱۱: ویرایش سیاست اصلاح با Audit Log سمت سرور.
-  if (href === '/admin/settings') {
-    return (
-      <AppShell
-        groups={ADMIN_GROUPS}
-        activeHref={href}
-        title={info.title}
-        actions={
-          <Link href="/admin/projects/" className="btn btn--ghost btn--sm">
-            فهرست سفارش‌ها
-          </Link>
-        }
-      >
-        <RevisionPolicySettings />
-      </AppShell>
-    );
-  }
-
-  // فاز ۱۰: پنلهای مالی واقعی به‌جای پوسته خالی.
+  // فاز ۱۰: پنلهای مالی واقعی.
   if (href === '/admin/payments' || href === '/admin/wallets') {
-    return (
-      <AppShell
-        groups={ADMIN_GROUPS}
-        activeHref={href}
-        title={info.title}
-        actions={
-          <Link href="/admin/projects/" className="btn btn--ghost btn--sm">
-            فهرست سفارش‌ها
-          </Link>
-        }
-      >
-        {href === '/admin/payments' ? <AdminPaymentsPanel /> : <AdminWalletsPanel />}
-      </AppShell>
-    );
+    return shell(info.title, backToProjects, href === '/admin/payments' ? <AdminPaymentsPanel /> : <AdminWalletsPanel />);
   }
 
   return <PanelPlaceholder groups={ADMIN_GROUPS} activeHref={href} info={info} />;

@@ -1,8 +1,24 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PORTFOLIO_CATEGORIES, PORTFOLIO_ITEMS } from '@/content/catalog';
 import { asset } from '@/lib/config';
+import { API_BASE } from '@/lib/api';
+
+interface PublicPortfolioItem {
+  id: string;
+  title: string;
+  category: string;
+  imageSrc: string | null;
+  imageKind: 'parspack' | 'static' | 'none';
+}
+
+function sourceOf(item: PublicPortfolioItem): string {
+  if (!item.imageSrc) return '';
+  if (item.imageKind === 'static') return asset(item.imageSrc);
+  if (item.imageKind === 'parspack') return `${API_BASE}${item.imageSrc}`;
+  return '';
+}
 
 const MIN_ZOOM = 1;
 const MAX_ZOOM = 3;
@@ -28,10 +44,50 @@ export function PortfolioGallery() {
   const draggedRef = useRef(false);
   const dragStartRef = useRef({ x: 0, y: 0, scrollX: 0, scrollY: 0 });
 
+  // فاز ۱۲: فهرست منتشرشده از بکند می‌آید؛ تا زمان بارگذاری یا در صورت خطا،
+  // همان شش نمونه‌ی استاتیک قبلی نمایش داده می‌شوند (بدون صفحه خالی).
+  const [remote, setRemote] = useState<PublicPortfolioItem[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(`${API_BASE}/portfolio`, { headers: { Accept: 'application/json' }, cache: 'no-store' })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (!alive || !payload?.ok || !Array.isArray(payload.data?.items)) return;
+        const mapped = payload.data.items
+          .filter((item: PublicPortfolioItem) => Boolean(sourceOf(item)))
+          .map((item: PublicPortfolioItem) => ({
+            id: item.id,
+            title: item.title,
+            category: item.category,
+            imageSrc: item.imageSrc,
+            imageKind: item.imageKind,
+          }));
+        if (mapped.length > 0) setRemote(mapped);
+      })
+      .catch(() => { /* fallback استاتیک باقی می‌ماند */ });
+    return () => { alive = false; };
+  }, []);
+
+  const allItems = useMemo(() => {
+    if (remote) return remote;
+    return PORTFOLIO_ITEMS.map((item) => ({
+      id: item.id,
+      title: item.title,
+      category: item.category,
+      imageSrc: `/images/portfolio/${item.file}`,
+      imageKind: 'static' as const,
+    }));
+  }, [remote]);
+
+  const categories = useMemo(
+    () => ['همه', ...Array.from(new Set([...PORTFOLIO_CATEGORIES, ...allItems.map((item) => item.category)]))],
+    [allItems],
+  );
+
   const items =
     category === 'همه'
-      ? PORTFOLIO_ITEMS
-      : PORTFOLIO_ITEMS.filter((item) => item.category === category);
+      ? allItems
+      : allItems.filter((item) => item.category === category);
 
   const current = openIndex === null ? null : (items[openIndex] ?? null);
 
@@ -90,7 +146,7 @@ export function PortfolioGallery() {
   return (
     <>
       <div className="chip-row" role="group" aria-label="دسته‌بندی نمونه‌کارها">
-        {PORTFOLIO_CATEGORIES.map((item) => (
+        {categories.map((item) => (
           <button
             key={item}
             type="button"
@@ -114,7 +170,7 @@ export function PortfolioGallery() {
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={asset(`/images/portfolio/${item.file}`)}
+              src={sourceOf(item)}
               alt={item.title}
               loading="lazy"
               width={640}
@@ -186,7 +242,7 @@ export function PortfolioGallery() {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 ref={imgRef}
-                src={asset(`/images/portfolio/${current.file}`)}
+                src={sourceOf(current)}
                 alt={current.title}
                 className="lightbox__img"
                 draggable={false}

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { PublicLayout } from '@/components/public/PublicLayout';
 import { SectionHeading } from '@/components/public/SectionHeading';
 import { PortfolioGallery } from './PortfolioGallery';
+import { PortfolioAdminPanel } from '@/components/admin/PublicCatalogAdmin';
 
 export const metadata: Metadata = {
   title: 'نمونه‌کارها',
@@ -25,6 +26,7 @@ export default function PortfolioPage() {
           }
         />
         <PortfolioGallery />
+        <PortfolioAdminPanel />
       </section>
 
       <section className="section--tight">

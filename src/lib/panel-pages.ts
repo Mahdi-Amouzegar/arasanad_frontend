@@ -39,7 +39,9 @@ export const ADMIN_PAGES: Record<string, PanelPageInfo> = {
   '/admin/refunds': { title: 'برگشت وجه', phase: 11, note: 'درخواست‌ها و پردازش استرداد' },
   '/admin/reconciliation': { title: 'گزارش مغایرت', phase: 10, note: 'معادله بنیادی و مغایرت مالی' },
   '/admin/users': { title: 'کاربران', phase: 12, note: 'فهرست کاربران و نقشها' },
-  '/admin/settings': { title: 'تنظیمات', phase: 11, note: 'سیاست اصلاح و تنظیمات سامانه' },
+  '/admin/messages': { title: 'پیام‌ها', phase: 12, note: 'گفتگوهای اخیر با مشتریان' },
+  '/admin/audit': { title: 'سوابق حسابرسی', phase: 12, note: 'رویدادهای مدیریتی با فیلتر و قبل/بعد' },
+  '/admin/settings': { title: 'تنظیمات', phase: 12, note: 'اطلاعات سایت، بانک مقصد، متنها و سیاست اصلاح' },
 };
 
 /**

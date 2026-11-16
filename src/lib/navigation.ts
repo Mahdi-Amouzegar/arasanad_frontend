@@ -47,6 +47,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: '/admin/projects', label: 'سفارش‌ها', icon: 'file' },
       { href: '/admin/projects/delivery', label: 'تحویل و اصلاح', icon: 'package' },
       { href: '/admin/payments', label: 'بررسی پرداخت‌ها', icon: 'card' },
+      { href: '/admin/messages', label: 'پیام‌ها', icon: 'message' },
     ],
   },
   {
@@ -62,8 +63,9 @@ export const ADMIN_NAV: NavGroup[] = [
     items: [
       { href: '/admin/users', label: 'کاربران', icon: 'user' },
       { href: '/pricing', label: 'نرخ‌نامه', icon: 'receipt' },
-      { href: '/portfolio', label: 'نمونه‌کارها', icon: 'package' },
+      { href: '/portfolio', label: 'نمونه\u200cکارها', icon: 'package' },
       { href: '/admin/settings', label: 'تنظیمات', icon: 'settings' },
+      { href: '/admin/audit', label: 'سوابق حسابرسی', icon: 'shield' },
     ],
   },
 ];

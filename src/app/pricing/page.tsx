@@ -8,6 +8,7 @@ import { SERVICE_TYPES } from '@/content/catalog';
 import { calculateEstimate } from '@/lib/pricing';
 import { FAQ } from '@/content/site';
 import { PricingCalculator } from './PricingCalculator';
+import { PricingAdminPanel } from '@/components/admin/PublicCatalogAdmin';
 
 export const metadata: Metadata = {
   title: 'نرخ‌نامه',
@@ -82,6 +83,8 @@ export default function PricingPage() {
       <section className="section--tight">
         <PricingCalculator />
       </section>
+
+      <PricingAdminPanel />
 
       <section>
         <SectionHeading
