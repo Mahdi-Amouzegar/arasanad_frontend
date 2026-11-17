@@ -180,3 +180,12 @@ test('P126-01: منوهای مهمان به صفحات واقعی ختم می‌
     }
   }
 });
+
+test('P11-07: لینک «سیاست اصلاح» در فرم ثبت سفارش مشتری موجود است', () => {
+  const newForm = read('src/components/projects/ProjectNewForm.tsx');
+  assert.ok(
+    newForm.includes('href="/revision-policy/"'),
+    'لینک سیاست اصلاح در فرم مشتری نیست',
+  );
+  assert.ok(newForm.includes('سیاست اصلاح'), 'عنوان لینک سیاست اصلاح نیست');
+});

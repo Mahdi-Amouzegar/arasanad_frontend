@@ -73,6 +73,10 @@ test('P125-04: چرخه اصلاح از جزئیات تا کارت عملیات 
   assert.ok(DELIVERY.includes("get('focus') !== 'revision'"), 'ورود متمرکز به فرم اصلاح وجود ندارد');
   assert.ok(DELIVERY.includes('id="revision-request"'), 'کارت فرم اصلاح شناسه ندارد');
   assert.ok(DELIVERY.includes('operationsHref('), 'لینک کارت عملیات پس از ثبت وجود ندارد');
+  assert.ok(
+    DELIVERY.includes('href="/revision-policy/"'),
+    'لینک «سیاست اصلاح» در مودال پاسخ مدیر وجود ندارد',
+  );
 });
 
 test('P125-05: تنظیمات تلگرام در پروفایل و اعلان داخلی جداگانه است', () => {

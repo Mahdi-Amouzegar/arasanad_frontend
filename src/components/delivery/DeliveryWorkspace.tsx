@@ -559,6 +559,14 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
                               onChange={(event) => setResponseText(event.target.value)}
                               required
                             />
+                            <p className="prj-note">
+                              پیش از پاسخ می‌توانید{' '}
+                              <Link className="btn btn--ghost btn--sm" href="/revision-policy/">
+                                <Icon name="shield" size={14} />
+                                سیاست اصلاح
+                              </Link>{' '}
+                              را مطالعه کنید.
+                            </p>
                             <div className="prj-action-cell">
                               <Button
                                 type="button" variant="outline" size="sm"

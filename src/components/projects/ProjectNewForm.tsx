@@ -653,7 +653,15 @@ export function ProjectNewForm() {
             </div>
           ) : null}
 
+          <p className="prj-note">
+            پیش از ثبت سفارش می‌توانید سیاست اصلاح را مطالعه کنید؛ درخواست اصلاح
+            وضعیت سفارش و مهلت تحویل را تغییر نمی‌دهد.
+          </p>
           <div className="prj-actions">
+            <Link className="btn btn--ghost btn--sm" href="/revision-policy/">
+              <Icon name="shield" size={15} />
+              سیاست اصلاح
+            </Link>
             <Button type="submit" loading={submitting} disabled={catalogLoading}>
               ثبت سفارش
             </Button>
