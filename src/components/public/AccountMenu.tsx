@@ -135,6 +135,16 @@ export function AccountMenu() {
 
       {!user.profileComplete ? <p className="account-menu__warn">پروفایل خود را کامل کنید</p> : null}
 
+      <Link
+        href={user.role === 'admin' ? '/admin/' : '/panel/'}
+        className="account-menu__item"
+        role="menuitem"
+        onClick={() => setOpen(false)}
+      >
+        <Icon name="activity" size={15} />
+        داشبورد
+      </Link>
+
       <Link href="/profile/" className="account-menu__item" role="menuitem" onClick={() => setOpen(false)}>
         <Icon name="user" size={15} />
         پروفایل من

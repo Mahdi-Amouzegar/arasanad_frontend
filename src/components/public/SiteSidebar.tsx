@@ -12,6 +12,7 @@ import { cx } from '@/lib/cx';
 import { PUBLIC_ANCHORS, PUBLIC_NAV } from '@/lib/navigation';
 import { BRAND } from '@/content/site';
 import { useAdminTelegram } from '@/lib/site-config';
+import { useAuth } from '@/lib/account';
 
 /**
  * ستون کنار راست صفحات عمومی.
@@ -22,6 +23,7 @@ import { useAdminTelegram } from '@/lib/site-config';
 export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const adminTelegram = useAdminTelegram(BRAND.adminTelegram);
+  const { user, loading } = useAuth();
 
   const isActive = (href: string): boolean => {
     if (href === '/') return pathname === '/' || pathname === '';
@@ -39,6 +41,17 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="public-side__nav" aria-label="ناوبری اصلی">
         {/* فاز ۹: گفتگو از همان ستون راست صفحات عمومی هم در دسترس است. */}
         <ChatEntryButton className="public-side__link" onNavigate={onNavigate} />
+        {/* فاز ۱۲٫۱: لینک سفارشات برای کاربران واردشده (مدیر: تمام سفارش‌ها). */}
+        {!loading && user ? (
+          <Link
+            href={user.role === 'admin' ? '/admin/orders/' : '/panel/orders/'}
+            className="public-side__link"
+            onClick={onNavigate}
+          >
+            <Icon name="fileText" size={17} />
+            <span>سفارشات</span>
+          </Link>
+        ) : null}
         {PUBLIC_NAV[0]?.items.map((item) => (
           <Link
             key={item.href}
@@ -77,9 +90,12 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
           <Link href="/start/" className="btn btn--primary btn--block btn--sm" onClick={onNavigate}>
             شروع سفارش
           </Link>
-          <Link href="/login/" className="public-side__cta-link" onClick={onNavigate}>
-            ورود به حساب
-          </Link>
+          {/* فاز ۱۲٫۱-ز: لینک ورود فقط برای مهمان است. */}
+          {!loading && !user ? (
+            <Link href="/login/" className="public-side__cta-link" onClick={onNavigate}>
+              ورود به حساب
+            </Link>
+          ) : null}
         </div>
 
         <div className="public-side__theme">

@@ -19,6 +19,7 @@ export const CUSTOMER_NAV: NavGroup[] = [
   {
     items: [
       { href: '/panel', label: 'داشبورد', icon: 'activity' },
+      { href: '/panel/orders', label: 'جدول سفارشات', icon: 'fileText' },
       { href: '/panel/projects', label: 'سفارش‌های من', icon: 'file' },
       { href: '/panel/projects/new', label: 'ثبت سفارش جدید', icon: 'plus' },
       { href: '/panel/projects/operations', label: 'ثبت عملیات سفارش', icon: 'activity' },
@@ -46,6 +47,7 @@ export const ADMIN_NAV: NavGroup[] = [
   {
     items: [
       { href: '/admin', label: 'داشبورد', icon: 'activity' },
+      { href: '/admin/orders', label: 'جدول سفارشات', icon: 'fileText' },
       { href: '/admin/projects', label: 'سفارش‌ها', icon: 'file' },
       { href: '/admin/projects/delivery', label: 'تحویل و اصلاح', icon: 'package' },
       { href: '/admin/payments', label: 'بررسی پرداخت‌ها', icon: 'card' },

@@ -178,7 +178,7 @@ export function createPanelApi(request: AuthedRequest) {
 
     /**
      * فهرست فایل‌های مجاز مشتری. فیلتر و شمارندهها از سرور می‌آیند تا برچسبها
-     * و دسترسیها در کلاینت حدس زده نشوند.
+     * و دسترسی‌ها در کلاینت حدس زده نشوند.
      */
     async files(scope: FileFilterId = 'all'): Promise<CustomerFilesView> {
       const query = FILE_FILTER_IDS.includes(scope) ? scope : 'all';

@@ -115,7 +115,7 @@ export function StartEstimate() {
           <span className="eyebrow">گام ۱ — برآورد</span>
           <h2 className="section-head__title">هزینه‌ی تقریبی سفارش</h2>
           <p className="login-note">
-            نرخ‌ها همان نرخنامهاند. مبلغ نهایی پس از دیدن فایل توسط مدیر تأیید می‌شود.
+            نرخ‌ها همان نرخ‌نامه‌اند. مبلغ نهایی پس از دیدن فایل توسط مدیر تأیید می‌شود.
           </p>
         </div>
 

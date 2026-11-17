@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
+import { OrdersWorkspace } from '@/components/projects/OrdersWorkspace';
 import { ProjectList } from '@/components/projects/ProjectList';
 import { ProjectNewForm } from '@/components/projects/ProjectNewForm';
 import { PanelMessages } from '@/components/chat/PanelMessages';
@@ -32,10 +33,11 @@ export function generateStaticParams() {
 }
 
 /** سفارش‌ها در فاز ۷ و گفتگو/اعلان در فاز ۹ واقعی‌اند؛ بقیه پوسته‌ی صادقانه دارند. */
-const REAL_VIEWS: Record<string, 'dashboard' | 'files' | 'profile-alias' | 'list' | 'new' | 'messages' | 'notifications' | 'operations' | 'delivery' | 'wallet' | 'pay' | 'pay-result'> = {
+const REAL_VIEWS: Record<string, 'dashboard' | 'files' | 'profile-alias' | 'list' | 'orders' | 'new' | 'messages' | 'notifications' | 'operations' | 'delivery' | 'wallet' | 'pay' | 'pay-result'> = {
   '/panel': 'dashboard',
   '/panel/files': 'files',
   '/panel/profile': 'profile-alias',
+  '/panel/orders': 'orders',
   '/panel/projects': 'list',
   '/panel/projects/new': 'new',
   '/panel/projects/operations': 'operations',
@@ -102,7 +104,9 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
           )
         }
       >
-        {view === 'dashboard' ? (
+        {view === 'orders' ? (
+          <OrdersWorkspace />
+        ) : view === 'dashboard' ? (
           <CustomerDashboard />
         ) : view === 'files' ? (
           <CustomerFiles />

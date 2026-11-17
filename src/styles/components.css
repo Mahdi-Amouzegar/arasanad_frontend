@@ -3,6 +3,17 @@
    قاعده: هیچ کامپوننتی margin بیرونی ندارد؛ فاصله‌گذاری وظیفه‌ی والد است.
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* صفحه‌ی پشت Drawer — خارج از media query تا در عرض ۷۶۹–۱۰۲۴px هم کار کند.
+   پشت دراور فقط زمانی رندر می‌شود که `open` باشد، پس روی دسکتاپ پدیدار نمی‌شود. */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 18, 32, 0.5);
+  z-index: calc(var(--z-drawer) - 1);
+  border: none;
+  padding: 0;
+}
+
 /* ───────────────────────────── Button ───────────────────────────── */
 
 .btn {
@@ -795,16 +806,6 @@
     font-weight: var(--fw-semibold);
   }
 
-  /* صفحه‌ی پشت Drawer */
-  .sidebar-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(11, 18, 32, 0.5);
-    z-index: calc(var(--z-drawer) - 1);
-    border: none;
-    padding: 0;
-  }
-
   /* ─── کارت‌ها ─── */
   .card__body {
     padding: var(--sp-4);
@@ -1083,6 +1084,79 @@
 
 .table__sort:hover {
   color: var(--c-text);
+}
+
+/* ─── فیلتر ستون جدول (فاز ۱۲٫۱) ─── */
+
+.dt-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dt-filter {
+  position: relative;
+  display: inline-flex;
+}
+
+.dt-filter__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--c-text-muted);
+  border-radius: var(--r-sm);
+  opacity: 0.7;
+}
+
+.dt-filter__btn:hover,
+.dt-filter__btn--active {
+  color: var(--c-primary);
+  background: var(--c-primary-light);
+  opacity: 1;
+}
+
+.dt-filter__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  min-width: 180px;
+  max-height: 280px;
+  overflow: auto;
+  padding: var(--sp-2);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.dt-filter__all {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  font-weight: var(--fw-semibold);
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: var(--sp-1);
+}
+
+.dt-filter__option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  white-space: nowrap;
+}
+
+.dt-filter__option:hover {
+  background: var(--c-bg-hover);
+}
+
+.dt-filter__list {
+  display: flex;
+  flex-direction: column;
 }
 
 /* ─── Tooltip ─── */

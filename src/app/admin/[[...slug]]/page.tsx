@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
 import { ProjectList } from '@/components/projects/ProjectList';
+import { OrdersWorkspace } from '@/components/projects/OrdersWorkspace';
 import { AdminRatingsPanel } from '@/components/admin/AdminRatingsPanel';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { AdminPaymentsPanel, AdminWalletsPanel, AdminRefundsPanel, AdminReconciliationPanel } from '@/components/finance/FinancePanels';
@@ -43,6 +44,11 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
       {content}
     </AppShell>
   );
+
+  // فاز ۱۲٫۱: جدول جامع سفارشات تمام مشتریان.
+  if (href === '/admin/orders') {
+    return shell(info.title, null, <OrdersWorkspace admin />);
+  }
 
   // فاز ۱۲: داشبورد واقعی با اعداد D1.
   if (href === '/admin') {

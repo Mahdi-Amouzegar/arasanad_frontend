@@ -68,6 +68,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           رشته ثابت و بدون ورودی کاربر است؛ هیچ داده‌ی پویایی تزریق نمی‌شود. */}
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* فاز ۱۲٫۱-هـ: اتصال اولیه به دامنهٔ API پیش از صدور درخواست config */}
+        <link rel="preconnect" href="https://api.arasanad.ir" crossOrigin="anonymous" />
       </head>
       <body>
         <AlertProvider>

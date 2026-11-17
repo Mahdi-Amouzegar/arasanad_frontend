@@ -74,9 +74,19 @@ export function guestDraftLoginHref(id: string): string {
   return `/login/?${new URLSearchParams({ next }).toString()}`;
 }
 
-/** مقصد امن پس از ورود — فقط مسیرهای محلی و غیر ورودی. */
-export function postLoginTarget(candidate: string | null): string {
-  if (!candidate || !candidate.startsWith('/') || candidate.startsWith('//')) return '/profile/';
-  if (candidate.startsWith('/login')) return '/profile/';
+/**
+ * مقصد امن پس از ورود — فقط مسیرهای محلی و غیر ورودی.
+ *
+ * فاز ۱۲٫۱-و: وقتی مقصد صریحی (مثلاً پیش‌نویس سفارش) وجود ندارد، مدیر به
+ * داشبورد مدیریت و مشتری به داشبورد پنل فرستاده می‌شود؛ صفحهٔ پروفایل
+ * دیگر مقصد پیش‌فرض نیست (بازخورد UAT: مدیر پس از ورود پروفایل می‌دید).
+ */
+export function postLoginTarget(candidate: string | null, role?: 'admin' | 'customer'): string {
+  if (!candidate || !candidate.startsWith('/') || candidate.startsWith('//')) return defaultTarget(role);
+  if (candidate.startsWith('/login')) return defaultTarget(role);
   return candidate;
+}
+
+function defaultTarget(role?: 'admin' | 'customer'): string {
+  return role === 'admin' ? '/admin/' : '/panel/';
 }

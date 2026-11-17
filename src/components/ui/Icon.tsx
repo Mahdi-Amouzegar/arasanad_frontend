@@ -49,6 +49,8 @@ export type IconName =
   | 'plus'
   | 'menu'
   | 'chevronDown'
+  /* فاز ۱۲٫۱: فیلتر ستون جدول */
+  | 'filter'
   /* ورود و کد یک‌بارمصرف / QR */
   | 'key'
   | 'copy'
@@ -126,6 +128,8 @@ const PATHS: Record<IconName, string> = {
   /* منوی همبرگری — سه خط افقی */
   menu: 'M4 7h16M4 12h16M4 17h16',
   chevronDown: 'm6 9 6 6 6-6',
+  /* فیلتر ستون — قیف ساده */
+  filter: 'M3 5h18l-7 8v6l-4 2v-8Z',
   /* کلید = کد یک‌بارمصرف (مفهومی جدا از قفل/رمز) */
   key: 'M10 14a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM10 14v7M10 17h3M10 20h2',
   copy: 'M9 9h11v12H9zM5 15H4V3h11v2',

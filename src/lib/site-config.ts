@@ -11,29 +11,51 @@ import { apiRequest } from './api';
  *    مدیر دارد. اگر متن سایت و تنظیمات بک‌اند دو جای جدا باشند، دیر یا زود
  *    ناهمخوان می‌شوند و کاربر به حساب اشتباه پیام می‌دهد.
  *
- * ⚠️ مقدار ثابت سایت فقط «نمایش اولیه» است؛ به‌محض دریافت پاسخ سرور
- *    جایگزین می‌شود.
+ * ⚠️ فاز ۱۲٫۱-هـ (گزارش network مالک): دو مصرف‌کنندهٔ هم‌زمان (سایدبار و
+ *    پاورقی) دوتا درخواست `/site/config` میفرستادند. اکنون فقط یک Promise
+ *    در سطح ماژول وجود دارد و همان برای همه به اشتراک گذاشته می‌شود.
+ *    علاوه بر آن، درخواست در زمان ارزیابی باندل (پیش از hydration) آغاز
+ *    می‌شود تا تأخیر رفتبرگشت زودتر طی شود.
  */
+
+interface SiteConfigResponse {
+  adminTelegram: string | null;
+}
+
 let cached: string | null = null;
+let inFlight: Promise<string | null> | null = null;
+
+function loadAdminTelegram(): Promise<string | null> {
+  if (cached) return Promise.resolve(cached);
+  if (inFlight) return inFlight;
+
+  inFlight = apiRequest<SiteConfigResponse>('/site/config')
+    .then((data) => {
+      cached = data.adminTelegram ?? null;
+      return cached;
+    })
+    .catch(() => {
+      // سرور در دسترس نیست؛ مقدار ثابت سایت نمایش داده می‌شود.
+      // اجازه می‌دهیم در آینده دوباره تلاش شود.
+      inFlight = null;
+      return null;
+    });
+
+  return inFlight;
+}
+
+// آغاز زودهنگام: بلافاصله که باندل سمت کاربر بارگذاری شد، نه پس از خدمات state.
+if (typeof window !== 'undefined') void loadAdminTelegram();
 
 export function useAdminTelegram(fallback: string): string {
   const initial = (cached ?? fallback).replace(/^@/, '');
   const [handle, setHandle] = useState(initial);
 
   useEffect(() => {
-    if (cached) return undefined;
-
     let alive = true;
-    apiRequest<{ adminTelegram: string | null }>('/site/config')
-      .then((data) => {
-        if (!data.adminTelegram) return;
-        cached = data.adminTelegram;
-        if (alive) setHandle(data.adminTelegram.replace(/^@/, ''));
-      })
-      .catch(() => {
-        /* سرور در دسترس نیست — مقدار ثابت سایت نمایش داده می‌شود */
-      });
-
+    void loadAdminTelegram().then((value) => {
+      if (alive && value) setHandle(value.replace(/^@/, ''));
+    });
     return () => {
       alive = false;
     };

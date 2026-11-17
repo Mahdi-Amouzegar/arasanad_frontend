@@ -537,3 +537,107 @@
   flex-basis: 100%;
   color: var(--c-text-secondary);
 }
+
+/* ─── جدول جامع سفارشات (فاز ۱۲٫۱) ─── */
+
+.ord-customer {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  position: relative;
+}
+
+.ord-customer__name {
+  color: var(--c-primary);
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ord-customer__name:hover {
+  text-decoration-color: currentColor;
+}
+
+.ord-customer__more {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--r-sm);
+  color: var(--c-text-secondary);
+  font-weight: var(--fw-bold);
+}
+
+.ord-customer__more:hover {
+  background: var(--c-primary-light);
+  color: var(--c-primary);
+}
+
+.ord-customer__menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  min-width: 150px;
+  padding: var(--sp-1);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.ord-customer__menu a,
+.ord-customer__menu button {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2);
+  text-align: right;
+  border-radius: var(--r-sm);
+}
+
+.ord-customer__menu a:hover,
+.ord-customer__menu button:hover {
+  background: var(--c-primary-light);
+}
+
+.ord-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ord-name a {
+  color: var(--c-text);
+  font-weight: var(--fw-medium);
+}
+
+.ord-name a:hover {
+  color: var(--c-primary);
+}
+
+.ord-dialog {
+  width: min(860px, calc(100vw - 2 * var(--sp-4)));
+  max-height: calc(100vh - 2 * var(--sp-4));
+  overflow: auto;
+  padding: var(--sp-5);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  color: var(--c-text);
+}
+
+.ord-dialog::backdrop {
+  background: rgba(11, 18, 32, 0.55);
+}
+
+.ord-dialog__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}

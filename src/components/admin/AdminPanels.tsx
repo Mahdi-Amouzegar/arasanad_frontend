@@ -27,6 +27,7 @@ import {
   type DashboardCard,
   type SiteSettings,
 } from '@/lib/admin/api';
+import { createFinanceApi, type ReconciliationView } from '@/lib/finance/api';
 
 function useAdminApi() {
   const { authedRequest } = useAuth();
@@ -59,8 +60,16 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 /* ═══════════════════════════ داشبورد (۱۲-ب) ═══════════════════════════ */
 
 export function AdminDashboard() {
+  const { authedRequest } = useAuth();
   const api = useAdminApi();
+  const financeApi = useMemo(() => createFinanceApi(authedRequest), [authedRequest]);
   const [cards, setCards] = useState<DashboardCard[]>([]);
+  const [overview, setOverview] = useState<{
+    users: number;
+    revenue: number;
+    escrow: number;
+    refunds: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -69,12 +78,30 @@ export function AdminDashboard() {
   useEffect(() => {
     let alive = true;
     setLoading(true);
-    void api.dashboard()
-      .then((data) => { if (alive) { setCards(data.cards); setError(null); } })
+    // سه منبع مستقل موازی: شمارشها، مالی و تعداد کاربران (فاز ۱۲٫۱-و).
+    void Promise.all([
+      api.dashboard(),
+      financeApi.reconciliation().catch(() => null),
+      api.users().catch(() => null),
+    ])
+      .then(([dashboard, reconciliation, users]) => {
+        if (!alive) return;
+        setCards(dashboard.cards);
+        const totals: ReconciliationView['totals'] | undefined = reconciliation?.totals;
+        setOverview({
+          users: users?.page?.total ?? 0,
+          revenue: Number(totals?.revenueTotal ?? 0),
+          escrow: Number(totals?.escrowTotal ?? 0),
+          refunds: Number(totals?.refundPaid ?? 0),
+        });
+        setError(null);
+      })
       .catch((caught) => { if (alive) setError(errorText(caught)); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [api, reloadKey]);
+  }, [api, financeApi, reloadKey]);
+
+  const primary = cards.slice(0, 4);
 
   return (
     <div className="prj-stack">
@@ -86,10 +113,10 @@ export function AdminDashboard() {
         />
         <CardBody>
           {loading ? (
-            <div className="adm-stats-grid">{[0, 1, 2, 3, 4, 5].map((n) => <Skeleton key={n} height={72} />)}</div>
+            <div className="adm-stats-grid">{[0, 1, 2, 3].map((n) => <Skeleton key={n} height={72} />)}</div>
           ) : (
             <div className="adm-stats-grid">
-              {cards.map((card) => (
+              {primary.map((card) => (
                 <Link href={card.href} className="adm-stat-link" key={card.id}>
                   <span className="stat">
                     <span className="stat__label">{card.label}</span>
@@ -102,13 +129,49 @@ export function AdminDashboard() {
           )}
         </CardBody>
       </Card>
+
+      <Card>
+        <CardHeader title="آمار مالی و کاربران" />
+        <CardBody>
+          {loading || !overview ? (
+            <div className="fin-stats">{[0, 1, 2, 3].map((n) => <Skeleton key={n} height={64} />)}</div>
+          ) : (
+            <div className="fin-stats">
+              <div><span>کل کاربران</span><strong>{overview.users.toLocaleString('fa-IR')}</strong></div>
+              <div><span>درآمد تسویه‌شده</span><strong><Money value={overview.revenue} /></strong></div>
+              <div><span>موجودی امانی سفارش‌ها</span><strong><Money value={overview.escrow} /></strong></div>
+              <div><span>برگشت وجه پرداخت‌شده</span><strong><Money value={overview.refunds} /></strong></div>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader title="صفهای کاری" />
+        <CardBody>
+          <div className="adm-stats-grid">
+            {cards.slice(4).map((card) => (
+              <Link href={card.href} className="adm-stat-link" key={card.id}>
+                <span className="stat">
+                  <span className="stat__label">{card.label}</span>
+                  <span className="stat__value">{card.value === 0 ? '—' : card.value.toLocaleString('fa-IR')}</span>
+                  <span className="stat__hint">{card.value === 0 ? 'موردی نیست' : 'مشاهده فهرست'}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
+
       <Card>
         <CardHeader title="میانبرها" />
         <CardBody>
           <div className="adm-shortcuts">
+            <Link href="/admin/orders/" className="btn btn--secondary btn--sm">جدول سفارشات</Link>
             <Link href="/admin/projects/" className="btn btn--secondary btn--sm">فهرست سفارش‌ها</Link>
             <Link href="/admin/payments/" className="btn btn--secondary btn--sm">صف پرداخت‌ها</Link>
             <Link href="/admin/users/" className="btn btn--secondary btn--sm">کاربران</Link>
+            <Link href="/admin/reconciliation/" className="btn btn--secondary btn--sm">گزارش مغایرت</Link>
             <Link href="/admin/audit/" className="btn btn--secondary btn--sm">سوابق حسابرسی</Link>
           </div>
         </CardBody>

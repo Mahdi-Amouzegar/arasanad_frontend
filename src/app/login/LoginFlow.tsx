@@ -50,6 +50,11 @@ export function LoginFlow() {
 
   const timerRef = useRef<number | null>(null);
   const pollRef = useRef<number | null>(null);
+  const roleRef = useRef<'admin' | 'customer' | undefined>(undefined);
+
+  useEffect(() => {
+    if (user?.role) roleRef.current = user.role;
+  }, [user]);
 
   const stopAll = useCallback(() => {
     if (pollRef.current !== null) {
@@ -80,12 +85,13 @@ export function LoginFlow() {
   // کاربر واردشده به صفحه‌ی ورود دسترسی ندارد
   useEffect(() => {
     if (!loading && user) {
-      router.replace(postLoginTarget(new URLSearchParams(window.location.search).get('next')));
+      router.replace(postLoginTarget(new URLSearchParams(window.location.search).get('next'), roleRef.current));
     }
   }, [loading, user, router]);
 
   const begin = useCallback(async () => {
     stopAll();
+    setMode('telegram');
     setPhase('starting');
     setMessage(null);
 
@@ -130,9 +136,14 @@ export function LoginFlow() {
         const result = await checkBotStatus(loginId);
         if (result.status === 'ok' && result.token && result.user) {
           stopAll();
+          // نقش را بلافاصله از پاسخ سرور می‌گیریم تا مقصد ورود در همان تیک
+          // درست شود (منتظر به‌روزرسانی وضعیت نمانیم).
+          if (result.user.role === 'admin' || result.user.role === 'customer') {
+            roleRef.current = result.user.role;
+          }
           signIn(result.token, result.user);
           showToast({ type: 'success', title: 'خوش آمدید', message: `@${result.user.username}` });
-          router.replace(postLoginTarget(new URLSearchParams(window.location.search).get('next')));
+          router.replace(postLoginTarget(new URLSearchParams(window.location.search).get('next'), roleRef.current));
         } else if (result.status === 'expired' || result.status === 'used') {
           stopAll();
           setPhase(result.status === 'used' ? 'error' : 'expired');
@@ -166,7 +177,7 @@ export function LoginFlow() {
     return (
       <OtpLoginForm
         onBack={backToChoice}
-        next={postLoginTarget(new URLSearchParams(window.location.search).get('next'))}
+        next={postLoginTarget(new URLSearchParams(window.location.search).get('next'), roleRef.current)}
       />
     );
   }
@@ -187,14 +198,15 @@ export function LoginFlow() {
           <button
             type="button"
             className="login-choice__card login-choice__card--primary"
-            onClick={() => setMode('telegram')}
+            onClick={() => void begin()}
+            disabled={phase === 'starting'}
           >
             <span className="login-choice__icon" aria-hidden="true">
               <Icon name="send" size={20} />
             </span>
             <span className="login-choice__body">
               <strong>ورود با تلگرام</strong>
-              <span>روش اصلی؛ ربات را باز کنید و Start بزنید. تمام دسترسیها فعال است.</span>
+              <span>روش اصلی؛ ربات را باز کنید و Start بزنید. تمام دسترسی‌ها فعال است.</span>
             </span>
           </button>
 
