@@ -194,7 +194,7 @@ test('validateProjectDraft validates the nested design shape', () => {
 test('publicProjectFields is a strict whitelist with no private fields', () => {
   assert.ok(publicProjectFields.includes('id'));
   assert.ok(publicProjectFields.includes('code'));
-  assert.ok(publicProjectFields.includes('customerDisplayName'));
+  assert.equal(publicProjectFields.includes('customerDisplayName'), false);
   for (const forbidden of [
     'customerId',
     'estimateAmount',

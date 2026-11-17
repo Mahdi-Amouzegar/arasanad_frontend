@@ -47,7 +47,6 @@ export interface PublicProject {
   createdAt: string;
   status: string;
   deliveryHours: number;
-  customerDisplayName: string | null;
 }
 
 export interface ProjectNote {
@@ -212,14 +211,23 @@ export async function getPricingRules(): Promise<PricingRules> {
 export async function getPublicProjects(): Promise<PublicProject[]> {
   const data = await apiRequest<{ projects: unknown[] }>('/projects/public');
   const rows = Array.isArray(data.projects) ? data.projects : [];
-  return rows.map((row) => {
-    const source = (row && typeof row === 'object' ? row : {}) as Record<string, unknown>;
-    const view: Record<string, unknown> = {};
-    for (const key of publicProjectFields) {
-      if (Object.hasOwn(source, key)) view[key] = source[key];
-    }
-    return view as unknown as PublicProject;
-  });
+  return rows.map(pickPublicProject);
+}
+
+function pickPublicProject(value: unknown): PublicProject {
+  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const view: Record<string, unknown> = {};
+  for (const key of publicProjectFields) {
+    if (Object.hasOwn(source, key)) view[key] = source[key];
+  }
+  return view as unknown as PublicProject;
+}
+
+/** فاز ۱۲٫۶-ت: نمای عمومی یک سفارش — همان کامپوننت فیلتر فهرست. */
+export async function getPublicProject(id: string): Promise<PublicProject> {
+  const safeId = encodeURIComponent(String(id).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64));
+  const data = await apiRequest<{ project: unknown }>(`/projects/public/${safeId}`);
+  return pickPublicProject(data.project);
 }
 
 /* ─────────────────────────── Authenticated client ─────────────────────────── */

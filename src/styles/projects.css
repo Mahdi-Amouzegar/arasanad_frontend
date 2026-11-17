@@ -483,6 +483,41 @@
   line-height: var(--lh-normal);
 }
 
+/* فاز ۱۲٫۶-پ: دروازه ورود پس از ذخیره پیش‌نویس مهمان */
+.start-flow__gate {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background: var(--c-primary-bg, var(--c-surface-alt));
+  border: 1px solid var(--c-primary);
+  border-radius: var(--r-lg);
+}
+
+.start-flow__gate > svg {
+  flex: 0 0 auto;
+  color: var(--c-primary);
+  margin-top: 2px;
+}
+
+.start-flow__gate strong {
+  display: block;
+  color: var(--c-text);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+}
+
+.start-flow__gate p {
+  margin: var(--sp-2) 0 var(--sp-3);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+}
+
+.start-flow__gate .btn + .btn {
+  margin-inline-start: var(--sp-2);
+}
+
 /* فاز ۹٫۵: سلول «اقدام» سرورمحور */
 .prj-action-cell {
   display: flex;

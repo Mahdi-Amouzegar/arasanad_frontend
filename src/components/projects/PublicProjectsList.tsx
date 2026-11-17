@@ -71,7 +71,7 @@ export function PublicProjectsList() {
         title="سفارشی برای نمایش نیست"
         description="فهرست عمومی فقط سفارش‌های قابل‌نمایش را نشان می‌دهد و هیچ اطلاعات خصوصی‌ای منتشر نمی‌کند."
         action={
-          <Link href="/panel/projects/new/" className="btn btn--primary btn--sm">
+          <Link href="/start/" className="btn btn--primary btn--sm">
             ثبت سفارش تازه
           </Link>
         }
@@ -102,15 +102,18 @@ export function PublicProjectsList() {
               <Icon name="pencil" size={14} /> <JalaliDate value={project.createdAt} />
             </span>
           </div>
-          {project.customerDisplayName ? (
-            <p className="prj-card__meta">به سفارش {project.customerDisplayName}</p>
-          ) : null}
           {project.description ? (
             <p className="prj-card__desc">{project.description}</p>
           ) : null}
           <span className="prj-card__hint">
             {PROJECT_STATUS[project.status as ProjectStatus]?.description ?? ''}
           </span>
+          <Link
+            href={`/projects/detail/?id=${encodeURIComponent(project.id)}`}
+            className="btn btn--outline btn--sm"
+          >
+            جزئیات عمومی
+          </Link>
         </article>
       ))}
     </div>

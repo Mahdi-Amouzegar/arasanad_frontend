@@ -21,8 +21,8 @@ export default function StartPage() {
           description="هزینه‌ی تقریبی را همین‌جا ببینید؛ برای ثبت سفارش واقعی و پیگیری کامل، وارد پنل کاربری شوید. متن درخواست همچنان به‌صورت دستی هم قابل کپی‌کردن است."
           actions={
             <>
-              <Link href="/panel/projects/new/" className="btn btn--primary btn--sm">
-                ثبت سفارش آنلاین
+              <Link href="#start-flow" className="btn btn--primary btn--sm">
+                آغاز سفارش
               </Link>
               <Link href="/login/" className="btn btn--outline btn--sm">
                 ورود به حساب
@@ -44,7 +44,7 @@ export default function StartPage() {
             'برآورد بر اساس نرخ پایه است، نه قیمت نهایی.',
             'نرخ نهایی پس از دیدن فایل و پیش از شروع کار اعلام می‌شود.',
             'این صفحه هیچ اطلاعاتی به سرور ارسال نمی‌کند.',
-            'ثبت سفارش و پیگیری کامل اکنون در پنل کاربری فعال است؛ نرخ‌ها و بیعانه را سرور محاسبه می‌کند.',
+            'پیش‌نویس سفارش بدون ورود ذخیره می‌شود؛ ثبت نهایی و پرداخت پس از ورود و تأیید نرخ توسط سرور انجام می‌شود.',
           ].map((item) => (
             <div className="value-card" key={item}>
               <span className="value-card__title">{item}</span>

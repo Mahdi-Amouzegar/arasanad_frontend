@@ -2454,3 +2454,43 @@
 .panel-placeholder {
   padding-block: var(--sp-8);
 }
+
+/* ═══════════════ فاز ۱۲٫۶-ث — RTL و عرض ۳۶۰px ═══════════════ */
+@media (max-width: 360px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .public-main > main {
+    padding-inline: var(--sp-3);
+  }
+
+  .public-bottom-nav__item {
+    gap: 1px;
+    font-size: 9px;
+  }
+
+  .public-bottom-nav__item--primary svg {
+    width: 32px;
+    height: 32px;
+    margin-top: -12px;
+    padding: 6px;
+  }
+
+  .prj-card__facts,
+  .prj-action-cell,
+  .start-flow__cta .row,
+  .start-flow__gate .row {
+    flex-wrap: wrap;
+  }
+
+  .start-flow__cta .btn,
+  .start-flow__gate .btn {
+    width: 100%;
+  }
+
+  .calc-card,
+  .prj-card {
+    padding: var(--sp-3);
+  }
+}

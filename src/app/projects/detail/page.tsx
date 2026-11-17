@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public/PublicLayout';
 import { SectionHeading } from '@/components/public/SectionHeading';
-import { ProjectDetail } from '@/components/projects/ProjectDetail';
+import { PublicProjectDetail } from '@/components/projects/PublicProjectDetail';
 
 /**
  * Static-export detail page.
@@ -12,8 +12,8 @@ import { ProjectDetail } from '@/components/projects/ProjectDetail';
  * dynamic route. No `searchParams` is read on the server.
  */
 export const metadata: Metadata = {
-  title: 'جزئیات سفارش',
-  description: 'جزئیات، تاریخچه و یادداشت‌های یک سفارش؛ ویژه‌ی صاحب سفارش و مدیر.',
+  title: 'جزئیات عمومی سفارش',
+  description: 'نمای عمومی و فاقد اطلاعات خصوصی یک سفارش؛ فایل‌ها و مبالغ هرگز منتشر نمی‌شوند.',
   robots: { index: false, follow: false },
 };
 
@@ -22,16 +22,16 @@ export default function ProjectDetailPage() {
     <PublicLayout>
       <section>
         <SectionHeading
-          eyebrow="پیگیری سفارش"
-          title="جزئیات سفارش"
-          description="وضعیت پروژه، وضعیت مالی و مهلت تحویل هرکدام جداگانه نمایش داده می‌شوند."
+          eyebrow="نمای عمومی"
+          title="جزئیات عمومی سفارش"
+          description="فقط عنوان، نوع خدمت، وضعیت و زمان تقریبی نمایش داده می‌شوند."
           actions={
-            <Link href="/panel/projects/" className="btn btn--outline btn--sm">
+            <Link href="/projects/" className="btn btn--outline btn--sm">
               فهرست سفارش‌ها
             </Link>
           }
         />
-        <ProjectDetail />
+        <PublicProjectDetail />
       </section>
     </PublicLayout>
   );

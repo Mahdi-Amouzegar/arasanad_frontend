@@ -37,6 +37,7 @@ import { useAlert } from '@/components/ui/AlertProvider';
 import { FileManagerModal, type SelectedFile, type SelectedLink } from '@/components/files/FileManagerModal';
 import { createFilesApi } from '@/lib/files/api';
 import { errorText, formatHours } from './ui-utils';
+import { loadGuestDraft } from '@/lib/guest-order';
 
 const EMPTY_RULES = { urgencyMultiplier: 1.3, depositRatio: 0.5, roundStep: 500 };
 
@@ -103,6 +104,23 @@ export function ProjectNewForm() {
       alive = false;
     };
   }, []);
+
+  // فاز ۱۲٫۶-پ: پیش‌نویس مهمان پس از ورود دوباره در همان سفارش باز می‌شود.
+  useEffect(() => {
+    if (typeof window === 'undefined' || services.length === 0) return;
+    const id = new URLSearchParams(window.location.search).get('draft');
+    if (!id) return;
+    const draft = loadGuestDraft(id);
+    if (!draft || !services.some((item) => item.id === draft.serviceId)) return;
+    setServiceTypeId(draft.serviceId);
+    setPageCount(String(draft.pages));
+    setDeliveryHours(draft.urgent ? String(DELIVERY_HOURS[0]) : '48');
+    showToast({
+      type: 'success',
+      title: 'پیش‌نویس بازگشایی شد',
+      message: 'برآورد مهمان در فرم ثبت سفارش بازگردانده شد.',
+    });
+  }, [services, showToast]);
 
   const preset = presets.find((item) => item.id === presetId) ?? null;
   const baseSpec = (preset?.spec ?? DEFAULT_DESIGN_SPEC) as DesignSpec;

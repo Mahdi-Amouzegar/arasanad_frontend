@@ -27,7 +27,13 @@ import { QrScannerDialog } from './QrScannerDialog';
  * ⚠️ نشست حاصل «مهمان» است: نمی‌تواند کد تازه بسازد، پروفایل را ویرایش
  *    کند یا نشست/دستگاهی را باطل کند. این محدودیت سرور اعمال می‌شود.
  */
-export function OtpLoginForm({ onBack }: { onBack: () => void }) {
+export function OtpLoginForm({
+  onBack,
+  next = '/profile/',
+}: {
+  onBack: () => void;
+  next?: string;
+}) {
   const router = useRouter();
   const { signIn } = useAuth();
   const { showToast } = useAlert();
@@ -71,7 +77,7 @@ export function OtpLoginForm({ onBack }: { onBack: () => void }) {
         title: 'خوش آمدید',
         message: `@${data.user.username} · نشست ${data.sessionTtlDays} روزه`,
       });
-      router.replace('/profile/');
+      router.replace(next);
     } catch (caught) {
       setError(caught instanceof ApiError ? caught.message : 'ورود با کد ناموفق بود');
     } finally {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { SERVICE_TYPES } from '@/content/catalog';
 import { BRAND } from '@/content/site';
@@ -11,6 +11,12 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { FormField, Input, Select } from '@/components/ui/Field';
 import { useAlert } from '@/components/ui/AlertProvider';
+import {
+  guestDraftLoginHref,
+  loadGuestDraft,
+  saveGuestDraft,
+  type GuestOrderDraft,
+} from '@/lib/guest-order';
 
 const FIRST = SERVICE_TYPES[0];
 
@@ -27,6 +33,9 @@ export function StartEstimate() {
   const [pages, setPages] = useState(10);
   const [urgent, setUrgent] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [gateOpen, setGateOpen] = useState(false);
+  const [restored, setRestored] = useState(false);
 
   const service = useMemo(
     () => SERVICE_TYPES.find((item) => item.id === serviceId) ?? FIRST,
@@ -51,6 +60,40 @@ export function StartEstimate() {
     [service, pages, urgent, total, deposit],
   );
 
+  // فاز ۱۲٫۶-پ: بازگشت از ورود به همان پیش‌نویس سفارش.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const id = new URLSearchParams(window.location.search).get('draft');
+    if (!id) return;
+    const draft = loadGuestDraft(id);
+    if (!draft || !SERVICE_TYPES.some((item) => item.id === draft.serviceId)) return;
+    setServiceId(draft.serviceId);
+    setPages(draft.pages);
+    setUrgent(draft.urgent);
+    setDraftId(draft.id);
+    setGateOpen(true);
+    setRestored(true);
+    setCopied(false);
+  }, []);
+
+  /** مهمان پیش‌نویس را ذخیره می‌کند؛ ارسال به سرور فقط پس از ورود انجام می‌شود. */
+  function beginGuestOrder() {
+    const id =
+      globalThis.crypto?.randomUUID?.() ??
+      `draft-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const draft: GuestOrderDraft = {
+      id,
+      serviceId,
+      pages,
+      urgent,
+      createdAt: new Date().toISOString(),
+    };
+    saveGuestDraft(draft);
+    setDraftId(id);
+    setGateOpen(true);
+    setCopied(false);
+  }
+
   async function copyMessage() {
     try {
       await navigator.clipboard.writeText(message);
@@ -66,7 +109,7 @@ export function StartEstimate() {
   }
 
   return (
-    <div className="start-flow">
+    <div className="start-flow" id="start-flow">
       <div className="calc-card">
         <div>
           <span className="eyebrow">گام ۱ — برآورد</span>
@@ -154,21 +197,49 @@ export function StartEstimate() {
           <h2 className="section-head__title">پیشثبتنام</h2>
         </div>
 
-        <div className="start-flow__cta" role="note">
-          <Icon name="checkCircle" size={18} />
-          <div>
-            <strong>ثبت سفارش آنلاین فعال است</strong>
-            <p>
-              برای ثبت واقعی سفارش، مشخصات و استاندارد طراحی را در پنل کاربری
-              وارد کنید؛ نرخ‌ها و بیعانه را سرور محاسبه می‌کند و وضعیت‌ها
-              در پنل پیگیری می‌شوند. متن زیر همچنان به‌صورت دستی و از طریق
-              تلگرام قابل ارسال است و هیچ اطلاعاتی به‌صورت خودکار فرستاده نمی‌شود.
-            </p>
-            <Link className="btn btn--primary btn--sm" href="/panel/projects/new/">
-              رفتن به فرم ثبت سفارش
-            </Link>
+        {restored ? (
+          <p className="login-note">پیش‌نویس شمارهٔ {draftId} بازگشایی شد.</p>
+        ) : null}
+
+        {gateOpen && draftId ? (
+          <div className="start-flow__gate" role="note">
+            <Icon name="shield" size={18} />
+            <div>
+              <strong>برای پرداخت وارد شوید</strong>
+              <p>
+                پیش‌نویس سفارش شمارهٔ {draftId} ذخیره شد. مبلغ نهایی، مرجع و
+                درگاه پرداخت را سرور پس از ورود و بررسی فایل نشان می‌دهد؛
+                هیچ مبلغی از همین صفحه گرفته نمی‌شود.
+              </p>
+              <Link className="btn btn--primary btn--sm" href={guestDraftLoginHref(draftId)}>
+                ورود و ادامه همان سفارش
+              </Link>
+              <Link
+                className="btn btn--outline btn--sm"
+                href={`/panel/projects/new/?draft=${encodeURIComponent(draftId)}`}
+              >
+                ادامه در فرم ثبت سفارش
+              </Link>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="start-flow__cta" role="note">
+            <Icon name="checkCircle" size={18} />
+            <div>
+              <strong>آغاز سفارش بدون ورود</strong>
+              <p>
+                برآورد و پیش‌نویس سفارش همین‌جا ذخیره می‌شود و نیازی به ورود
+                ندارد. هنگام پرداخت، پیام روشن ورود به حساب را می‌بینید و
+                پس از ورود به همان سفارش بازمیگردید. متن زیر هم قابل کپی
+                و ارسال دستی در تلگرام است.
+              </p>
+              <Button onClick={beginGuestOrder}>
+                <Icon name="plus" size={16} />
+                شروع سفارش بدون ورود
+              </Button>
+            </div>
+          </div>
+        )}
 
         <pre className="start-flow__message" dir="rtl">{message}</pre>
 

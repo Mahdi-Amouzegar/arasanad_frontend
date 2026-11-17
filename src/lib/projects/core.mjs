@@ -279,7 +279,6 @@ export const publicProjectFields = [
   'createdAt',
   'status',
   'deliveryHours',
-  'customerDisplayName',
 ];
 
 /** نمایش امن کد سفارش — فقط حروف، رقم و خط تیره نگه داشته می\u200cشود. */

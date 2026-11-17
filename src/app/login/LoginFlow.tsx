@@ -14,6 +14,7 @@ import {
 } from '@/lib/account';
 import { ApiError } from '@/lib/api';
 import { serverNow } from '@/lib/connectivity/index.mjs';
+import { postLoginTarget } from '@/lib/guest-order';
 import { OtpLoginForm } from './OtpLoginForm';
 
 type Phase = 'idle' | 'starting' | 'waiting' | 'expired' | 'error';
@@ -78,7 +79,9 @@ export function LoginFlow() {
 
   // کاربر واردشده به صفحه‌ی ورود دسترسی ندارد
   useEffect(() => {
-    if (!loading && user) router.replace('/profile/');
+    if (!loading && user) {
+      router.replace(postLoginTarget(new URLSearchParams(window.location.search).get('next')));
+    }
   }, [loading, user, router]);
 
   const begin = useCallback(async () => {
@@ -129,7 +132,7 @@ export function LoginFlow() {
           stopAll();
           signIn(result.token, result.user);
           showToast({ type: 'success', title: 'خوش آمدید', message: `@${result.user.username}` });
-          router.replace('/profile/');
+          router.replace(postLoginTarget(new URLSearchParams(window.location.search).get('next')));
         } else if (result.status === 'expired' || result.status === 'used') {
           stopAll();
           setPhase(result.status === 'used' ? 'error' : 'expired');
@@ -160,7 +163,12 @@ export function LoginFlow() {
   }
 
   if (mode === 'otp') {
-    return <OtpLoginForm onBack={backToChoice} />;
+    return (
+      <OtpLoginForm
+        onBack={backToChoice}
+        next={postLoginTarget(new URLSearchParams(window.location.search).get('next'))}
+      />
+    );
   }
 
   if (mode === 'choose') {
