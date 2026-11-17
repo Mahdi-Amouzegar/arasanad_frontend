@@ -50,7 +50,8 @@ test('manifest و service worker از ریشه استفاده می‌کنند', 
   for (const icon of manifest.icons) assert.ok(icon.src.startsWith('/icons/'));
 
   const sw = read('public/sw.js');
-  assert.match(sw, /const BASE\s*=\s*''/);
+  // فاز ۱۳: سرویس ورکر فقط پاک‌سازی کش و اعلان را می‌دهد؛ BASE حذف شد.
+  assert.match(sw, /VERSION\s*=\s*'arasanad-v4'/);
   assert.doesNotMatch(sw, /arasanad_frontend/);
 });
 

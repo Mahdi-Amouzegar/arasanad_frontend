@@ -12,6 +12,7 @@ import {
 } from 'react';
 import { Button } from './Button';
 import { Icon, type IconName } from './Icon';
+import { registerBackDismiss } from '@/lib/android-back';
 
 /* ─────────────────────────── انواع ─────────────────────────── */
 
@@ -102,6 +103,17 @@ export function AlertProvider({ children }: { children: ReactNode }) {
       dialog.close();
     }
   }, [alert]);
+
+  // فاز ۱۳: کلید بازگشت اندروید دیالوگهای غیرمسدودکننده را می‌بندد.
+  useEffect(() => {
+    if (!alert) return undefined;
+    const blocking = alert.type === 'loading' || alert.type === 'danger-confirm';
+    if (blocking) return undefined;
+    return registerBackDismiss(() => {
+      finish(false);
+      return true;
+    });
+  }, [alert, finish]);
 
   const api = useMemo<AlertApi>(() => ({ showAlert, showToast }), [showAlert, showToast]);
 

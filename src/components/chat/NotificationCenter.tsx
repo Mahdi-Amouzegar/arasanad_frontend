@@ -15,6 +15,7 @@ import { safeHref } from '@/lib/notifications/core.mjs';
 import { formatBadge, truncate } from '@/lib/chat/core.mjs';
 import { useNotifications } from './NotificationProvider';
 import { TelegramConnectCard } from './TelegramConnectCard';
+import { registerBackDismiss } from '@/lib/android-back';
 
 export function NotificationCenter() {
   const {
@@ -34,6 +35,11 @@ export function NotificationCenter() {
 
   useEffect(() => {
     if (!open) return undefined;
+    // فاز ۱۳: کلید بازگشت اندروید فهرست اعلان‌ها را می‌بندد.
+    const unregister = registerBackDismiss(() => {
+      setOpen(false);
+      return true;
+    });
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
     };
@@ -45,6 +51,7 @@ export function NotificationCenter() {
     document.addEventListener('keydown', onKeyDown);
     document.addEventListener('mousedown', onPointer);
     return () => {
+      unregister();
       document.removeEventListener('keydown', onKeyDown);
       document.removeEventListener('mousedown', onPointer);
     };

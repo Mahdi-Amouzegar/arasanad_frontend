@@ -10,48 +10,49 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** راهنمای روش‌های ورود در یک بخش کشویی — عملکرد ورود در بالای صفحه بماند (بازخورد UAT فاز ۱۳). */
+const LOGIN_GUIDE = [
+  {
+    icon: 'send',
+    text: 'روش اصلی: ربات تلگرام. دسترسی کامل به ساخت کد، ویرایش پروفایل و مدیریت دستگاه‌ها.',
+  },
+  {
+    icon: 'key',
+    text: 'دستگاه بدون تلگرام: کد یک‌بارمصرف یا اسکن QR ساختهشده در پروفایل دستگاه اصلی.',
+  },
+  {
+    icon: 'shield',
+    text: 'نشست حاصل از کد «مهمان» است و نمی‌تواند کد تاز‌های بسازد یا دستگاهی را حذف کند.',
+  },
+];
+
 export default function LoginPage() {
   return (
     <PublicLayout>
       <section>
-        <div className="about-grid">
-          <div>
-            <SectionHeading
-              eyebrow="حساب کاربری"
-              title="ورود به حساب آراسند"
-              description="بدون رمز عبور. حساب کاربری و تنظیمات نشست‌ها همین‌جا در دسترس است؛ پیگیری سفارش‌ها و فایل‌ها به‌تدریج در فازهای ۷ تا ۱۳ اضافه می‌شود."
-            />
+        <SectionHeading eyebrow="حساب کاربری" title="ورود به حساب آراسند" />
 
-            <ul className="benefits">
-              <li className="benefit">
-                <span className="benefit__icon" aria-hidden="true">
-                  <Icon name="check" size={16} />
-                </span>
-                <p className="benefit__desc">
-                  روش اصلی: ربات تلگرام. دسترسی کامل به ساخت کد، ویرایش پروفایل و مدیریت دستگاه‌ها.
-                </p>
-              </li>
-              <li className="benefit">
-                <span className="benefit__icon" aria-hidden="true">
-                  <Icon name="key" size={16} />
-                </span>
-                <p className="benefit__desc">
-                  دستگاه بدون تلگرام: کد یک‌بارمصرف یا اسکن QR ساختهشده در پروفایل دستگاه اصلی.
-                </p>
-              </li>
-              <li className="benefit">
-                <span className="benefit__icon" aria-hidden="true">
-                  <Icon name="shield" size={16} />
-                </span>
-                <p className="benefit__desc">
-                  نشست حاصل از کد «مهمان» است و نمی‌تواند کد تاز‌های بسازد یا دستگاهی را حذف کند.
-                </p>
-              </li>
-            </ul>
-          </div>
-
-          <div>
+        <div className="login-layout">
+          {/* عملکرد ورود، نخستین چیزی است که کاربر می‌بیند. */}
+          <div className="login-layout__action">
             <LoginFlow />
+
+            <details className="login-guide">
+              <summary>
+                <Icon name="message" size={16} />
+                راهنمای ورود
+              </summary>
+              <ul className="benefits">
+                {LOGIN_GUIDE.map((item) => (
+                  <li className="benefit" key={item.text}>
+                    <span className="benefit__icon" aria-hidden="true">
+                      <Icon name={item.icon as 'send' | 'key' | 'shield'} size={16} />
+                    </span>
+                    <p className="benefit__desc">{item.text}</p>
+                  </li>
+                ))}
+              </ul>
+            </details>
           </div>
         </div>
       </section>

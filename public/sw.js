@@ -1,71 +1,32 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Service Worker آراسند
-   ⚠️ هدف: پوسته‌ی آفلاین، بارگذاری سریع‌تر دارایی‌های ثابت و کلیک روی اعلان‌های فاز ۹.
-      Web Push و Background Sync در فاز تکمیلی اضافه می‌شوند.
-   ⚠️ این فایل در `public/` است و بدون باندل شدن، عیناً منتشر می‌شود.
+   ⚠️ وظیفهٔ سراسری: فقط پاک‌سازی کشهای قدیمی و کلیک روی اعلان‌های فاز ۹.
+   ⚠️ عمداً هیچ درخواستی را intercepted نمی‌کند (نه ناوبری و نه `/_next/static/`).
+      دلیل (UAT فاز ۱۳، موبایل): پوستهٔ کششده و چانکهای قدیمی
+      بعد از هر استقرار با HTML تازه ناهمخوان می‌شدند و هیدراسیون انجام
+      نمی‌شد؛ دکمه‌ها روی موبایل تا اتصال VPN و بارگذاری مجدد کار نمی‌کردند.
+      حالا مرورگر همیشه HTML و JS را مستقیم و تازه از سرور می‌گیرد.
+   ⚠️ این فایل در `public/` است و بدون باندل شدن عیناً منتشر می‌شود.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-// ⚠️ نسخه هنگام تغییر مسیر پایه بالا رفت تا کش پوسته‌ی قدیمی
-//    (با مسیرپایه‌ی مخزن قدیمی) در activate پاک شود و HTML کهنه نماند.
-const VERSION = 'arasanad-v3';
-// دامنه‌ی اختصاصی از ریشه سرو می‌شود؛ مسیر پایه خالی است.
-const BASE = '';
-const SHELL = `${BASE}/`;
+const VERSION = 'arasanad-v4';
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches
-      .open(VERSION)
-      .then((cache) => cache.add(SHELL))
-      .catch(() => undefined)
-      .then(() => self.skipWaiting()),
-  );
+self.addEventListener('install', () => {
+  self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== VERSION).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
       .then(() => self.clients.claim()),
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  const request = event.request;
-
-  // فقط GET و فقط همان مبدأ
-  if (request.method !== 'GET') return;
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-
-  // ناوبری: شبکه اول، در نبود شبکه از کش پوسته
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).catch(() => caches.match(SHELL).then((hit) => hit ?? Response.error())),
-    );
-    return;
-  }
-
-  // دارایی‌های نسخه‌دار Next.js: کش اول (نام فایل شامل هش است)
-  if (url.pathname.includes('/_next/static/')) {
-    event.respondWith(
-      caches.match(request).then((hit) => {
-        if (hit) return hit;
-        return fetch(request).then((response) => {
-          const copy = response.clone();
-          caches.open(VERSION).then((cache) => cache.put(request, copy)).catch(() => undefined);
-          return response;
-        });
-      }),
-    );
-  }
-});
-
 /* ── فاز ۹: کلیک روی اعلان (architecture.md §14.3) ── */
 /* ⚠️ فقط مسیرهای داخلی مجازند؛ `data.href` از سمت
-      کلاینت می‌آید و نباید به آن اعتماد کرد.
-   ⚠️ پنجره‌ی باز فعال می‌شود؛ در نبود پنجره، یکی باز می‌کنیم. */
+      کلاینت می‌آید و نباید به آن اعتماد کرد. */
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const data = event.notification.data || {};

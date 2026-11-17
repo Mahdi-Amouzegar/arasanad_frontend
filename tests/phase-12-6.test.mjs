@@ -73,7 +73,9 @@ test('P126-04: حالت ۴۰۴، شبکه/آفلاین، RTL و عرض ۳۶۰ پ
   assert.ok(indicator.includes('شبکه قطع است') && indicator.includes('conn-indicator__spinner'));
   assert.ok(list.includes('تلاش دوباره'), 'حالت خطای شبکه دکمه تلاش دوباره ندارد');
   assert.ok(css.includes('@media (max-width: 360px)'), 'قاعده RTL برای عرض ۳۶۰ وجود ندارد');
-  assert.ok(sw.includes("request.mode === 'navigate'"), 'پوسته آفلاین برای ناوبری ذخیره نشده است');
+  // فاز ۱۳: سرویس ورکر عمداً هیچ ناوبریای را کش نمی‌کند تا پوسته/چانک کهنه
+  // هیدراسیون موبایل را نشکند؛ حالت آفلاین توسط بنر سراسری پوشش داده می‌شود.
+  assert.ok(!sw.includes("request.mode === 'navigate'"), 'سرویس ورکر هنوز ناوبری را کش می‌کند');
 });
 
 test('P126-03: فهرست و جزئیات عمومی فقط فیلدهای مجاز را مصرف می‌کنند', () => {

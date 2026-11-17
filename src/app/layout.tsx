@@ -20,6 +20,7 @@ import { ActivityProvider } from '@/components/activities/ActivityProvider';
 import { AlertProvider } from '@/components/ui/AlertProvider';
 import { AccountProvider } from '@/components/system/AccountProvider';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
+import { AndroidBackHandler } from '@/components/system/AndroidBackHandler';
 import { ConnectivityBootstrap } from '@/components/system/ConnectivityBootstrap';
 import { ConnectivityIndicator } from '@/components/ui/ConnectivityIndicator';
 import { SITE_ORIGIN, BASE_PATH, asset } from '@/lib/config';
@@ -70,6 +71,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       </head>
       <body>
         <AlertProvider>
+          <AndroidBackHandler />
           <AccountProvider>
             {/* فاز ۹: گفتگو و اعلان، یک وضعیت سراسری در تمام صفحات.
                 ⚠️ ترتیب وابستگی: هر دو Provider به useAuth نیاز دارند،

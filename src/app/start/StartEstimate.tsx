@@ -25,7 +25,7 @@ const FIRST = SERVICE_TYPES[0];
  *
  * ⚠️ هیچ درخواست شبکه‌ای و هیچ «ثبت سفارش» ساختگی انجام نمی‌شود: برآورد از
  *    همان `calculateEstimate` نرخ‌نامه گرفته می‌شود و خروجی نهایی یک متن
- *    پیشثبتنام است که کاربر کپی می‌کند و برای مدیر می‌فرستد.
+ *    پیش‌ثبت‌نام است که کاربر کپی می‌کند و برای مدیر می‌فرستد.
  */
 export function StartEstimate() {
   const { showToast } = useAlert();
@@ -194,7 +194,7 @@ export function StartEstimate() {
       <div className="calc-card start-flow__submit">
         <div>
           <span className="eyebrow">گام ۲ — ارسال درخواست</span>
-          <h2 className="section-head__title">پیشثبتنام</h2>
+          <h2 className="section-head__title">پیش‌ثبت‌نام</h2>
         </div>
 
         {restored ? (
@@ -230,7 +230,7 @@ export function StartEstimate() {
               <p>
                 برآورد و پیش‌نویس سفارش همین‌جا ذخیره می‌شود و نیازی به ورود
                 ندارد. هنگام پرداخت، پیام روشن ورود به حساب را می‌بینید و
-                پس از ورود به همان سفارش بازمیگردید. متن زیر هم قابل کپی
+                پس از ورود به همان سفارش باز‌می‌گردید. متن زیر هم قابل کپی
                 و ارسال دستی در تلگرام است.
               </p>
               <Button onClick={beginGuestOrder}>

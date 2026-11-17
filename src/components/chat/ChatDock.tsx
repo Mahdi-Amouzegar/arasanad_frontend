@@ -13,6 +13,7 @@
 import { useEffect } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { useChat } from './ChatProvider';
+import { registerBackDismiss } from '@/lib/android-back';
 import { ConversationList } from './ConversationList';
 import { MessageThread } from './MessageThread';
 import { ChatComposer } from './ChatComposer';
@@ -33,6 +34,11 @@ export function ChatDock() {
 
   useEffect(() => {
     if (!open) return undefined;
+    // فاز ۱۳: کلید بازگشت اندروید پنجرهٔ گفتگو را می‌بندد.
+    const unregister = registerBackDismiss(() => {
+      close();
+      return true;
+    });
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
     };
@@ -44,6 +50,7 @@ export function ChatDock() {
       document.body.style.overflow = 'hidden';
     }
     return () => {
+      unregister();
       document.removeEventListener('keydown', onKeyDown);
       if (previousOverflow !== undefined) document.body.style.overflow = previousOverflow;
     };

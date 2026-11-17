@@ -7,7 +7,7 @@ import { StartEstimate } from './StartEstimate';
 export const metadata: Metadata = {
   title: 'شروع سفارش',
   description:
-    'برآورد هزینه‌ی تایپ و آماده‌سازی سند و ارسال درخواست پیشثبتنام؛ نرخ‌ها همان نرخنامه‌ی آراسند هستند.',
+    'برآورد هزینه‌ی تایپ و آماده‌سازی سند و ارسال درخواست پیش‌ثبت‌نام؛ نرخ‌ها همان نرخنامه‌ی آراسند هستند.',
   alternates: { canonical: '/start/' },
 };
 

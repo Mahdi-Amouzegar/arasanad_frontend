@@ -1209,6 +1209,56 @@
 
 /* ───────────────────────────── ورود ───────────────────────────── */
 
+/* فاز ۱۳: عملکرد ورود نخست، راهنما در یک بخش کشویی بعد از آن. */
+.login-layout {
+  display: flex;
+  justify-content: center;
+}
+
+.login-layout__action {
+  width: 100%;
+  max-width: 520px;
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.login-guide {
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  padding: var(--sp-3) var(--sp-4);
+}
+
+.login-guide > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  cursor: pointer;
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+  list-style: none;
+}
+
+.login-guide > summary::-webkit-details-marker {
+  display: none;
+}
+
+.login-guide > summary::after {
+  content: '+';
+  margin-inline-start: auto;
+  font-size: 1.1rem;
+  color: var(--c-primary);
+}
+
+.login-guide[open] > summary::after {
+  content: '\2212';
+}
+
+.login-guide .benefits {
+  margin-top: var(--sp-3);
+}
+
 .login-lead {
   margin-top: var(--sp-2);
   font-size: var(--fs-sm);
@@ -1549,8 +1599,15 @@
   }
 
   .public-footer__inner {
-    grid-template-columns: 1fr;
+    /* موبایل: برند تمام‌عرض، و «دسترسی سریع» و «ارتباط با ما» کنار هم
+       تا ارتفاع پاورقی کاهش یابد (بازخورد UAT فاز ۱۳). */
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-5) var(--sp-4);
     padding-inline: var(--sp-4);
+  }
+
+  .public-footer__brand {
+    grid-column: 1 / -1;
   }
 
   .hero {

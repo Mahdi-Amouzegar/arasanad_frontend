@@ -6,6 +6,7 @@ import { SiteSidebar } from './SiteSidebar';
 import { Icon } from '@/components/ui/Icon';
 import { NotificationCenter } from '@/components/chat/NotificationCenter';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { registerBackDismiss } from '@/lib/android-back';
 
 /**
  * نوار بالای صفحات عمومی — فقط در موبایل دیده می‌شود.
@@ -18,6 +19,12 @@ export function SiteHeader() {
   useEffect(() => {
     if (!open) return undefined;
 
+    // فاز ۱۳: کلید بازگشت اندروید نخست دراور را می‌بندد.
+    const unregister = registerBackDismiss(() => {
+      setOpen(false);
+      return true;
+    });
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
     };
@@ -27,6 +34,7 @@ export function SiteHeader() {
     document.addEventListener('keydown', onKeyDown);
 
     return () => {
+      unregister();
       document.body.style.overflow = previous;
       document.removeEventListener('keydown', onKeyDown);
     };
