@@ -10,6 +10,7 @@ import { TextField, Select, FormField } from '@/components/ui/Field';
 import { JalaliDate } from '@/components/ui/JalaliDate';
 import { Badge } from '@/components/ui/Badge';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { TelegramConnectCard } from '@/components/chat/TelegramConnectCard';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { OtpQrPanel } from './OtpQrPanel';
 import { useAuth, type AuthUser } from '@/lib/account';
@@ -391,6 +392,18 @@ export function ProfileView() {
           </div>
           <ThemeToggle />
         </div>
+      </div>
+
+      {/* فاز ۱۲٫۵-ج: تنظیمات اطلاع‌رسانی حساب — تلگرام در کنار اعلان داخلی */}
+      <div className="calc-card">
+        <h2 className="section-head__title" style={{ fontSize: 'var(--fs-section)' }}>
+          اعلان‌ها و تلگرام
+        </h2>
+        <p className="prj-note">
+          خاموش‌کردن تلگرام فقط ارسال پیام توسط ربات را متوقف می‌کند؛ اعلان‌های
+          درون‌سامانه‌ای هیچ‌گاه خاموش نمی‌شوند و در همین حساب باقی می‌مانند.
+        </p>
+        <TelegramConnectCard />
       </div>
 
       {/* ویرایش */}

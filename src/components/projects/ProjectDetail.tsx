@@ -49,6 +49,7 @@ import {
 import { useAlert } from '@/components/ui/AlertProvider';
 import { useChat } from '@/components/chat/ChatProvider';
 import { operationsHref } from '@/lib/activities/core.mjs';
+import { ProjectRating } from './ProjectRating';
 import {
   errorText,
   financialHint,
@@ -464,21 +465,35 @@ export function ProjectDetail() {
             const actions = Array.isArray(project.availableActions)
               ? project.availableActions
               : [];
-            const buttons = actions.filter((item) => item.kind === 'button');
+            // فاز ۱۲٫۵-ث: اقدامهای link (مثل «درخواست اصلاح») هم در جزئیات
+            // قابل کلیکاند، نه فقط دکمه‌های intent.
+            const buttons = actions.filter(
+              (item) => item.kind === 'button' || item.kind === 'link',
+            );
             const flags = actions.filter((item) => item.kind === 'flag');
             if (buttons.length === 0 && flags.length === 0) return null;
             return (
               <div className="prj-action-cell prj-action-cell--detail">
-                {buttons.map((item, index) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`btn btn--sm ${index === 0 ? 'btn--primary' : 'btn--outline'}`}
-                    onClick={() => setActiveAction(item)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                {buttons.map((item, index) => {
+                  const className = `btn btn--sm ${index === 0 ? 'btn--primary' : 'btn--outline'}`;
+                  if (item.kind === 'link' && item.href?.startsWith('/') && !item.href.startsWith('//')) {
+                    return (
+                      <Link key={item.id} className={className} href={item.href} title={item.hint}>
+                        {item.label}
+                      </Link>
+                    );
+                  }
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className={className}
+                      onClick={() => setActiveAction(item)}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
                 {flags.map((item) => (
                   <DisputeFlag
                     key={item.id}
@@ -992,6 +1007,9 @@ export function ProjectDetail() {
         رویداد‌ها در Outbox ثبت و به اعلان درون‌سامانه‌ای و تلگرام تبدیل می‌شوند؛
         رویدادهای مالی فاز ۱۰ نیز همان مسیر و سابقه عملیات سفارش را دارند.
       </p>
+
+      {/* فاز ۱۲٫۵-ج-۱: امتیاز مشتری — فقط در سفارش تکمیل‌شده ظاهر می‌شود */}
+      <ProjectRating projectId={id} />
 
       {/* ── فاز ۸: کتابخانه مشترک مدیریت فایل ── */}
       <FileManagerModal

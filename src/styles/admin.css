@@ -159,3 +159,97 @@
     height: 140px;
   }
 }
+
+/* ═══════════════════ فاز ۱۲٫۵ — داشبورد مشتری ═══════════════════ */
+.panel-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  flex-wrap: wrap;
+}
+.panel-action > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.panel-action__side {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+.panel-conversations {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.panel-conversation {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  border: 1px solid var(--c-border);
+  color: var(--c-text);
+  text-decoration: none;
+}
+.panel-conversation:hover {
+  background: var(--c-primary-light, var(--c-surface-alt));
+  border-color: var(--c-primary);
+}
+.panel-conversation > span:last-child {
+  margin-inline-start: auto;
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+}
+@media (max-width: 640px) {
+  .panel-action,
+  .panel-action__side {
+    align-items: flex-start;
+    width: 100%;
+  }
+}
+
+/* ═══════════════════ فاز ۱۲٫۵-ت — فیلترهای فایل‌های من ═══════════════════ */
+.panel-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+.panel-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: 999px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.panel-filter:hover {
+  border-color: var(--c-primary);
+}
+.panel-filter--active {
+  background: var(--c-primary);
+  border-color: var(--c-primary);
+  color: var(--c-on-primary, #fff);
+}
+.panel-filter__count {
+  min-width: 1.5rem;
+  padding-inline: 4px;
+  border-radius: 999px;
+  background: var(--c-primary-light, var(--c-surface-alt));
+  color: inherit;
+  font-size: var(--fs-xs);
+  text-align: center;
+}

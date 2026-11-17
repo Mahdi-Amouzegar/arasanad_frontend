@@ -106,9 +106,14 @@ export function WalletPanel() {
         <CardHeader
           title="موجودی کیفپول"
           actions={
-            <Link href="/panel/pay/?purpose=wallet" className="btn btn--primary btn--sm">
-              شارژ کیفپول
-            </Link>
+            <div className="prj-action-cell">
+              <Link href="/panel/pay/" className="btn btn--primary btn--sm">
+                پرداخت / شارژ
+              </Link>
+              <Link href="/panel/pay/?purpose=wallet" className="btn btn--outline btn--sm">
+                شارژ کیفپول
+              </Link>
+            </div>
           }
         />
         <CardBody>

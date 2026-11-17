@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
 import { ProjectList } from '@/components/projects/ProjectList';
+import { AdminRatingsPanel } from '@/components/admin/AdminRatingsPanel';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { AdminPaymentsPanel, AdminWalletsPanel, AdminRefundsPanel, AdminReconciliationPanel } from '@/components/finance/FinancePanels';
 import { DeliveryWorkspace } from '@/components/delivery/DeliveryWorkspace';
@@ -80,7 +81,7 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
   }
 
   if (href === '/admin/projects') {
-    return shell(info.title, backToProjects, <ProjectList admin />);
+    return shell(info.title, backToProjects, <><ProjectList admin /><AdminRatingsPanel /></>);
   }
 
   if (href === '/admin/projects/operations') {

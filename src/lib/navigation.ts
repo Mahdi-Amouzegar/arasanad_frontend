@@ -21,7 +21,9 @@ export const CUSTOMER_NAV: NavGroup[] = [
       { href: '/panel', label: 'داشبورد', icon: 'activity' },
       { href: '/panel/projects', label: 'سفارش‌های من', icon: 'file' },
       { href: '/panel/projects/new', label: 'ثبت سفارش جدید', icon: 'plus' },
+      { href: '/panel/projects/operations', label: 'ثبت عملیات سفارش', icon: 'activity' },
       { href: '/panel/projects/delivery', label: 'تحویل و اصلاح', icon: 'package' },
+      { href: '/panel/files', label: 'فایل‌های من', icon: 'fileText' },
     ],
   },
   {

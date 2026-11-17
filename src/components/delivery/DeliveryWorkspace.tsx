@@ -32,6 +32,7 @@ import { formatMoneyFa, formatNumberFa } from '@/lib/datetime';
 import { errorText } from '@/components/projects/ui-utils';
 import { createFilesApi, type FileItem } from '@/lib/files/api';
 import { createProjectsApi, type Project } from '@/lib/projects/api';
+import { operationsHref } from '@/lib/activities/core.mjs';
 import {
   createDeliveryApi,
   type DeliveriesPayload,
@@ -73,6 +74,7 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
   const [reason, setReason] = useState('');
   const [responseText, setResponseText] = useState('');
   const [responseTarget, setResponseTarget] = useState<string | null>(null);
+  const [justRequested, setJustRequested] = useState(false);
   const [picker, setPicker] = useState<PickerMode>(null);
   const [deliveryFiles, setDeliveryFiles] = useState<string[]>([]);
   const [requestFiles, setRequestFiles] = useState<string[]>([]);
@@ -116,6 +118,13 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
     }
     void load();
   }, [authLoading, id, load, reloadKey, user]);
+
+  // فاز ۱۲٫۵-ث: ورود از دکمه «درخواست اصلاح» در جزئیات، مستقیماً به فرم می‌رود.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !revisionState) return;
+    if (new URLSearchParams(window.location.search).get('focus') !== 'revision') return;
+    document.getElementById('revision-request')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [revisionState]);
 
   const canComplete = useMemo(
     () => Boolean(project?.availableActions?.some((action) => action.id === 'complete_order')),
@@ -172,6 +181,7 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
       showToast({ type: 'success', title: 'درخواست اصلاح ثبت شد' });
       setReason('');
       setRequestFiles([]);
+      setJustRequested(true);
       reload();
     } catch (caught) {
       setError(errorText(caught, 'درخواست اصلاح ثبت نشد'));
@@ -439,7 +449,7 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
           </Card>
 
           {!admin ? (
-            <Card>
+            <Card id="revision-request">
               <CardHeader
                 title="درخواست اصلاح"
                 actions={
@@ -490,6 +500,14 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
                     سیاست یا تعداد دفعات مجاز را بررسی کنید.
                   </p>
                 )}
+                {justRequested ? (
+                  <p className="prj-note">
+                    کارت عملیات اصلاح ثبت شد.{' '}
+                    <Link href={operationsHref('customer', id)} className="btn btn--outline btn--sm">
+                      مشاهده کارت عملیات
+                    </Link>
+                  </p>
+                ) : null}
               </CardBody>
             </Card>
           ) : null}

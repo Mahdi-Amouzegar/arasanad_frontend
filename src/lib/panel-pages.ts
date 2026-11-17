@@ -21,6 +21,7 @@ export const CUSTOMER_PAGES: Record<string, PanelPageInfo> = {
   '/panel/projects/new': { title: 'ثبت سفارش جدید', phase: 7, note: 'فرم ثبت سفارش‌ها؛ بارگذاری فایل در فاز ۸' },
   '/panel/projects/operations': { title: 'ثبت عملیات سفارش', phase: 9.5, note: 'سابقه‌ی فقطالحاقی عملیاتها، جدیدترین در بالا' },
   '/panel/projects/delivery': { title: 'تحویل و اصلاح', phase: 11, note: 'نسخه‌های تحویل، قفل دانلود و درخواست اصلاح' },
+  '/panel/files': { title: 'فایل‌های من', phase: 12.5, note: 'فایل‌های مجاز سفارش، تحویل و رسید با دانلود امن' },
   '/panel/messages': { title: 'پیام‌ها', phase: 9, note: 'گفتگوی درون‌برنامه‌ای؛ فعال در فاز ۹' },
   '/panel/wallet': { title: 'کیف پول', phase: 10, note: 'موجودی، شارژ و تراکنشها' },
   '/panel/pay': { title: 'پرداخت و شارژ', phase: 10.5, note: 'دو مقصد پرداخت و دو روش واریز' },

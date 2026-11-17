@@ -10,6 +10,9 @@ import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { WalletPanel } from '@/components/finance/FinancePanels';
 import { PaymentCenter, PaymentResult } from '@/components/finance/PaymentCenter';
 import { DeliveryWorkspace } from '@/components/delivery/DeliveryWorkspace';
+import { CustomerDashboard } from '@/components/panel/CustomerDashboard';
+import { CustomerFiles } from '@/components/panel/CustomerFiles';
+import { CustomerProfileAlias } from '@/components/panel/CustomerProfileAlias';
 import { CUSTOMER_GROUPS, CUSTOMER_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
 
 export const metadata: Metadata = {
@@ -29,7 +32,10 @@ export function generateStaticParams() {
 }
 
 /** سفارش‌ها در فاز ۷ و گفتگو/اعلان در فاز ۹ واقعی‌اند؛ بقیه پوسته‌ی صادقانه دارند. */
-const REAL_VIEWS: Record<string, 'list' | 'new' | 'messages' | 'notifications' | 'operations' | 'delivery' | 'wallet' | 'pay' | 'pay-result'> = {
+const REAL_VIEWS: Record<string, 'dashboard' | 'files' | 'profile-alias' | 'list' | 'new' | 'messages' | 'notifications' | 'operations' | 'delivery' | 'wallet' | 'pay' | 'pay-result'> = {
+  '/panel': 'dashboard',
+  '/panel/files': 'files',
+  '/panel/profile': 'profile-alias',
   '/panel/projects': 'list',
   '/panel/projects/new': 'new',
   '/panel/projects/operations': 'operations',
@@ -69,6 +75,10 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
             <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
               سفارش‌های من
             </Link>
+          ) : view === 'files' ? (
+            <Link href="/panel/projects/delivery/" className="btn btn--ghost btn--sm">
+              تحویل و اصلاح
+            </Link>
           ) : view === 'operations' || view === 'delivery' ? (
             <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
               فهرست سفارش‌ها
@@ -81,6 +91,10 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
             <Link href="/panel/pay/" className="btn btn--ghost btn--sm">
               پرداخت تازه
             </Link>
+          ) : view === 'dashboard' ? (
+            <Link href="/panel/projects/new/" className="btn btn--primary btn--sm">
+              ثبت سفارش تازه
+            </Link>
           ) : (
             <Link href="/panel/projects/new/" className="btn btn--primary btn--sm">
               ثبت سفارش تازه
@@ -88,7 +102,13 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
           )
         }
       >
-        {view === 'new' ? (
+        {view === 'dashboard' ? (
+          <CustomerDashboard />
+        ) : view === 'files' ? (
+          <CustomerFiles />
+        ) : view === 'profile-alias' ? (
+          <CustomerProfileAlias />
+        ) : view === 'new' ? (
           <ProjectNewForm />
         ) : view === 'messages' ? (
           <PanelMessages />
