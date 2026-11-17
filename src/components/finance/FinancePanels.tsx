@@ -49,7 +49,7 @@ function ErrorBar({ message, retry }: { message: string; retry: () => void }) {
   );
 }
 
-/* ───────────────────────── کیفپول مشتری ───────────────────────── */
+/* ───────────────────────── کیف پول مشتری ───────────────────────── */
 
 export function WalletPanel() {
   const api = useFinanceApi();
@@ -104,14 +104,14 @@ export function WalletPanel() {
       {error ? <ErrorBar message={error} retry={reload} /> : null}
       <Card>
         <CardHeader
-          title="موجودی کیفپول"
+          title="موجودی کیف پول"
           actions={
             <div className="prj-action-cell">
               <Link href="/panel/pay/" className="btn btn--primary btn--sm">
                 پرداخت / شارژ
               </Link>
               <Link href="/panel/pay/?purpose=wallet" className="btn btn--outline btn--sm">
-                شارژ کیفپول
+                شارژ کیف پول
               </Link>
             </div>
           }
@@ -134,7 +134,7 @@ export function WalletPanel() {
             <Input aria-label="مبلغ برگشت" type="number" min={1} step={1} inputMode="numeric" placeholder="مبلغ (تومان)" value={amount} onChange={(e) => setAmount(e.target.value)} />
             <Select aria-label="نوع برگشت" value={kind} onChange={(e) => setKind(e.target.value === 'wallet' ? 'wallet' : 'bank')}>
               <option value="bank">واریز به حساب بانکی</option>
-              <option value="wallet">برگشت به کیفپول</option>
+              <option value="wallet">برگشت به کیف پول</option>
             </Select>
             <Button type="submit" variant="primary" size="sm" disabled={busy}>ثبت درخواست</Button>
           </form>
@@ -170,7 +170,7 @@ export function WalletPanel() {
   );
 }
 
-/* ───────────────────── بررسی پرداختهای مدیر ───────────────────── */
+/* ───────────────────── بررسی پرداخت‌های مدیر ───────────────────── */
 
 export function AdminPaymentsPanel() {
   const api = useFinanceApi();
@@ -238,7 +238,7 @@ export function AdminPaymentsPanel() {
                 onChange={(event) => setPurpose(event.target.value as typeof purpose)}
               >
                 <option value="all">همه مقصدها</option>
-                <option value="wallet_topup">شارژ کیفپول</option>
+                <option value="wallet_topup">شارژ کیف پول</option>
                 <option value="order_deposit">بیعانه</option>
                 <option value="order_final">تسویه نهایی</option>
               </Select>
@@ -257,7 +257,7 @@ export function AdminPaymentsPanel() {
                   {pending.map((row) => (
                     <tr key={row.id}>
                       <td className="prj-muted">{String(row.paymentReference ?? row.projectId ?? '—')}</td>
-                      <td>{row.purpose === 'wallet_topup' ? 'شارژ کیفپول' : row.purpose === 'order_final' ? 'تسویه نهایی' : 'بیعانه'}</td>
+                      <td>{row.purpose === 'wallet_topup' ? 'شارژ کیف پول' : row.purpose === 'order_final' ? 'تسویه نهایی' : 'بیعانه'}</td>
                       <td>{row.stage === 'final' ? 'نهایی' : row.stage === 'deposit' ? 'بیعانه' : '—'}</td>
                       <td><Money value={Number(row.declaredAmount ?? 0)} /></td>
                       <td>{Number(row.agingDays ?? 0)} روز</td>
@@ -348,7 +348,7 @@ function RefundsCard() {
                 {pending.map((row) => (
                   <tr key={row.id}>
                     <td><Money value={Number(row.amount)} /></td>
-                    <td>{row.kind === 'bank' ? 'بانکی' : 'کیفپول'}</td>
+                    <td>{row.kind === 'bank' ? 'بانکی' : 'کیف پول'}</td>
                     <td>
                       <Input aria-label={`شماره پیگیری ${row.id}`} placeholder="شماره پیگیری" value={tracking[row.id] ?? ''} onChange={(e) => setTracking((prev) => ({ ...prev, [row.id]: e.target.value }))} />
                     </td>
@@ -369,7 +369,7 @@ function RefundsCard() {
   );
 }
 
-/* ───────────────────── کیفپولها و تطبیق مدیر ───────────────────── */
+/* ───────────────────── کیف پول‌ها و تطبیق مدیر ───────────────────── */
 
 /** فاز ۱۲: صفحه مستقل تطبیق و مغایرت در منوی مدیر. */
 export function AdminReconciliationPanel() {
@@ -458,10 +458,10 @@ export function AdminWalletsPanel() {
       {error ? <ErrorBar message={error} retry={reload} /> : null}
       <ReconciliationCard />
       <Card>
-        <CardHeader title="کیفپول کاربران" actions={<Button variant="ghost" size="sm" onClick={reload} aria-label="بازخوانی"><Icon name="refresh" size={16} /></Button>} />
+        <CardHeader title="کیف پول کاربران" actions={<Button variant="ghost" size="sm" onClick={reload} aria-label="بازخوانی"><Icon name="refresh" size={16} /></Button>} />
         <CardBody>
           {loading ? <Skeleton height={88} /> : wallets.length === 0 ? (
-            <EmptyState icon={<Icon name="wallet" size={26} />} title="کیفپولی ایجاد نشده است" description="با نخستین پرداخت یا مازاد، کیفپول کاربر ساخته می‌شود." />
+            <EmptyState icon={<Icon name="wallet" size={26} />} title="کیف پولی یافت نشد" description="هر کاربر هنگام ثبت حساب، کیف پولی با موجودی صفر دارد." />
           ) : (
             <div className="prj-table-wrap">
               <table className="prj-table">

@@ -42,6 +42,17 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
         {/* فاز ۹: گفتگو از همان ستون راست صفحات عمومی هم در دسترس است. */}
         <ChatEntryButton className="public-side__link" onNavigate={onNavigate} />
         {/* فاز ۱۲٫۱: لینک سفارشات برای کاربران واردشده (مدیر: تمام سفارش‌ها). */}
+        {/* فاز ۱۲٫۲-ب: پنل کاربری در منوی دراور سمت راست. */}
+        {!loading && user ? (
+          <Link
+            href={user.role === 'admin' ? '/admin/' : '/panel/'}
+            className="public-side__link"
+            onClick={onNavigate}
+          >
+            <Icon name="user" size={17} />
+            <span>پنل کاربری</span>
+          </Link>
+        ) : null}
         {!loading && user ? (
           <Link
             href={user.role === 'admin' ? '/admin/orders/' : '/panel/orders/'}

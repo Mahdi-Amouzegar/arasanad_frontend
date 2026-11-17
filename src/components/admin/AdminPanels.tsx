@@ -4,7 +4,7 @@
  * فاز ۱۲ — پنلهای واقعی مدیریت: داشبورد، کاربران، تنظیمات، Audit و پیام‌ها.
  *
  * تمام اعداد و فهرستها از بکند خوانده می‌شوند. هیچ مقدار ساختگی و هیچ دکمه‌ی
- * تغییر مستقیم موجودی کیفپول وجود ندارد (امنیت مالی).
+ * تغییر مستقیم موجودی کیف پول وجود ندارد (امنیت مالی).
  */
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
@@ -147,7 +147,7 @@ export function AdminDashboard() {
       </Card>
 
       <Card>
-        <CardHeader title="صفهای کاری" />
+        <CardHeader title="صف‌های کاری" />
         <CardBody>
           <div className="adm-stats-grid">
             {cards.slice(4).map((card) => (
@@ -258,7 +258,7 @@ export function AdminUsers() {
               <div><span>رزروشده</span><strong><Money value={selected.wallet?.reserved ?? 0} /></strong></div>
               <div><span>تعداد سفارش‌ها</span><strong>{selected.projects.length.toLocaleString('fa-IR')}</strong></div>
             </div>
-            <p className="prj-note">موجودی فقطخواندنی است؛ تغییر مستقیم موجودی کیفپول ممنوع است و تنها از طریق سند مالی مجاز است.</p>
+            <p className="prj-note">موجودی فقطخواندنی است؛ تغییر مستقیم موجودی کیف پول ممنوع است و تنها از طریق سند مالی مجاز است.</p>
             {selected.transactions.length > 0 ? (
               <div className="prj-table-wrap">
                 <table className="prj-table">

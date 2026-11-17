@@ -119,7 +119,7 @@ export function ProjectActionDialog({
         path = `/projects/${encodeURIComponent(project.id)}/refunds`;
         body = { amount: checked.value, kind: 'bank' };
       } else if (intent === 'pay_online') {
-        throw new Error('پرداخت آنلاین تا اتصال درگاه غیرفعال است؛ از ریل دستی یا کیفپول استفاده کنید.');
+        throw new Error('پرداخت آنلاین تا اتصال درگاه غیرفعال است؛ از ریل دستی یا کیف پول استفاده کنید.');
       } else {
         throw new Error('اقدام ناشناخته است');
       }

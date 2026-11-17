@@ -5,6 +5,7 @@ import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
 import { OrdersWorkspace } from '@/components/projects/OrdersWorkspace';
 import { ProjectList } from '@/components/projects/ProjectList';
 import { ProjectNewForm } from '@/components/projects/ProjectNewForm';
+import { ProjectDetail } from '@/components/projects/ProjectDetail';
 import { PanelMessages } from '@/components/chat/PanelMessages';
 import { PanelNotifications } from '@/components/chat/PanelNotifications';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
@@ -25,6 +26,7 @@ export const metadata: Metadata = {
 /** تمام مسیرهای `CUSTOMER_NAV` در بیلد استاتیک تولید می‌شود تا لینک مرده نماند. */
 export function generateStaticParams() {
   return slugsFor(CUSTOMER_GROUPS, '/panel', [
+    'projects/detail',
     'projects/operations',
     'projects/delivery',
     'pay',
@@ -33,13 +35,14 @@ export function generateStaticParams() {
 }
 
 /** سفارش‌ها در فاز ۷ و گفتگو/اعلان در فاز ۹ واقعی‌اند؛ بقیه پوسته‌ی صادقانه دارند. */
-const REAL_VIEWS: Record<string, 'dashboard' | 'files' | 'profile-alias' | 'list' | 'orders' | 'new' | 'messages' | 'notifications' | 'operations' | 'delivery' | 'wallet' | 'pay' | 'pay-result'> = {
+const REAL_VIEWS: Record<string, 'dashboard' | 'files' | 'profile-alias' | 'list' | 'orders' | 'detail' | 'new' | 'messages' | 'notifications' | 'operations' | 'delivery' | 'wallet' | 'pay' | 'pay-result'> = {
   '/panel': 'dashboard',
   '/panel/files': 'files',
   '/panel/profile': 'profile-alias',
   '/panel/orders': 'orders',
   '/panel/projects': 'list',
   '/panel/projects/new': 'new',
+  '/panel/projects/detail': 'detail',
   '/panel/projects/operations': 'operations',
   '/panel/projects/delivery': 'delivery',
   '/panel/messages': 'messages',
@@ -72,6 +75,10 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
           ) : view === 'notifications' ? (
             <Link href="/panel/messages/" className="btn btn--ghost btn--sm">
               گفتگو‌ها
+            </Link>
+          ) : view === 'detail' ? (
+            <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
+              فهرست سفارش‌ها
             </Link>
           ) : view === 'new' ? (
             <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
@@ -112,6 +119,8 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
           <CustomerFiles />
         ) : view === 'profile-alias' ? (
           <CustomerProfileAlias />
+        ) : view === 'detail' ? (
+          <ProjectDetail />
         ) : view === 'new' ? (
           <ProjectNewForm />
         ) : view === 'messages' ? (

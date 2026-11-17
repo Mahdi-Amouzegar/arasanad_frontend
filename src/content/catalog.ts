@@ -19,25 +19,11 @@ export interface ServiceType {
 export const SERVICE_TYPES: ServiceType[] = [
   {
     id: 'fa',
-    name: 'فارسی',
+    name: 'تایپ ساده',
     pricePerPage: 34_000,
     unit: 'page',
-    description: 'تایپ متن ساده‌ی فارسی',
+    description: 'تایپ متن ساده؛ زبان سند به‌صورت جداگانه انتخاب می‌شود',
     isPopular: true,
-  },
-  {
-    id: 'en',
-    name: 'انگلیسی',
-    pricePerPage: 39_000,
-    unit: 'page',
-    description: 'تایپ متن ساده‌ی انگلیسی',
-  },
-  {
-    id: 'ar',
-    name: 'عربی',
-    pricePerPage: 49_000,
-    unit: 'page',
-    description: 'تایپ متن عربی',
   },
   {
     id: 'math',

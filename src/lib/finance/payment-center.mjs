@@ -11,7 +11,7 @@ export const PAYMENT_PURPOSES = Object.freeze(['wallet_topup', 'order_deposit', 
 export const PAYMENT_RAILS = Object.freeze(['manual', 'online']);
 
 export const PURPOSE_LABELS = Object.freeze({
-  wallet_topup: 'شارژ کیفپول مجازی',
+  wallet_topup: 'شارژ کیف پول مجازی',
   order_deposit: 'بیعانه سفارش جاری',
   order_final: 'تسویه نهایی سفارش جاری',
 });

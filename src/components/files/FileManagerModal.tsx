@@ -158,6 +158,7 @@ export function FileManagerModal({
   // Link tab state
   const [linkUrl, setLinkUrl] = useState('');
   const [linkDesc, setLinkDesc] = useState('');
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [links, setLinks] = useState<ExternalLink[]>([]);
   const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set());
   const [loadingLinks, setLoadingLinks] = useState(false);
@@ -345,6 +346,7 @@ export function FileManagerModal({
   // ─── Link tab ───
   const handleAddLink = useCallback(async () => {
     if (!linkUrl.trim() || !linksApi) return;
+    setLinkError(null);
     try {
       const link = await linksApi.createLink(linkUrl.trim(), linkDesc.trim() || undefined);
       setLinks((prev) => [link, ...prev]);
@@ -352,11 +354,8 @@ export function FileManagerModal({
       setLinkDesc('');
       showToast({ type: 'success', title: 'لینک اضافه شد' });
     } catch (err) {
-      showToast({
-        type: 'error',
-        title: 'خطا',
-        message: err instanceof Error ? err.message : 'افزودن لینک ناموفق بود',
-      });
+      // فاز ۱۲٫۲-ط: خطا زیر همان کادر نمایش داده می‌شود، نه در toast پشت overlay.
+      setLinkError(err instanceof Error ? err.message : 'افزودن لینک ناموفق بود');
     }
   }, [linkUrl, linkDesc, linksApi, showToast]);
 
@@ -515,7 +514,8 @@ export function FileManagerModal({
             <LinkTab
               url={linkUrl}
               desc={linkDesc}
-              onUrlChange={setLinkUrl}
+              onUrlChange={(value) => { setLinkUrl(value); setLinkError(null); }}
+              error={linkError}
               onDescChange={setLinkDesc}
               onAdd={handleAddLink}
               links={links}
@@ -783,6 +783,7 @@ interface LinkTabProps {
   url: string;
   desc: string;
   onUrlChange: (v: string) => void;
+  error?: string | null;
   onDescChange: (v: string) => void;
   onAdd: () => void;
   links: ExternalLink[];
@@ -797,6 +798,7 @@ function LinkTab({
   onUrlChange,
   onDescChange,
   onAdd,
+  error,
   links,
   loading,
   selected,
@@ -804,11 +806,13 @@ function LinkTab({
 }: LinkTabProps) {
   return (
     <div>
-      <div className="fm-link-input">
+      <div className={`fm-link-input${error ? ' fm-link-input--invalid' : ''}`}>
         <input
           type="url"
           placeholder="https://example.com/file.pdf"
           value={url}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? 'fm-link-error' : undefined}
           onChange={(e) => onUrlChange(e.target.value)}
         />
         <input
@@ -827,6 +831,10 @@ function LinkTab({
           افزودن
         </Button>
       </div>
+
+      {error ? (
+        <p id="fm-link-error" className="fm-link-warning" role="alert">{error}</p>
+      ) : null}
 
       {loading ? (
         <div className="fm-empty"><div className="btn__spinner" /></div>

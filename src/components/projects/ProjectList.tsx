@@ -37,7 +37,8 @@ function ProjectActionsCell({
   role: 'admin' | 'customer';
   onDone: () => void;
 }) {
-  const fallback = `/projects/detail/?id=${encodeURIComponent(project.id)}`;
+  const detailPath = role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
+  const fallback = `${detailPath}?id=${encodeURIComponent(project.id)}`;
   const actions = Array.isArray(project.availableActions) ? project.availableActions : [];
   const [active, setActive] = useState<ProjectAction | null>(null);
 

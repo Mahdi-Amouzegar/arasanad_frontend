@@ -302,6 +302,17 @@
   box-shadow: var(--sh-focus);
 }
 
+.fm-link-input--invalid input[type='url'] {
+  border-color: var(--c-warning);
+  background: var(--c-warning-bg);
+}
+
+.fm-link-warning {
+  margin: calc(var(--sp-2) * -1) 0 var(--sp-4);
+  color: var(--c-warning);
+  font-size: var(--fs-sm);
+}
+
 .fm-link-item {
   display: flex;
   align-items: center;

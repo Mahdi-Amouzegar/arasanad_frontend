@@ -4,7 +4,7 @@
  * فاز ۱۲٫۵ (زیرفاز ب) — داشبورد واقعی مشتری.
  *
  * ⚠️ تمام اعداد و فهرستها از `/api/v1/panel/dashboard` خوانده می‌شوند
- *    (همان جداول D1 که فهرست سفارش‌ها و کیفپول از آنها می‌خوانند).
+ *    (همان جداول D1 که فهرست سفارش‌ها و کیف پول از آنها می‌خوانند).
  * ⚠️ «اقدام موردنیاز» در بالاترین نقطه قرار دارد تا مشتری نخستین کاری
  *    که باید انجام دهد را ببیند (design.md §8.1).
  */
@@ -158,7 +158,7 @@ export function CustomerDashboard() {
                       <td data-label="اقدام">
                         <Link
                           className="btn btn--outline btn--sm"
-                          href={`/projects/detail/?id=${encodeURIComponent(project.id)}`}
+                          href={`/panel/projects/detail/?id=${encodeURIComponent(project.id)}`}
                           title={PROJECT_STATUS[project.status as ProjectStatus]?.label}
                         >
                           جزئیات
@@ -183,7 +183,7 @@ export function CustomerDashboard() {
           <div className="fin-stats">
             <div><span>موجودی قابل استفاده</span><strong><Money value={view.wallet.available} /></strong></div>
             <div><span>موجودی رزروشده</span><strong><Money value={view.wallet.reserved} /></strong></div>
-            <div><span>پرداختهای در انتظار تأیید</span><strong>{view.pendingPayments.toLocaleString('fa-IR')}</strong></div>
+            <div><span>پرداخت‌های در انتظار تأیید</span><strong>{view.pendingPayments.toLocaleString('fa-IR')}</strong></div>
           </div>
           <p className="prj-note">
             ارسال رسید به معنی تأیید پرداخت نیست؛ تا تأیید مدیر، مبلغ «در انتظار» باقی می‌ماند.

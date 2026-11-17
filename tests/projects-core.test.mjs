@@ -9,7 +9,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  DELIVERY_HOURS,
+  DELIVERY_UNITS,
+  DELIVERY_VALUE_MIN,
+  DELIVERY_VALUE_MAX,
+  deliveryHoursFrom,
+  isAllowedDeliveryHours,
   LANGUAGES,
   SOURCE_TYPES,
   OUTPUT_FORMATS,
@@ -51,8 +55,10 @@ function validDraft(overrides = {}) {
 /* ─────────────────────────── catalog ─────────────────────────── */
 
 test('catalog constants are finite, ordered and free of duplicates', () => {
-  assert.deepEqual(DELIVERY_HOURS, [2, 6, 12, 24, 48, 72, 120, 168]);
-  assert.equal(new Set(DELIVERY_HOURS).size, DELIVERY_HOURS.length);
+  assert.deepEqual(DELIVERY_UNITS.map((u) => u.value), ['hour', 'day', 'week']);
+  assert.deepEqual(DELIVERY_UNITS.map((u) => u.hours), [1, 24, 168]);
+  assert.equal(DELIVERY_VALUE_MIN, 1);
+  assert.equal(DELIVERY_VALUE_MAX, 24);
   assert.equal(PROJECT_STATUSES.length, 12);
   assert.equal(new Set(PROJECT_STATUSES).size, 12);
   assert.equal(LANGUAGES.length, 4);
@@ -163,7 +169,7 @@ test('validateProjectDraft rejects invalid catalog values and missing design', (
       language: 'Klingon',
       sourceType: 'Unknown',
       sourcePageCount: 0,
-      deliveryHours: 7,
+      deliveryHours: 25,
       outputFormat: 'PNG',
       design: null,
     }),
@@ -217,4 +223,17 @@ test('formatProjectCode strips everything except letters, digits and dashes', ()
   assert.equal(formatProjectCode(''), '—');
   assert.equal(formatProjectCode(null), '—');
   assert.equal(formatProjectCode('x'.repeat(80)).length, 32);
+});
+
+test('delivery deadline is number 1-24 plus an hour/day/week unit', () => {
+  assert.equal(deliveryHoursFrom(3, 'day'), 72);
+  assert.equal(deliveryHoursFrom('2', 'week'), 336);
+  assert.equal(deliveryHoursFrom(24, 'hour'), 24);
+  assert.equal(deliveryHoursFrom(0, 'day'), null);
+  assert.equal(deliveryHoursFrom(25, 'day'), null);
+  assert.equal(deliveryHoursFrom(3, 'month'), null);
+  assert.equal(isAllowedDeliveryHours(72), true);
+  assert.equal(isAllowedDeliveryHours(4032), true);
+  assert.equal(isAllowedDeliveryHours(25), false);
+  assert.equal(isAllowedDeliveryHours(5000), false);
 });

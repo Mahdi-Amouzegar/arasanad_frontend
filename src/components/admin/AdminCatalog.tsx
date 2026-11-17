@@ -150,9 +150,9 @@ export function AdminPricingEditor() {
 /* ═══════════════════ استانداردهای ظاهری (۱۲-ث) ═══════════════════ */
 
 function presetPreview(spec: Record<string, unknown>): React.ReactNode {
-  const fontFa = String(spec.fontFa ?? 'Vazirmatn');
+  const fontFa = String(spec.fontFa ?? 'بی نازنین');
   const fontEn = String(spec.fontEn ?? 'Times New Roman');
-  const bodySize = Number(spec.bodySize ?? 14);
+  const bodySize = Number(spec.bodySize ?? 16);
   const headingSize = Number(spec.heading1Size ?? 18);
   const lineSpacing = Number(spec.lineSpacing ?? 1.5);
   return (
@@ -195,7 +195,7 @@ export function AdminDesignPresets() {
       description: selected.description ?? '',
       fontFa: String(spec.fontFa ?? ''),
       fontEn: String(spec.fontEn ?? ''),
-      bodySize: String(spec.bodySize ?? 14),
+      bodySize: String(spec.bodySize ?? 16),
       heading1Size: String(spec.heading1Size ?? 18),
       lineSpacing: String(spec.lineSpacing ?? 1.5),
       paperSize: String(spec.paperSize ?? 'A4'),

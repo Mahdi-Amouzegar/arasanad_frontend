@@ -17,7 +17,7 @@ import {
 
 test('P105-F01: مرکز پرداخت سه مقصد و دو ریل را پوشش می‌دهد', () => {
   assert.equal(PAYMENT_MATRIX.length, 6);
-  assert.equal(PURPOSE_LABELS.wallet_topup, 'شارژ کیفپول مجازی');
+  assert.equal(PURPOSE_LABELS.wallet_topup, 'شارژ کیف پول مجازی');
   assert.equal(RAIL_LABELS.manual, 'واریز دستی / اعلام واریز');
   assert.ok(PAYMENT_MATRIX.some((item) => item.purpose === 'order_final' && item.rail === 'online'));
 });

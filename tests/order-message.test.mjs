@@ -9,14 +9,14 @@ import { buildOrderMessage } from '../src/lib/order-message.mjs';
 
 test('خلاصه شامل خدمت، تعداد صفحه، تحویل و مبالغ است', () => {
   const text = buildOrderMessage({
-    serviceName: 'فارسی',
+    serviceName: 'تایپ ساده',
     pages: 10,
     urgent: false,
     total: 340_000,
     deposit: 170_000,
   });
   assert.match(text, /درخواست برآورد سفارش/);
-  assert.match(text, /نوع خدمت: فارسی/);
+  assert.match(text, /نوع خدمت: تایپ ساده/);
   assert.match(text, /تعداد صفحه: 10/);
   assert.match(text, /تحویل: عادی/);
   // اعداد با `toLocaleString('fa-IR')` به ارقام فارسی نوشته می‌شوند

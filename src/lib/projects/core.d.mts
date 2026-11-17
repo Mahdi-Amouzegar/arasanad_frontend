@@ -14,7 +14,16 @@ export type ProjectStatus =
   | 'cancel_requested'
   | 'cancelled';
 
-export declare const DELIVERY_HOURS: readonly number[];
+export interface DeliveryUnit {
+  value: 'hour' | 'day' | 'week';
+  label: string;
+  hours: number;
+}
+export declare const DELIVERY_UNITS: readonly DeliveryUnit[];
+export declare const DELIVERY_VALUE_MIN: number;
+export declare const DELIVERY_VALUE_MAX: number;
+export declare function deliveryHoursFrom(value: number | string, unit: string): number | null;
+export declare function isAllowedDeliveryHours(hours: number | string): boolean;
 export declare const LANGUAGES: readonly string[];
 export declare const SOURCE_TYPES: readonly string[];
 export declare const OUTPUT_FORMATS: readonly string[];

@@ -238,6 +238,8 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<string[]>([]);
+  // فاز ۱۲٫۲-ک: فیلتر چکباکسی ستون «نوع سفارش».
+  const [serviceTypes, setServiceTypes] = useState<string[]>([]);
   const [financeFor, setFinanceFor] = useState<Project | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
@@ -252,9 +254,17 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
     return () => { alive = false; };
   }, [api, reloadKey]);
 
+  const serviceOptions = useMemo(
+    () => Array.from(new Set(projects.map((p) => p.serviceName).filter(Boolean)))
+      .sort((a, b) => a.localeCompare(b, 'fa')),
+    [projects],
+  );
+
   const visible = useMemo(
-    () => (statuses.length === 0 ? projects : projects.filter((p) => statuses.includes(p.status))),
-    [projects, statuses],
+    () => projects.filter((p) =>
+      (statuses.length === 0 || statuses.includes(p.status))
+      && (serviceTypes.length === 0 || serviceTypes.includes(p.serviceName))),
+    [projects, statuses, serviceTypes],
   );
 
   const columns: Column<Project>[] = useMemo(() => {
@@ -274,7 +284,9 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
         render: (row) => (
           <div className="ord-name">
             <span className="prj-code">{row.code}</span>
-            <Link href={`/projects/detail/?id=${encodeURIComponent(row.id)}`}>{row.name}</Link>
+            <Link href={`${admin ? '/admin/projects/detail/' : '/panel/projects/detail/'}?id=${encodeURIComponent(row.id)}`}>
+              {row.name}
+            </Link>
           </div>
         ),
         sortValue: (row) => row.name,
@@ -284,6 +296,12 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
         header: 'نوع سفارش',
         render: (row) => row.serviceName,
         sortValue: (row) => row.serviceName,
+        filter: {
+          options: serviceOptions.map((name) => ({ value: name, label: name })),
+          selected: serviceTypes,
+          onChange: setServiceTypes,
+          label: 'فیلتر نوع سفارش',
+        },
       },
       {
         key: 'pages',
@@ -326,7 +344,7 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
       },
     );
     return list;
-  }, [admin, statuses]);
+  }, [admin, statuses, serviceTypes, serviceOptions]);
 
   return (
     <div className="prj-stack">
@@ -334,9 +352,13 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
         <Button variant="ghost" size="sm" onClick={reload} aria-label="بازخوانی">
           <Icon name="refresh" size={16} />
         </Button>
-        {statuses.length > 0 ? (
-          <Button variant="ghost" size="sm" onClick={() => setStatuses([])}>
-            پاک کردن فیلتر ({statuses.length})
+        {statuses.length + serviceTypes.length > 0 ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setStatuses([]); setServiceTypes([]); }}
+          >
+            پاک کردن فیلتر ({statuses.length + serviceTypes.length})
           </Button>
         ) : null}
       </div>

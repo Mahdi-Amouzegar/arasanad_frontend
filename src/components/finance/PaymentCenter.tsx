@@ -212,8 +212,8 @@ export function PaymentCenter() {
               onClick={() => selectPurpose('wallet_topup')}
             >
               <Icon name="wallet" size={24} />
-              <strong>شارژ کیفپول مجازی</strong>
-              <span>اعتبار مستقیم کیفپول، بدون سفارش</span>
+              <strong>شارژ کیف پول مجازی</strong>
+              <span>اعتبار مستقیم کیف پول، بدون سفارش</span>
             </button>
             <button
               type="button"
@@ -349,7 +349,7 @@ export function PaymentCenter() {
         </CardBody>
       </Card>
 
-      <Link href="/panel/wallet/" className="pad-dialog__link">بازگشت به کیفپول</Link>
+      <Link href="/panel/wallet/" className="pad-dialog__link">بازگشت به کیف پول</Link>
 
       <FileManagerModal
         open={fmOpen}

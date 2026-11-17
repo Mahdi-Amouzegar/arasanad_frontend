@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
 import { ProjectList } from '@/components/projects/ProjectList';
+import { ProjectDetail } from '@/components/projects/ProjectDetail';
 import { OrdersWorkspace } from '@/components/projects/OrdersWorkspace';
 import { AdminRatingsPanel } from '@/components/admin/AdminRatingsPanel';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
 
 /** تمام مسیرهای `ADMIN_NAV` با پیشوند `/admin` در بیلد استاتیک تولید می‌شوند. */
 export function generateStaticParams() {
-  return slugsFor(ADMIN_GROUPS, '/admin', ['projects/operations', 'projects/delivery']);
+  return slugsFor(ADMIN_GROUPS, '/admin', ['projects/detail', 'projects/operations', 'projects/delivery']);
 }
 
 const backToProjects = (
@@ -88,6 +89,11 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
 
   if (href === '/admin/projects') {
     return shell(info.title, backToProjects, <><ProjectList admin /><AdminRatingsPanel /></>);
+  }
+
+  // فاز ۱۲٫۲-ی: جزئیات کامل سفارش (فایل‌ها، لینکها و تحویلها) برای مدیر.
+  if (href === '/admin/projects/detail') {
+    return shell('جزئیات سفارش', backToProjects, <ProjectDetail />, '/admin/projects');
   }
 
   if (href === '/admin/projects/operations') {

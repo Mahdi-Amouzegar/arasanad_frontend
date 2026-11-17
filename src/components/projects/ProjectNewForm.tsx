@@ -15,13 +15,15 @@ import {
 } from '@/lib/projects/api';
 import {
   DEFAULT_DESIGN_SPEC,
-  DELIVERY_HOURS,
+  DELIVERY_UNITS,
+  DELIVERY_VALUE_MAX,
+  DELIVERY_VALUE_MIN,
+  deliveryHoursFrom,
   LANGUAGES,
   OUTPUT_FORMATS,
   SOURCE_TYPES,
   calculateDeposit,
   calculateEstimate,
-  changedDesignFields,
   isUrgent,
   mergeDesignSpec,
   validateProjectDraft,
@@ -71,7 +73,9 @@ export function ProjectNewForm() {
   const [description, setDescription] = useState('');
   const [specialRequirements, setSpecialRequirements] = useState('');
   const [pageCount, setPageCount] = useState('10');
-  const [deliveryHours, setDeliveryHours] = useState<string>('48');
+  // فاز ۱۲٫۲-هـ: عدد ۱–۲۴ + واحد (ساعت/روز/هفته)؛ ساعت حاصل در بدنه ارسال می‌شود.
+  const [deliveryValue, setDeliveryValue] = useState<string>('2');
+  const [deliveryUnit, setDeliveryUnit] = useState<string>('day');
   const [outputFormat, setOutputFormat] = useState<string>(OUTPUT_FORMATS[0] ?? '');
 
   const [designMode, setDesignMode] = useState<'standard' | 'custom'>('standard');
@@ -114,7 +118,8 @@ export function ProjectNewForm() {
     if (!draft || !services.some((item) => item.id === draft.serviceId)) return;
     setServiceTypeId(draft.serviceId);
     setPageCount(String(draft.pages));
-    setDeliveryHours(draft.urgent ? String(DELIVERY_HOURS[0]) : '48');
+    setDeliveryValue('2');
+    setDeliveryUnit(draft.urgent ? 'hour' : 'day');
     showToast({
       type: 'success',
       title: 'پیش‌نویس بازگشایی شد',
@@ -130,14 +135,9 @@ export function ProjectNewForm() {
     setSpec(mergeDesignSpec(baseSpec, {}));
   }, [presetId, presets]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const changed = useMemo(
-    () => changedDesignFields(spec, baseSpec),
-    [spec, baseSpec],
-  );
-
   const service = services.find((item) => item.id === serviceTypeId) ?? null;
   const pages = Number(pageCount) || 1;
-  const hours = Number(deliveryHours) || 48;
+  const hours = deliveryHoursFrom(deliveryValue, deliveryUnit) ?? 48;
   const estimate = calculateEstimate({
     pricePerPage: service?.pricePerPage ?? 0,
     pages,
@@ -169,7 +169,7 @@ export function ProjectNewForm() {
       description,
       specialRequirements,
       sourcePageCount: Number(pageCount),
-      deliveryHours: Number(deliveryHours),
+      deliveryHours: hours,
       outputFormat,
       design: { mode: designMode, submode: designSubmode, presetId: presetId || null, spec },
     };
@@ -188,7 +188,7 @@ export function ProjectNewForm() {
       sourceType,
       description: description.trim(),
       sourcePageCount: Number(pageCount),
-      deliveryHours: Number(deliveryHours),
+      deliveryHours: hours,
       outputFormat,
       specialRequirements: specialRequirements.trim(),
       design: {
@@ -378,24 +378,34 @@ export function ProjectNewForm() {
 
             <FormField
               label="مهلت تحویل"
-              htmlFor="prj-hours"
+              htmlFor="prj-deadline-value"
               required
               error={errors.deliveryHours}
-              hint="مهلت از زمان تأیید بیعانه محاسبه می‌شود، نه از زمان ثبت."
+              hint="عددی از ۱ تا ۲۴ همراه با واحد ساعت، روز یا هفته انتخاب کنید. مهلت از زمان تأیید بیعانه محاسبه می‌شود، نه از زمان ثبت."
             >
-              <Select
-                id="prj-hours"
-                value={deliveryHours}
-                invalid={Boolean(errors.deliveryHours)}
-                onChange={(event) => setDeliveryHours(event.target.value)}
-              >
-                {DELIVERY_HOURS.map((item) => (
-                  <option key={item} value={String(item)}>
-                    {formatHours(item)}
-                    {item <= 24 ? ' (فوری)' : ''}
-                  </option>
-                ))}
-              </Select>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
+                <Input
+                  id="prj-deadline-value"
+                  type="number"
+                  min={DELIVERY_VALUE_MIN}
+                  max={DELIVERY_VALUE_MAX}
+                  inputMode="numeric"
+                  value={deliveryValue}
+                  invalid={Boolean(errors.deliveryHours)}
+                  onChange={(event) => setDeliveryValue(event.target.value)}
+                />
+                <Select
+                  id="prj-deadline-unit"
+                  aria-label="واحد مهلت تحویل"
+                  value={deliveryUnit}
+                  invalid={Boolean(errors.deliveryHours)}
+                  onChange={(event) => setDeliveryUnit(event.target.value)}
+                >
+                  {DELIVERY_UNITS.map((unit) => (
+                    <option key={unit.value} value={unit.value}>{unit.label}</option>
+                  ))}
+                </Select>
+              </div>
             </FormField>
 
             <FormField label="فرمت خروجی" htmlFor="prj-format" required error={errors.outputFormat}>
@@ -512,9 +522,17 @@ export function ProjectNewForm() {
               <Select
                 id="prj-design-mode"
                 value={designMode}
-                onChange={(event) => setDesignMode(event.target.value as 'standard' | 'custom')}
+                onChange={(event) => {
+                  const next = event.target.value as 'standard' | 'custom';
+                  setDesignMode(next);
+                  // فاز ۱۲٫۲-و: حالت سفارشی از همان مقادیر استاندارد آغاز می‌شود.
+                  if (next === 'custom') {
+                    setPresetId('');
+                    setSpec({ ...DEFAULT_DESIGN_SPEC });
+                  }
+                }}
               >
-                <option value="standard">استاندارد آراسند</option>
+                <option value="standard">استاندارد</option>
                 <option value="custom">سفارشی</option>
               </Select>
             </FormField>
@@ -602,15 +620,7 @@ export function ProjectNewForm() {
             </FormField>
           </div>
 
-          <p className="prj-note" aria-live="polite">
-            {changed.length === 0
-              ? 'همه‌ی فیلدها مطابق استاندارد انتخاب‌شده‌اند.'
-              : `${changed.length} فیلد نسبت به استاندارد تغییر کرده است: ${changed.join('، ')}`}
-          </p>
-          <p className="prj-note">
-            مقادیر نهایی باید با آیین‌نامه‌ی رسمی دانشگاه تطبیق داده شوند.
-          </p>
-        </CardBody>
+                            </CardBody>
       </Card>
 
       <Card>

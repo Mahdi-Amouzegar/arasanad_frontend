@@ -8,9 +8,33 @@
 
 /* ─────────────────────────── کاتالوگ ثابت ─────────────────────────── */
 
-/** مهلت\u200cهای مجاز تحویل (ساعت) — فهرست سفید همنام با بک\u200cاند. */
-export const DELIVERY_HOURS = [2, 6, 12, 24, 48, 72, 120, 168];
+/** فاز ۱۲٫۲-هـ: واحدهای مهلت تحویل؛ عدد ۱–۲۴ همراه با واحد انتخاب می‌شود. */
+export const DELIVERY_UNITS = [
+  { value: 'hour', label: 'ساعت', hours: 1 },
+  { value: 'day', label: 'روز', hours: 24 },
+  { value: 'week', label: 'هفته', hours: 168 },
+];
+export const DELIVERY_VALUE_MIN = 1;
+export const DELIVERY_VALUE_MAX = 24;
 
+/** تبدیل عدد + واحد به ساعت؛ ورودی نامعتبر `null` برمی‌گرداند. */
+export function deliveryHoursFrom(value, unit) {
+  const n = Number(value);
+  const chosen = DELIVERY_UNITS.find((item) => item.value === unit);
+  if (!chosen || !Number.isInteger(n) || n < DELIVERY_VALUE_MIN || n > DELIVERY_VALUE_MAX) {
+    return null;
+  }
+  return n * chosen.hours;
+}
+
+/** آیا تعداد ساعت قابل بیان با عدد ۱–۲۴ و یکی از واحدهای سهگانه است؟ */
+export function isAllowedDeliveryHours(hours) {
+  const n = Number(hours);
+  if (!Number.isInteger(n) || n < 1 || n > DELIVERY_VALUE_MAX * 168) return false;
+  return n <= DELIVERY_VALUE_MAX
+    || (n % 24 === 0 && n / 24 <= DELIVERY_VALUE_MAX)
+    || (n % 168 === 0 && n / 168 <= DELIVERY_VALUE_MAX);
+}
 export const LANGUAGES = ['فارسی', 'انگلیسی', 'عربی', 'ترکیبی'];
 
 export const SOURCE_TYPES = ['چاپی', 'دست\u200cنویس', 'ترکیبی'];
@@ -124,13 +148,13 @@ export function calculateRemaining(total, paid) {
  * ⚠️ مقادیر نهایی باید با آیین\u200cنامه‌ی رسمی دانشگاه تأیید شود.
  */
 export const DEFAULT_DESIGN_SPEC = {
-  fontFa: 'وزیرمتن',
+  fontFa: 'بی نازنین',
   fontEn: 'Times New Roman',
-  bodySize: 14,
+  bodySize: 16,
   heading1Size: 18,
   lineSpacing: 1.5,
   paperSize: 'A4',
-  margins: { top: 2.5, bottom: 2.5, left: 3, right: 2.5 },
+  margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 },
 };
 
 const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
@@ -240,7 +264,7 @@ export function validateProjectDraft(draft) {
   if (!Number.isInteger(pages) || pages < 1) {
     errors.sourcePageCount = 'تعداد صفحه باید یک عدد صحیح مثبت باشد.';
   }
-  if (!DELIVERY_HOURS.includes(Number(d.deliveryHours))) {
+  if (!isAllowedDeliveryHours(d.deliveryHours)) {
     errors.deliveryHours = 'مهلت تحویل باید یکی از گزینه\u200cهای مجاز باشد.';
   }
   if (!OUTPUT_FORMATS.includes(d.outputFormat)) {
