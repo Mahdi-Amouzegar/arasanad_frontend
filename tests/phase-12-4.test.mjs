@@ -19,3 +19,9 @@ test('P124-05: پروفایل کاربر تازه پیام انتظار بیلد
   assert.ok(view.includes('href="/panel/"'), 'لینک موقت پنل وجود ندارد');
   assert.ok(view.includes('profileHref(user.username)'), 'لینک دائمی post-build وجود ندارد');
 });
+
+test('P124-06: اسنپشات نام کاربری با فهرست API ادغام می‌شود', () => {
+  const script = read('scripts/fetch-public-usernames.mjs');
+  assert.ok(script.includes('const merged = [...usernames'), 'اسنپشات قبلی با پاسخ API ادغام ن‌میشود');
+  assert.ok(script.includes('string[]'), 'حفظ مسیر موجود تضمین ن‌میشود');
+});

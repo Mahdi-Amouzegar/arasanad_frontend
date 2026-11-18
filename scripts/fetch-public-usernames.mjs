@@ -42,7 +42,8 @@ function valid(list) {
 async function readSnapshot() {
   try {
     const source = await readFile(OUTPUT, 'utf8');
-    const match = source.match(/\[([\s\S]*?)\]/);
+    // نباید با `[ ]` در عبارت `string[]` اشتباه شود؛ آرایه بعد از علامت `=` است.
+    const match = source.match(/=\s*\[([\s\S]*?)\]\s*;/);
     if (!match) return FALLBACK;
     const parsed = JSON.parse(`[${match[1]}]`);
     return valid(parsed) ? parsed : FALLBACK;
@@ -62,7 +63,9 @@ try {
   const payload = JSON.parse(await withTimeout(response.text(), 6000, 'body'));
   const fetched = payload?.data?.usernames;
   if (valid(fetched)) {
-    usernames = [...new Set(fetched.map((value) => value.toLowerCase()))].sort();
+    // ادغام با اسنپشات قبلی: پاسخ ناقص API نباید مسیرهای موجود را حذف کند.
+    const merged = [...usernames, ...fetched.map((value) => value.toLowerCase())];
+    usernames = [...new Set(merged)].sort();
   } else {
     console.warn('[public-usernames] unexpected API payload; keeping committed snapshot');
   }
