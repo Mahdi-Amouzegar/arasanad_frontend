@@ -27,6 +27,7 @@ export declare function isAllowedDeliveryHours(hours: number | string): boolean;
 export declare const LANGUAGES: readonly string[];
 export declare const SOURCE_TYPES: readonly string[];
 export declare const OUTPUT_FORMATS: readonly string[];
+export declare function parseOutputFormats(value: unknown): string[] | null;
 export declare const PROJECT_STATUSES: readonly ProjectStatus[];
 export declare const STATUS_TRANSITIONS: Record<string, string[]>;
 
@@ -91,7 +92,7 @@ export interface ProjectDraftInput {
   sourceType?: string;
   sourcePageCount?: number;
   deliveryHours?: number;
-  outputFormat?: string;
+  outputFormat?: string | string[];
   description?: string;
   specialRequirements?: string;
   design?: ProjectDraftDesign;

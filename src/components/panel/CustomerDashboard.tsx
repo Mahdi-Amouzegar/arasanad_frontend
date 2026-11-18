@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
-import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
+import { RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
@@ -154,7 +154,7 @@ export function CustomerDashboard() {
                         <ProjectStatusBadge status={project.status as ProjectStatus} />
                       </td>
                       <td data-label="مبلغ برآوردی"><Money value={project.estimate} /></td>
-                      <td data-label="تاریخ ثبت"><JalaliDate value={project.createdAt} variant="short" /></td>
+                      <td data-label="تاریخ ثبت"><RelativeTime value={project.createdAt} /></td>
                       <td data-label="اقدام">
                         <Link
                           className="btn btn--outline btn--sm"

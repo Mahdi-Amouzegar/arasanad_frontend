@@ -17,6 +17,7 @@ import {
   LANGUAGES,
   SOURCE_TYPES,
   OUTPUT_FORMATS,
+  parseOutputFormats,
   PROJECT_STATUSES,
   STATUS_TRANSITIONS,
   canTransition,
@@ -62,6 +63,7 @@ test('catalog constants are finite, ordered and free of duplicates', () => {
   assert.equal(PROJECT_STATUSES.length, 12);
   assert.equal(new Set(PROJECT_STATUSES).size, 12);
   assert.equal(LANGUAGES.length, 4);
+  assert.ok(LANGUAGES.includes('ترکیبی (فارسی-عربی / فارسی-انگلیسی)'));
   assert.equal(SOURCE_TYPES.length, 3);
   assert.deepEqual(OUTPUT_FORMATS, ['PDF', 'Word']);
   for (const status of PROJECT_STATUSES) {
@@ -236,4 +238,12 @@ test('delivery deadline is number 1-24 plus an hour/day/week unit', () => {
   assert.equal(isAllowedDeliveryHours(4032), true);
   assert.equal(isAllowedDeliveryHours(25), false);
   assert.equal(isAllowedDeliveryHours(5000), false);
+});
+
+test('output formats accept multiple checkboxes and reject unknown values', () => {
+  assert.deepEqual(parseOutputFormats(['PDF', 'Word']), ['PDF', 'Word']);
+  assert.deepEqual(parseOutputFormats('PDF, Word'), ['PDF', 'Word']);
+  assert.deepEqual(parseOutputFormats('PDF, PDF'), ['PDF']);
+  assert.equal(parseOutputFormats('PNG'), null);
+  assert.equal(parseOutputFormats([]), null);
 });

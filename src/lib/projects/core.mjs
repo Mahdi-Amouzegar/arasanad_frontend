@@ -35,11 +35,19 @@ export function isAllowedDeliveryHours(hours) {
     || (n % 24 === 0 && n / 24 <= DELIVERY_VALUE_MAX)
     || (n % 168 === 0 && n / 168 <= DELIVERY_VALUE_MAX);
 }
-export const LANGUAGES = ['فارسی', 'انگلیسی', 'عربی', 'ترکیبی'];
+export const LANGUAGES = ['فارسی', 'انگلیسی', 'عربی', 'ترکیبی (فارسی-عربی / فارسی-انگلیسی)'];
 
 export const SOURCE_TYPES = ['چاپی', 'دست\u200cنویس', 'ترکیبی'];
 
 export const OUTPUT_FORMATS = ['PDF', 'Word'];
+
+/** فاز ۱۲٫۳-ج: فرمت خروجی می‌تواند یک رشته یا آرایه‌ای از چند فرمت باشد. */
+export function parseOutputFormats(value) {
+  const raw = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [];
+  const tokens = raw.map((item) => String(item).trim()).filter(Boolean);
+  if (tokens.length === 0 || tokens.some((item) => !OUTPUT_FORMATS.includes(item))) return null;
+  return Array.from(new Set(tokens));
+}
 
 /** ۱۲ وضعیت سفارش — همنام و هم\u200cترتیب با `src/lib/status.ts`. */
 export const PROJECT_STATUSES = [
@@ -148,7 +156,7 @@ export function calculateRemaining(total, paid) {
  * ⚠️ مقادیر نهایی باید با آیین\u200cنامه‌ی رسمی دانشگاه تأیید شود.
  */
 export const DEFAULT_DESIGN_SPEC = {
-  fontFa: 'بی نازنین',
+  fontFa: 'B Nazanin',
   fontEn: 'Times New Roman',
   bodySize: 16,
   heading1Size: 18,
@@ -267,8 +275,8 @@ export function validateProjectDraft(draft) {
   if (!isAllowedDeliveryHours(d.deliveryHours)) {
     errors.deliveryHours = 'مهلت تحویل باید یکی از گزینه\u200cهای مجاز باشد.';
   }
-  if (!OUTPUT_FORMATS.includes(d.outputFormat)) {
-    errors.outputFormat = 'فرمت خروجی را انتخاب کنید.';
+  if (!parseOutputFormats(d.outputFormat)) {
+    errors.outputFormat = 'حداقل یک فرمت خروجی از فهرست انتخاب کنید.';
   }
 
   if (!isPlainObject(d.design)) {

@@ -34,10 +34,12 @@ import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import {
   FileManagerModal,
+  localFileSignature,
   type FileManagerResult,
   type SelectedFile,
 } from '@/components/files/FileManagerModal';
 import { FileDownloadModal } from '@/components/files/FileDownloadModal';
+import { UploaderBadge } from '@/components/files/UploaderBadge';
 import { DeliveryCard } from '@/components/files/DeliveryCard';
 import { formatNumberFa } from '@/lib/datetime';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -639,6 +641,7 @@ export function ProjectDetail() {
                       <span>{formatBytesFa(file.sizeBytes)}</span>
                       <span>•</span>
                       <RelativeTime value={file.createdAt} />
+                      <UploaderBadge username={file.uploaderUsername} avatarUrl={file.uploaderAvatarUrl} sizeBytes={file.sizeBytes} />
                     </div>
                   </div>
                   <Button
@@ -1019,6 +1022,9 @@ export function ProjectDetail() {
           role: isAdmin ? 'admin' : 'customer',
           defaultTab: 'upload',
           title: 'افزودن فایل به سفارش',
+        
+          excludeIds: initialFiles.map((file) => file.id),
+          excludeSignatures: initialFiles.map((file) => localFileSignature(file.originalName, file.sizeBytes)),
         }}
         onSelect={(result) => void attachInitialFiles(result)}
       />

@@ -54,14 +54,6 @@ export const SERVICE_TYPES: ServiceType[] = [
     description: 'تایپ جدول با محتوای انگلیسی',
   },
   {
-    id: 'fa-en',
-    name: 'فارسی-انگلیسی',
-    pricePerPage: 38_000,
-    unit: 'page',
-    description: 'متن ترکیبی فارسی و انگلیسی',
-    isPopular: true,
-  },
-  {
     id: 'fa-math',
     name: 'فارسی-فرمول',
     pricePerPage: 44_000,
@@ -79,7 +71,7 @@ export const SERVICE_TYPES: ServiceType[] = [
 
 /* ─────────────────────────── گزینه‌های فرم ─────────────────────────── */
 
-export const LANGUAGES = ['فارسی', 'انگلیسی', 'عربی', 'ترکیبی'] as const;
+export const LANGUAGES = ['فارسی', 'انگلیسی', 'عربی', 'ترکیبی (فارسی-عربی / فارسی-انگلیسی)'] as const;
 
 export const SOURCE_TYPES = ['چاپی', 'دست‌نویس', 'ترکیبی'] as const;
 

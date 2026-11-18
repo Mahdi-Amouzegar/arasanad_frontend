@@ -82,7 +82,7 @@ export function RelativeTime({ value, className }: { value: string | Date; class
   const iso = new Date(value).toISOString();
 
   return (
-    <Tooltip label={formatDateFull(value)}>
+    <Tooltip label={formatDateFull(value)} pinnable>
       <time dateTime={iso} className={className} suppressHydrationWarning>
         {formatRelative(value, now)}
       </time>

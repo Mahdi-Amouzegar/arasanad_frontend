@@ -36,7 +36,8 @@ import { Icon } from '@/components/ui/Icon';
 import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
-import { FileManagerModal, type SelectedFile, type SelectedLink } from '@/components/files/FileManagerModal';
+import { FileManagerModal, localFileSignature, type SelectedFile, type SelectedLink } from '@/components/files/FileManagerModal';
+import { UploaderBadge } from '@/components/files/UploaderBadge';
 import { createFilesApi } from '@/lib/files/api';
 import { errorText, formatHours } from './ui-utils';
 import { loadGuestDraft } from '@/lib/guest-order';
@@ -76,7 +77,8 @@ export function ProjectNewForm() {
   // فاز ۱۲٫۲-هـ: عدد ۱–۲۴ + واحد (ساعت/روز/هفته)؛ ساعت حاصل در بدنه ارسال می‌شود.
   const [deliveryValue, setDeliveryValue] = useState<string>('2');
   const [deliveryUnit, setDeliveryUnit] = useState<string>('day');
-  const [outputFormat, setOutputFormat] = useState<string>(OUTPUT_FORMATS[0] ?? '');
+  // فاز ۱۲٫۳-ج: چند فرمت خروجی قابل انتخاب است و به‌صورت «PDF, Word» ذخیره می‌شود.
+  const [outputFormats, setOutputFormats] = useState<string[]>([OUTPUT_FORMATS[0] ?? 'PDF']);
 
   const [designMode, setDesignMode] = useState<'standard' | 'custom'>('standard');
   const [designSubmode, setDesignSubmode] = useState<'like_original' | 'custom'>('like_original');
@@ -170,7 +172,7 @@ export function ProjectNewForm() {
       specialRequirements,
       sourcePageCount: Number(pageCount),
       deliveryHours: hours,
-      outputFormat,
+      outputFormat: outputFormats,
       design: { mode: designMode, submode: designSubmode, presetId: presetId || null, spec },
     };
     const result = validateProjectDraft(draft);
@@ -189,7 +191,7 @@ export function ProjectNewForm() {
       description: description.trim(),
       sourcePageCount: Number(pageCount),
       deliveryHours: hours,
-      outputFormat,
+      outputFormat: outputFormats.join(', '),
       specialRequirements: specialRequirements.trim(),
       design: {
         mode: designMode,
@@ -230,7 +232,9 @@ export function ProjectNewForm() {
         title: 'سفارش ثبت شد',
         message: `کد سفارش: ${project.code}`,
       });
-      router.push(`/projects/detail/?id=${encodeURIComponent(project.id)}`);
+      // فاز ۱۲٫۳-هـ: صفحهٔ جزئیات کامل (فایل‌ها، لینکها و تحویل) نه نمای‌عمومی.
+      const detailBase = user?.role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
+      router.push(`${detailBase}?id=${encodeURIComponent(project.id)}`);
     } catch (caught) {
       const message = errorText(caught, 'ثبت سفارش انجام نشد');
       setSubmitError(message);
@@ -408,18 +412,23 @@ export function ProjectNewForm() {
               </div>
             </FormField>
 
-            <FormField label="فرمت خروجی" htmlFor="prj-format" required error={errors.outputFormat}>
-              <Select
-                id="prj-format"
-                value={outputFormat}
-                onChange={(event) => setOutputFormat(event.target.value)}
-              >
+            <FormField label="فرمت خروجی" required error={errors.outputFormat}>
+              <div className="prj-format-options" role="group" aria-label="فرمت خروجی">
                 {OUTPUT_FORMATS.map((item) => (
-                  <option key={item} value={item}>
+                  <label key={item} className="prj-format-option">
+                    <input
+                      type="checkbox"
+                      checked={outputFormats.includes(item)}
+                      onChange={(event) => setOutputFormats((current) => (
+                        event.target.checked
+                          ? Array.from(new Set([...current, item]))
+                          : current.filter((value) => value !== item)
+                      ))}
+                    />
                     {item}
-                  </option>
+                  </label>
                 ))}
-              </Select>
+              </div>
             </FormField>
           </div>
 
@@ -467,6 +476,7 @@ export function ProjectNewForm() {
                           <div className="fm-item__name">{file.originalName}</div>
                           <div className="fm-item__meta">
                             <span>{file.fileCode || 'جدید'}</span>
+                            <UploaderBadge username={user?.username} avatarUrl={user?.avatarUrl} sizeBytes={file.sizeBytes} />
                           </div>
                         </div>
                         <Button
@@ -690,6 +700,9 @@ export function ProjectNewForm() {
           role: user?.role === 'admin' ? 'admin' : 'customer',
           defaultTab: 'upload',
           title: 'فایل‌های ضمیمه سفارش',
+        
+          excludeIds: attachedFiles.map((file) => file.id),
+          excludeSignatures: attachedFiles.map((file) => localFileSignature(file.originalName, file.sizeBytes)),
         }}
         onSelect={(result) => {
           setAttachedFiles((prev) => [...prev, ...result.files]);

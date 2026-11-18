@@ -15,23 +15,50 @@ import { DeliveryWorkspace } from '@/components/delivery/DeliveryWorkspace';
 import { CustomerDashboard } from '@/components/panel/CustomerDashboard';
 import { CustomerFiles } from '@/components/panel/CustomerFiles';
 import { CustomerProfileAlias } from '@/components/panel/CustomerProfileAlias';
+import { PublicProfileView } from '@/components/panel/PublicProfileView';
 import { CUSTOMER_GROUPS, CUSTOMER_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
+import { isPublicProfileSlug } from '@/lib/profiles';
+import { PUBLIC_USERNAMES } from '@/lib/generated/public-usernames';
 
-export const metadata: Metadata = {
+const PANEL_METADATA: Metadata = {
   title: 'پنل کاربری',
   description: 'پنل کاربری آراسند — فهرست و ثبت سفارش‌ها، همراه با پوسته‌ی ناوبری فازهای بعدی.',
   robots: { index: false, follow: false },
 };
 
+/** پروفایل عمومی قابل نمایهشدن است؛ بقیه‌ی پنل خصوصی می‌ماند. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  if (slug?.length === 1 && isPublicProfileSlug(slug[0] ?? '')) {
+    const handle = slug[0] ?? '';
+    return {
+      title: `@${handle} — پروفایل کاربر`,
+      description: `پروفایل عمومی @${handle} در آراسند`,
+      robots: { index: true, follow: true },
+    };
+  }
+  return PANEL_METADATA;
+}
+
 /** تمام مسیرهای `CUSTOMER_NAV` در بیلد استاتیک تولید می‌شود تا لینک مرده نماند. */
 export function generateStaticParams() {
-  return slugsFor(CUSTOMER_GROUPS, '/panel', [
-    'projects/detail',
-    'projects/operations',
-    'projects/delivery',
-    'pay',
-    'pay/result',
-  ]);
+  return [
+    ...slugsFor(CUSTOMER_GROUPS, '/panel', [
+      'projects/detail',
+      'projects/operations',
+      'projects/delivery',
+      'pay',
+      'pay/result',
+    ]),
+    // فاز ۱۲٫۳-م: صفحات پروفایل عمومی از اسنپشات زمان بیلد ساخته می‌شوند.
+    ...PUBLIC_USERNAMES.filter((name) => isPublicProfileSlug(name)).map((name) => ({
+      slug: [name],
+    })),
+  ];
 }
 
 /** سفارش‌ها در فاز ۷ و گفتگو/اعلان در فاز ۹ واقعی‌اند؛ بقیه پوسته‌ی صادقانه دارند. */
@@ -54,6 +81,12 @@ const REAL_VIEWS: Record<string, 'dashboard' | 'files' | 'profile-alias' | 'list
 
 export default async function PanelPage({ params }: { params: Promise<{ slug?: string[] }> }) {
   const { slug } = await params;
+
+  // فاز ۱۲٫۳-م: `/panel/<username>` پروفایل عمومی است، نه پوسته‌ی خصوصی پنل.
+  if (slug?.length === 1 && isPublicProfileSlug(slug[0] ?? '')) {
+    return <PublicProfileView username={slug[0] ?? ''} />;
+  }
+
   const href = hrefFromSlug('/panel', slug);
   const info = infoFor(CUSTOMER_PAGES, href);
   const isProfileAlias = href === '/panel/profile';

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/fetch-site-config.mjs && node scripts/fetch-public-usernames.mjs",
     "build": "next build",
     "postbuild": "node scripts/postbuild.mjs",
     "typecheck": "tsc --noEmit",

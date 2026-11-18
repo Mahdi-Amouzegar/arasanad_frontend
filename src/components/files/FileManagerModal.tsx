@@ -10,12 +10,13 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { RelativeTime } from '@/components/ui/JalaliDate';
-import { useAlert } from '@/components/ui/AlertProvider';
 import { useAuth } from '@/lib/account';
+import { UploaderBadge } from './UploaderBadge';
+import { normalizeExternalUrl } from '@/lib/files/links';
 import { cx } from '@/lib/cx';
 import { formatNumberFa } from '@/lib/datetime';
 import {
-  uploadFile,
+  uploadFileWithProgress,
   retryUpload,
   getFileDownloadUrl,
   getFileConfig,
@@ -43,6 +44,10 @@ export interface FileManagerConfig {
   maxFileSize?: number;
   /** جایگزینی فهرست پسوندهای مجاز */
   allowedExtensions?: string[];
+  /** فاز ۱۲٫۳-ط: فایل‌هایی که قبلاً به صفحهٔ مقصد اضافه شده‌اند. */
+  excludeIds?: string[];
+  /** اثر انگشت «نام+حجم» فایل‌ها برای جلوگیری از افزودن دوباره. */
+  excludeSignatures?: string[];
 }
 
 export interface SelectedFile {
@@ -81,6 +86,11 @@ const DEFAULT_ALLOWED_EXTENSIONS = [
 ];
 const ALL_TABS: FileManagerTab[] = ['upload', 'select', 'link'];
 
+/** هویت پایدار فایل محلی: نام + حجم (برای جلوگیری از افزودن تکراری). */
+export function localFileSignature(name: string, size: number): string {
+  return `${name.trim().toLowerCase()}|${size}`;
+}
+
 /* ─────────────────────────── Component ─────────────────────────── */
 
 export function FileManagerModal({
@@ -89,8 +99,7 @@ export function FileManagerModal({
   config,
   onSelect,
 }: FileManagerModalProps) {
-  const { token, authedRequest } = useAuth();
-  const { showToast } = useAlert();
+  const { token, authedRequest, user } = useAuth();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [activeTab, setActiveTab] = useState<FileManagerTab>(
     config.defaultTab ?? 'upload',
@@ -146,8 +155,16 @@ export function FileManagerModal({
     status: 'pending' | 'uploading' | 'uploaded' | 'failed';
     fileId?: string;
     error?: string;
+    loaded?: number;
+    total?: number;
+    confirming?: boolean;
   }>>([]);
   const [isDragging, setIsDragging] = useState(false);
+  /** فاز ۱۲٫۳-ط: فقط فایل‌ها علامتخورده هنگام «انتخاب فایل‌ها» اضافه می‌شوند. */
+  const [selectedUploaded, setSelectedUploaded] = useState<Set<string>>(new Set());
+  // فاز ۱۲٫۳-ز: پیام‌ها داخل دیالوگ بومی نمایش می‌شوند؛ toast خارجی
+  // حتی با z-index بالا زیر لایه dialog می‌ماند و خوانده نمی‌شود.
+  const [notice, setNotice] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Select tab state
@@ -171,6 +188,13 @@ export function FileManagerModal({
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (open) {
+      // فاز ۱۲٫۳-ط: هر بار باز شدن پنجره، صف ارسال و انتخاب‌ها تازه می‌شود.
+      setPendingFiles([]);
+      setSelectedUploaded(new Set());
+      setSelectedExisting(new Set());
+      setSelectedLinks(new Set());
+      setNotice(null);
+      setLinkError(null);
       if (!dialog.open) dialog.showModal();
       // Load existing files and links when opening
       if (filesApi && existingFiles.length === 0) {
@@ -200,32 +224,33 @@ export function FileManagerModal({
   // ─── Upload tab ───
   const handleFileSelect = useCallback((fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
-    const newFiles: Array<{ file: File; status: 'pending'; error?: string }> = [];
+    setNotice(null);
+    const newFiles: Array<{ file: File; status: 'pending'; loaded: number; total: number }> = [];
     const { maxFileSize, allowedExtensions } = limits;
     for (const file of Array.from(fileList)) {
       const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
       if (!allowedExtensions.includes(ext)) {
-        showToast({
-          type: 'error',
-          title: 'فرمت نامعتبر',
-          message: `فرمت «${ext}» پشتیبانی نمی‌شود؛ مجاز: ${allowedExtensions.join('، ')}`,
-        });
+        setNotice({ type: 'error', message: `فرمت «${ext}» پشتیبانی نمی‌شود؛ مجاز: ${allowedExtensions.join('، ')}` });
         continue;
       }
       if (file.size > maxFileSize) {
-        showToast({
-          type: 'error',
-          title: 'حجم بیش از حد',
-          message: `حجم فایل «${file.name}» بیش از ${formatBytesFa(maxFileSize)} است`,
-        });
+        setNotice({ type: 'error', message: `حجم فایل «${file.name}» بیش از ${formatBytesFa(maxFileSize)} است` });
         continue;
       }
-      newFiles.push({ file, status: 'pending' });
+      const signature = localFileSignature(file.name, file.size);
+      if (
+        (config.excludeSignatures ?? []).includes(signature)
+        || pendingFiles.some((p) => localFileSignature(p.file.name, p.file.size) === signature)
+      ) {
+        setNotice({ type: 'error', message: `فایل «${file.name}» قبلاً اضافه شده است` });
+        continue;
+      }
+      newFiles.push({ file, status: 'pending', loaded: 0, total: file.size });
     }
     if (newFiles.length > 0) {
       setPendingFiles((prev) => [...prev, ...newFiles]);
     }
-  }, [showToast, limits]);
+  }, [limits, config.excludeSignatures, pendingFiles]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -249,14 +274,23 @@ export function FileManagerModal({
     if (!item || item.status === 'uploading' || item.status === 'uploaded') return;
 
     setPendingFiles((prev) => prev.map((p, i) =>
-      i === index ? { ...p, status: 'uploading' } : p,
+      i === index ? { ...p, status: 'uploading', loaded: 0, total: p.file.size, confirming: false } : p,
     ));
+    const onProgress = (loaded: number, total: number, phase: 'uploading' | 'confirming') => {
+      setPendingFiles((prev) => prev.map((p, i) =>
+        i === index ? { ...p, loaded, total, confirming: phase === 'confirming' } : p,
+      ));
+    };
 
     try {
-      const result = await uploadFile(token, item.file);
+      const result = await uploadFileWithProgress(token, item.file, onProgress);
       setPendingFiles((prev) => prev.map((p, i) =>
-        i === index ? { ...p, status: 'uploaded', fileId: result.id } : p,
+        i === index ? {
+          ...p, status: 'uploaded', fileId: result.id,
+          loaded: p.file.size, total: p.file.size, confirming: false,
+        } : p,
       ));
+      setSelectedUploaded((prev) => new Set(prev).add(localFileSignature(item.file.name, item.file.size)));
     } catch (err) {
       setPendingFiles((prev) => prev.map((p, i) =>
         i === index ? {
@@ -281,18 +315,27 @@ export function FileManagerModal({
     const item = pendingFiles[index];
     if (!item || !token) return;
     setPendingFiles((prev) => prev.map((p, i) =>
-      i === index ? { ...p, status: 'uploading' } : p,
+      i === index ? { ...p, status: 'uploading', loaded: 0, total: p.file.size, confirming: false } : p,
     ));
+    const onProgress = (loaded: number, total: number, phase: 'uploading' | 'confirming') => {
+      setPendingFiles((prev) => prev.map((p, i) =>
+        i === index ? { ...p, loaded, total, confirming: phase === 'confirming' } : p,
+      ));
+    };
     try {
       // اگر آپلود اولیه در همان لحظه شکست خورده باشد، سرور شناسهای به
       // کلاینت نداده است؛ در این حالت یک آپلود تازه انجام می‌دهیم تا
       // درخواست به `/files//retry` نرود و خطا تکرار نشود.
       const result = item.fileId
-        ? await retryUpload(token, item.fileId, item.file)
-        : await uploadFile(token, item.file);
+        ? await retryUpload(token, item.fileId, item.file, onProgress)
+        : await uploadFileWithProgress(token, item.file, onProgress);
       setPendingFiles((prev) => prev.map((p, i) =>
-        i === index ? { ...p, status: 'uploaded', fileId: result.id } : p,
+        i === index ? {
+          ...p, status: 'uploaded', fileId: result.id,
+          loaded: p.file.size, total: p.file.size, confirming: false,
+        } : p,
       ));
+      setSelectedUploaded((prev) => new Set(prev).add(localFileSignature(item.file.name, item.file.size)));
     } catch (err) {
       setPendingFiles((prev) => prev.map((p, i) =>
         i === index ? {
@@ -316,8 +359,16 @@ export function FileManagerModal({
 
   /** حذف یک فایل از صف ارسال (پیش از آپلود) — فقط مدیر. */
   const handleRemovePending = useCallback((index: number) => {
+    const item = pendingFiles[index];
     setPendingFiles((prev) => prev.filter((_, i) => i !== index));
-  }, []);
+    if (item) {
+      setSelectedUploaded((prev) => {
+        const next = new Set(prev);
+        next.delete(localFileSignature(item.file.name, item.file.size));
+        return next;
+      });
+    }
+  }, [pendingFiles]);
 
   /** حذف نرم فایل — فقط مدیر (config.role === 'admin'). */
   const handleDeleteExisting = useCallback(
@@ -331,33 +382,34 @@ export function FileManagerModal({
           next.delete(id);
           return next;
         });
-        showToast({ type: 'success', title: 'فایل حذف شد' });
+        setNotice({ type: 'success', message: 'فایل حذف شد' });
       } catch (caught) {
-        showToast({
-          type: 'error',
-          title: 'حذف فایل انجام نشد',
-          message: caught instanceof Error ? caught.message : undefined,
-        });
+        setNotice({ type: 'error', message: caught instanceof Error ? caught.message : 'حذف فایل انجام نشد' });
       }
     },
-    [config.role, filesApi, showToast],
+    [config.role, filesApi],
   );
 
   // ─── Link tab ───
   const handleAddLink = useCallback(async () => {
     if (!linkUrl.trim() || !linksApi) return;
     setLinkError(null);
+    const normalized = normalizeExternalUrl(linkUrl);
+    if (!normalized) {
+      setLinkError('آدرس لینک معتبر نیست؛ مثال: https://www.example.com/file.pdf');
+      return;
+    }
     try {
-      const link = await linksApi.createLink(linkUrl.trim(), linkDesc.trim() || undefined);
+      const link = await linksApi.createLink(normalized, linkDesc.trim() || undefined);
       setLinks((prev) => [link, ...prev]);
       setLinkUrl('');
       setLinkDesc('');
-      showToast({ type: 'success', title: 'لینک اضافه شد' });
+      setNotice({ type: 'success', message: 'لینک اضافه شد' });
     } catch (err) {
       // فاز ۱۲٫۲-ط: خطا زیر همان کادر نمایش داده می‌شود، نه در toast پشت overlay.
       setLinkError(err instanceof Error ? err.message : 'افزودن لینک ناموفق بود');
     }
-  }, [linkUrl, linkDesc, linksApi, showToast]);
+  }, [linkUrl, linkDesc, linksApi]);
 
   const toggleLink = useCallback((id: string) => {
     setSelectedLinks((prev) => {
@@ -372,6 +424,9 @@ export function FileManagerModal({
   const handleSelectFiles = useCallback(() => {
     const uploadedFiles = pendingFiles
       .filter((p) => p.status === 'uploaded' && p.fileId)
+      .filter((p) => selectedUploaded.has(localFileSignature(p.file.name, p.file.size)))
+      .filter((p) => !(config.excludeIds ?? []).includes(p.fileId!))
+      .filter((p) => !(config.excludeSignatures ?? []).includes(localFileSignature(p.file.name, p.file.size)))
       .map((p) => ({
         id: p.fileId!,
         originalName: p.file.name,
@@ -382,6 +437,7 @@ export function FileManagerModal({
       }));
 
     const selectedFromExisting = existingFiles
+      .filter((f) => !(config.excludeIds ?? []).includes(f.id))
       .filter((f) => selectedExisting.has(f.id))
       .map((f) => ({
         id: f.id,
@@ -393,7 +449,7 @@ export function FileManagerModal({
       }));
 
     const allFiles = [...uploadedFiles, ...selectedFromExisting];
-    // وقتی تب لینک در پیکربندی پنهان است، انتخابهای قدیمی نباید نشت کنند.
+    // وقتی تب لینک در پیکربندی پنهان است، انتخاب‌های قدیمی نباید نشت کنند.
     const selectedLinkItems = visibleTabs.includes('link')
       ? links
           .filter((l) => selectedLinks.has(l.id))
@@ -411,9 +467,13 @@ export function FileManagerModal({
     visibleTabs,
     onSelect,
     handleClose,
+    selectedUploaded,
+    config.excludeIds,
+    config.excludeSignatures,
   ]);
 
-  const hasUploadedFiles = pendingFiles.some((p) => p.status === 'uploaded');
+  const hasUploadedFiles = pendingFiles.some((p) =>
+    p.status === 'uploaded' && selectedUploaded.has(localFileSignature(p.file.name, p.file.size)));
   const hasSelectedExisting = selectedExisting.size > 0;
   const hasSelectedLinks = visibleTabs.includes('link') && selectedLinks.size > 0;
   const canSelect = hasUploadedFiles || hasSelectedExisting || hasSelectedLinks;
@@ -482,6 +542,9 @@ export function FileManagerModal({
 
         {/* Body */}
         <div className="fm-modal__body">
+          {notice ? (
+            <p className={`fm-notice fm-notice--${notice.type}`} role="alert">{notice.message}</p>
+          ) : null}
           {activeTab === 'upload' && visibleTabs.includes('upload') && (
             <UploadTab
               isDragging={isDragging}
@@ -491,6 +554,14 @@ export function FileManagerModal({
               onFileSelect={handleFileSelect}
               fileInputRef={fileInputRef}
               pendingFiles={pendingFiles}
+              uploader={{ username: user?.username, avatarUrl: user?.avatarUrl }}
+              selectedUploaded={selectedUploaded}
+              onToggleUploaded={(key) => setSelectedUploaded((prev) => {
+                const next = new Set(prev);
+                if (next.has(key)) next.delete(key);
+                else next.add(key);
+                return next;
+              })}
               onUploadAll={handleUploadAll}
               onRetry={handleRetry}
               onRemove={handleRemovePending}
@@ -502,6 +573,7 @@ export function FileManagerModal({
           {activeTab === 'select' && visibleTabs.includes('select') && (
             <SelectTab
               files={existingFiles}
+              excludeIds={config.excludeIds ?? []}
               loading={loadingFiles}
               selected={selectedExisting}
               onToggle={toggleExistingFile}
@@ -558,7 +630,13 @@ interface UploadTabProps {
     status: 'pending' | 'uploading' | 'uploaded' | 'failed';
     fileId?: string;
     error?: string;
+    loaded?: number;
+    total?: number;
+    confirming?: boolean;
   }>;
+  uploader?: { username?: string; avatarUrl?: string | null };
+  selectedUploaded: Set<string>;
+  onToggleUploaded: (key: string) => void;
   onUploadAll: () => void;
   onRetry: (index: number) => void;
   onRemove: (index: number) => void;
@@ -575,6 +653,9 @@ function UploadTab({
   onFileSelect,
   fileInputRef,
   pendingFiles,
+  uploader,
+  selectedUploaded,
+  onToggleUploaded,
   onUploadAll,
   onRetry,
   onRemove,
@@ -583,6 +664,15 @@ function UploadTab({
   allowedExtensions,
 }: UploadTabProps) {
   const hasPending = pendingFiles.some((p) => p.status === 'pending' || p.status === 'failed');
+  // فاز ۱۲٫۳-ح: میلهٔ کلی از مجموع بایت‌های ارسالشدهٔ تمام فایل‌ها پر می‌شود.
+  const totalBytes = pendingFiles.reduce((sum, p) => sum + (p.total ?? p.file.size), 0);
+  const loadedBytes = pendingFiles.reduce(
+    (sum, p) => sum + Math.min(p.loaded ?? 0, p.total ?? p.file.size),
+    0,
+  );
+  const overallPercent = totalBytes > 0 ? Math.min(100, Math.round((loadedBytes / totalBytes) * 100)) : 0;
+  const activeUploads = pendingFiles.filter((p) => p.status === 'uploading');
+  const awaitingServer = activeUploads.length > 0 && activeUploads.every((p) => p.confirming);
 
   return (
     <div>
@@ -636,6 +726,15 @@ function UploadTab({
                   item.status === 'uploaded' && 'fm-item--uploaded',
                 )}
               >
+                {item.status === 'uploaded' ? (
+                  <input
+                    type="checkbox"
+                    className="fm-item__check"
+                    checked={selectedUploaded.has(localFileSignature(item.file.name, item.file.size))}
+                    onChange={() => onToggleUploaded(localFileSignature(item.file.name, item.file.size))}
+                    aria-label={`انتخاب ${item.file.name}`}
+                  />
+                ) : null}
                 <div className="fm-item__icon">
                   <Icon name="fileText" size={20} />
                 </div>
@@ -643,10 +742,41 @@ function UploadTab({
                   <div className="fm-item__name">{item.file.name}</div>
                   <div className="fm-item__meta">
                     <span>{formatBytesFa(item.file.size)}</span>
-                    {item.status === 'uploading' && <span>در حال آپلود…</span>}
+                    {item.status === 'uploading' ? (
+                      <span className="fm-upload-state">
+                        <span className={cx('fm-spinner', item.confirming && 'fm-spinner--pulse')} aria-hidden="true" />
+                        {item.confirming
+                          ? 'در حال تأیید'
+                          : `${formatNumberFa(Math.min(100, Math.round(((item.loaded ?? 0) / (item.total || 1)) * 100)))}٪`}
+                      </span>
+                    ) : null}
+                    {item.status === 'uploaded' ? (
+                      <UploaderBadge username={uploader?.username} avatarUrl={uploader?.avatarUrl} sizeBytes={item.file.size} />
+                    ) : null}
                     {item.error && <span style={{ color: 'var(--c-danger)' }}>{item.error}</span>}
                   </div>
+                  {item.status === 'uploading' ? (
+                    <div
+                      className={cx('fm-progress', 'fm-progress--small', item.confirming && 'fm-progress--indeterminate')}
+                      role="progressbar"
+                      aria-label={`پیشرفت آپلود ${item.file.name}`}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={item.confirming ? undefined : Math.min(100, Math.round(((item.loaded ?? 0) / (item.total || 1)) * 100))}
+                    >
+                      <span
+                        className="fm-progress__fill"
+                        style={item.confirming ? undefined : { width: `${Math.min(100, Math.round(((item.loaded ?? 0) / (item.total || 1)) * 100))}%` }}
+                      />
+                    </div>
+                  ) : null}
                 </div>
+                {item.status === 'failed' ? (
+                  <span className="fm-item__status fm-item__status--failed">
+                    <Icon name="xCircle" size={12} />
+                    خطا
+                  </span>
+                ) : null}
                 {item.status === 'failed' && (
                   <Button
                     variant="ghost"
@@ -684,6 +814,30 @@ function UploadTab({
               </div>
             ))}
           </div>
+          {activeUploads.length > 0 ? (
+            <div className="fm-upload-overall" role="status" aria-live="polite">
+              <span className="fm-upload-overall__label">
+                {awaitingServer ? (
+                  <>در حال تأیید سرور<span className="fm-confirm-dots" aria-hidden="true" /></>
+                ) : (
+                  `در حال ارسال ${formatNumberFa(overallPercent)}٪`
+                )}
+              </span>
+              <div
+                className={cx('fm-progress', awaitingServer && 'fm-progress--indeterminate')}
+                role="progressbar"
+                aria-label="پیشرفت کلی آپلود"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={awaitingServer ? undefined : overallPercent}
+              >
+                <span
+                  className="fm-progress__fill"
+                  style={awaitingServer ? undefined : { width: `${overallPercent}%` }}
+                />
+              </div>
+            </div>
+          ) : null}
         </>
       )}
     </div>
@@ -694,6 +848,7 @@ function UploadTab({
 
 interface SelectTabProps {
   files: FileItem[];
+  excludeIds: string[];
   loading: boolean;
   selected: Set<string>;
   onToggle: (id: string) => void;
@@ -704,6 +859,7 @@ interface SelectTabProps {
 
 function SelectTab({
   files,
+  excludeIds,
   loading,
   selected,
   onToggle,
@@ -711,10 +867,11 @@ function SelectTab({
   canDelete,
   onDelete,
 }: SelectTabProps) {
+  const visibleFiles = files.filter((file) => !excludeIds.includes(file.id));
   if (loading) {
     return <div className="fm-empty"><div className="btn__spinner" /></div>;
   }
-  if (files.length === 0) {
+  if (visibleFiles.length === 0) {
     return (
       <div className="fm-empty">
         <Icon name="file" size={32} className="fm-empty__icon" />
@@ -724,7 +881,7 @@ function SelectTab({
   }
   return (
     <div className="fm-list">
-      {files.map((file) => (
+      {visibleFiles.map((file) => (
         <div key={file.id} className="fm-item">
           <input
             type="checkbox"
@@ -744,6 +901,11 @@ function SelectTab({
               <span>{formatBytesFa(file.sizeBytes)}</span>
               <span>•</span>
               <RelativeTime value={file.createdAt} />
+              <UploaderBadge
+                username={file.uploaderUsername}
+                avatarUrl={file.uploaderAvatarUrl}
+                sizeBytes={file.sizeBytes}
+              />
             </div>
           </div>
           {token ? (

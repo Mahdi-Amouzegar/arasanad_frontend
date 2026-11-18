@@ -143,7 +143,18 @@ export function formatRelative(input: string | Date, now: Date = new Date(nowMs(
 
   const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (diffSec < 0) return formatDateShort(input);
+  if (diffSec < 0) {
+    // فاز ۱۲٫۳-و: زمانهای آینده هم نسبی نمایش داده می‌شوند.
+    const ahead = -diffSec;
+    if (ahead < 60) return 'کمتر از یک دقیقه‌دیگر';
+    const aheadMinutes = Math.floor(ahead / 60);
+    if (aheadMinutes < 60) return `${formatNumberFa(aheadMinutes)} دقیقه‌دیگر`;
+    const aheadHours = Math.floor(aheadMinutes / 60);
+    if (aheadHours < 24) return `${formatNumberFa(aheadHours)} ساعت‌دیگر`;
+    const aheadDays = Math.floor(aheadHours / 24);
+    if (aheadDays < 7) return `${formatNumberFa(aheadDays)} روز‌دیگر`;
+    return formatDateShort(input);
+  }
   if (diffSec < 60) return 'همین حالا';
 
   const minutes = Math.floor(diffSec / 60);

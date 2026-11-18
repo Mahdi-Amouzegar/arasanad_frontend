@@ -50,7 +50,7 @@ test('P122-05: مهلت تحویل دو کادر عددی و واحدی دارد
 
 test('P122-06: استاندارد طراحی و پیش‌فرض حالت سفارشی', () => {
   const core = read('src/lib/projects/core.mjs');
-  assert.ok(core.includes("fontFa: 'بی نازنین'"), 'قلم پیش‌فرض بی نازنین نیست');
+  assert.ok(core.includes("fontFa: 'B Nazanin'"), 'قلم پیش‌فرض B Nazanin نیست');
   assert.ok(core.includes('bodySize: 16'), 'اندازه متن پیش‌فرض ۱۶ نیست');
   assert.ok(core.includes('margins: { top: 2.5, bottom: 2.5, left: 2.5, right: 2.5 }'), 'حاشیه چپ پیش‌فرض ۲٫۵ نیست');
   const form = read('src/components/projects/ProjectNewForm.tsx');

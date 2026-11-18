@@ -7,7 +7,7 @@ import { PROJECT_STATUS, type ProjectStatus } from '@/lib/status';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
-import { JalaliDate } from '@/components/ui/JalaliDate';
+import { RelativeTime } from '@/components/ui/JalaliDate';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { errorText, formatHours, formatProjectCodeSafe } from './ui-utils';
@@ -99,7 +99,7 @@ export function PublicProjectsList() {
               <Icon name="clock" size={14} /> {formatHours(project.deliveryHours)}
             </span>
             <span>
-              <Icon name="pencil" size={14} /> <JalaliDate value={project.createdAt} />
+              <Icon name="pencil" size={14} /> <RelativeTime value={project.createdAt} />
             </span>
           </div>
           {project.description ? (

@@ -14,6 +14,8 @@ import { TelegramConnectCard } from '@/components/chat/TelegramConnectCard';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { OtpQrPanel } from './OtpQrPanel';
 import { useAuth, type AuthUser } from '@/lib/account';
+import { validateUsername } from '@/lib/account/username';
+import { profileHref } from '@/lib/profiles';
 import { ApiError, apiRequest } from '@/lib/api';
 import { formatBytes, processAvatar, uploadAvatar } from '@/lib/avatar';
 import { BASE_PATH } from '@/lib/config';
@@ -83,8 +85,11 @@ export function ProfileView() {
       setUsernameState({ status: 'idle' });
       return undefined;
     }
-    if (username.trim().length < 3) {
-      setUsernameState({ status: 'idle' });
+
+    // قالب نامعتبر را همان لحظه و بدون درخواست شبکه نشان بده
+    const format = validateUsername(username);
+    if (!format.ok) {
+      setUsernameState({ status: 'taken', reason: format.error ?? 'نام کاربری نامعتبر است' });
       return undefined;
     }
 
@@ -664,7 +669,11 @@ export function ProfileView() {
       </div>
 
       <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
-        نشانی پروفایل: {BASE_PATH}/profile/
+        نشانی پروفایل عمومی:{' '}
+        <Link href={profileHref(user.username)} className="ltr">
+          {BASE_PATH}
+          {profileHref(user.username)}
+        </Link>
       </p>
     </div>
   );

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { Input, Select } from '@/components/ui/Field';
-import { JalaliDate } from '@/components/ui/JalaliDate';
+import { RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -279,7 +279,7 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                     <Money value={project.estimateAmount} />
                   </td>
                   <td data-label="تاریخ ثبت">
-                    <JalaliDate value={project.createdAt} variant="short" />
+                    <RelativeTime value={project.createdAt} />
                   </td>
                   <td data-label="اقدام">
                     <ProjectActionsCell project={project} role={role} onDone={refresh} />

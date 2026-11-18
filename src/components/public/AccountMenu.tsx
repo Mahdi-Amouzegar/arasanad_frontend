@@ -7,6 +7,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/Icon';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { useAuth } from '@/lib/account';
+import { profileHref } from '@/lib/profiles';
 
 const PANEL_WIDTH = 224;
 const GAP = 8;
@@ -145,9 +146,19 @@ export function AccountMenu() {
         داشبورد
       </Link>
 
-      <Link href="/profile/" className="account-menu__item" role="menuitem" onClick={() => setOpen(false)}>
+      <Link
+        href={profileHref(user.username)}
+        className="account-menu__item"
+        role="menuitem"
+        onClick={() => setOpen(false)}
+      >
         <Icon name="user" size={15} />
         پروفایل من
+      </Link>
+
+      <Link href="/profile/" className="account-menu__item" role="menuitem" onClick={() => setOpen(false)}>
+        <Icon name="settings" size={15} />
+        تنظیمات حساب
       </Link>
 
       <button

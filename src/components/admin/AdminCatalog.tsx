@@ -150,7 +150,7 @@ export function AdminPricingEditor() {
 /* ═══════════════════ استانداردهای ظاهری (۱۲-ث) ═══════════════════ */
 
 function presetPreview(spec: Record<string, unknown>): React.ReactNode {
-  const fontFa = String(spec.fontFa ?? 'بی نازنین');
+  const fontFa = String(spec.fontFa ?? 'B Nazanin');
   const fontEn = String(spec.fontEn ?? 'Times New Roman');
   const bodySize = Number(spec.bodySize ?? 16);
   const headingSize = Number(spec.heading1Size ?? 18);

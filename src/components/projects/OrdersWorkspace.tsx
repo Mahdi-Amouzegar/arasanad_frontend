@@ -19,7 +19,7 @@ import { useChat } from '@/components/chat/ChatProvider';
 import { DataTable, type Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
-import { JalaliDate } from '@/components/ui/JalaliDate';
+import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -324,13 +324,19 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
       {
         key: 'created',
         header: 'تاریخ ثبت',
-        render: (row) => <JalaliDate value={row.createdAt} variant="short" />,
+        render: (row) => <RelativeTime value={row.createdAt} />,
         sortValue: (row) => row.createdAt,
       },
       {
         key: 'delivery',
         header: 'تاریخ تحویل',
-        render: (row) => row.deliveredAt ? <JalaliDate value={row.deliveredAt} variant="short" /> : '—',
+        render: (row) => (
+          row.deliveredAt
+            ? <RelativeTime value={row.deliveredAt} />
+            : row.deadlineAt
+              ? <RelativeTime value={row.deadlineAt} />
+              : '—'
+        ),
         sortValue: (row) => row.deliveredAt ?? '',
       },
       {

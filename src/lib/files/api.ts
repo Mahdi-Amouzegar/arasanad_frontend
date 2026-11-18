@@ -16,6 +16,8 @@ export interface FileConfig {
 export interface FileItem {
   id: string;
   uploaderId: string;
+  uploaderUsername?: string | null;
+  uploaderAvatarUrl?: string | null;
   originalName: string;
   fileCode: string;
   mimeType: string;
@@ -172,84 +174,99 @@ export type FilesApi = ReturnType<typeof createFilesApi>;
 
 /* ─────────────────────────── Binary upload ─────────────────────────── */
 
-/**
- * Upload a file using raw fetch (binary body).
- * @param token Auth token
- * @param file File from input element
- * @returns Uploaded file item
- */
-export async function uploadFile(
-  token: string,
-  file: File,
-): Promise<FileItem> {
-  const headers: Record<string, string> = {
-    'Content-Type': file.type || 'application/octet-stream',
-    'X-File-Name': encodeURIComponent(file.name),
-    'X-File-Size': String(file.size),
-    Authorization: `Bearer ${token}`,
-  };
+/** فاز ۱۲٫۳-ح: پیشرفت بایت‌های آپلود و مرحلهٔ انتظار تأیید سرور. */
+export type UploadProgressHandler = (
+  loaded: number,
+  total: number,
+  phase: 'uploading' | 'confirming',
+) => void;
 
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE}/files/upload`, {
-      method: 'POST',
-      headers,
-      body: file,
-    });
-  } catch {
-    throw new Error('ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.');
-  }
-
-  const payload = (await response.json()) as {
-    ok: boolean;
-    data: { file: FileItem } | null;
-    error: { code: string; message: string } | null;
-  };
-
-  if (!response.ok || !payload.ok || !payload.data) {
-    const message = payload.error?.message ?? 'آپلود فایل انجام نشد';
-    throw new Error(message);
-  }
-
-  return payload.data.file;
+interface UploadEnvelope {
+  ok: boolean;
+  data: { file: FileItem } | null;
+  error: { code: string; message: string } | null;
 }
 
 /**
- * Retry uploading a failed file.
+ * XHR به‌جای fetch چون تنها راه دریافت `upload.onprogress` در مرورگر است.
+ * هدرها و پاکت پاسخ دقیقاً همان لایهٔ fetch پیشین را حفظ می‌کند.
  */
+function xhrUpload(
+  url: string,
+  headers: Record<string, string>,
+  file: File,
+  onProgress?: UploadProgressHandler,
+  fallbackMessage = 'آپلود فایل انجام نشد',
+): Promise<FileItem> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url, true);
+    for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
+
+    xhr.upload.onprogress = (event) => {
+      if (event.lengthComputable) onProgress?.(event.loaded, event.total, 'uploading');
+    };
+    // پایان ارسال بایتها لزوماً بهمعنای ذخیره شدن در سرور نیست.
+    xhr.upload.onload = () => onProgress?.(file.size, file.size, 'confirming');
+
+    xhr.onload = () => {
+      let payload: UploadEnvelope | null = null;
+      try {
+        payload = JSON.parse(xhr.responseText) as UploadEnvelope;
+      } catch {
+        // پاسخ غیر JSON در ادامه با پیام عمومی رد می‌شود.
+      }
+      if (xhr.status >= 200 && xhr.status < 300 && payload?.ok && payload.data) {
+        resolve(payload.data.file);
+        return;
+      }
+      reject(new Error(payload?.error?.message ?? fallbackMessage));
+    };
+    xhr.onerror = () => reject(new Error('ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.'));
+    xhr.onabort = () => reject(new Error('ارسال فایل لغو شد'));
+    xhr.send(file);
+  });
+}
+
+export async function uploadFileWithProgress(
+  token: string,
+  file: File,
+  onProgress?: UploadProgressHandler,
+): Promise<FileItem> {
+  return xhrUpload(
+    `${API_BASE}/files/upload`,
+    {
+      'Content-Type': file.type || 'application/octet-stream',
+      'X-File-Name': encodeURIComponent(file.name),
+      'X-File-Size': String(file.size),
+      Authorization: `Bearer ${token}`,
+    },
+    file,
+    onProgress,
+  );
+}
+
+export async function uploadFile(token: string, file: File): Promise<FileItem> {
+  return uploadFileWithProgress(token, file);
+}
+
+/** Retry uploading a failed file, with the same progress channel. */
 export async function retryUpload(
   token: string,
   fileId: string,
   file: File,
+  onProgress?: UploadProgressHandler,
 ): Promise<FileItem> {
-  const headers: Record<string, string> = {
-    'Content-Type': file.type || 'application/octet-stream',
-    Authorization: `Bearer ${token}`,
-  };
-
-  let response: Response;
-  try {
-    response = await fetch(`${API_BASE}/files/${fileId}/retry`, {
-      method: 'POST',
-      headers,
-      body: file,
-    });
-  } catch {
-    throw new Error('ارتباط با سرور برقرار نشد.');
-  }
-
-  const payload = (await response.json()) as {
-    ok: boolean;
-    data: { file: FileItem } | null;
-    error: { code: string; message: string } | null;
-  };
-
-  if (!response.ok || !payload.ok || !payload.data) {
-    const message = payload.error?.message ?? 'تلاش مجدد ناموفق بود';
-    throw new Error(message);
-  }
-
-  return payload.data.file;
+  return xhrUpload(
+    `${API_BASE}/files/${fileId}/retry`,
+    {
+      'Content-Type': file.type || 'application/octet-stream',
+      Authorization: `Bearer ${token}`,
+    },
+    file,
+    onProgress,
+    'تلاش مجدد ناموفق بود',
+  );
 }
 
 /**
