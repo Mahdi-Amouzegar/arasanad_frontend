@@ -32,8 +32,9 @@ test('P123-02: نوع خدمت فارسی-انگلیسی حذف و زبان تر
   assert.ok(catalog.includes('ترکیبی (فارسی-عربی / فارسی-انگلیسی)'), 'برچسب زبان ترکیبی تغییر نکرد');
   const core = read('src/lib/projects/core.mjs');
   assert.ok(core.includes('ترکیبی (فارسی-عربی / فارسی-انگلیسی)'), 'اعتبارسنجی هسته هماهنگ نیست');
-  const migration = read('../arasanad_backend/migrations/0018_remove_fa_en_service.sql');
-  assert.ok(migration.includes("WHERE id = 'fa-en'"), 'مهاجرت D1 نوشته نشد');
+  // ⚠️ مهاجرت D1 در مخزن بکند است؛ CI فرانت‌اند فقط همین مخزن را چکاوت می‌کند.
+  //    وجود مهاجرت در تست‌های بکند پوشش داده شده است.
+  assert.ok(!catalog.includes("'fa-en'"), 'ردیف fa-en هنوز در کاتالوگ هست');
 });
 
 test('P123-03: فرمت خروجی به‌صورت چک‌باکس است و چند انتخاب را می‌پذیرد', () => {
