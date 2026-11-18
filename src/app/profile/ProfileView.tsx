@@ -16,6 +16,7 @@ import { OtpQrPanel } from './OtpQrPanel';
 import { useAuth, type AuthUser } from '@/lib/account';
 import { validateUsername } from '@/lib/account/username';
 import { profileHref } from '@/lib/profiles';
+import { PUBLIC_USERNAMES } from '@/lib/generated/public-usernames';
 import { ApiError, apiRequest } from '@/lib/api';
 import { formatBytes, processAvatar, uploadAvatar } from '@/lib/avatar';
 import { BASE_PATH } from '@/lib/config';
@@ -315,6 +316,12 @@ export function ProfileView() {
 
   const usernameError =
     usernameState.status === 'taken' ? usernameState.reason : undefined;
+
+  // ⚠️ صفحات پروفایل در بیلد ساخته می‌شوند؛ تا آن زمان آدرس اختصاصی وجود ندارد.
+  const hasStaticProfile = PUBLIC_USERNAMES.some(
+    (name) => name.toLowerCase() === user?.username.toLowerCase(),
+  );
+
   const usernameHint =
     usernameState.status === 'checking'
       ? 'در حال بررسی…'
@@ -668,13 +675,29 @@ export function ProfileView() {
         )}
       </div>
 
-      <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
-        نشانی پروفایل عمومی:{' '}
-        <Link href={profileHref(user.username)} className="ltr">
-          {BASE_PATH}
-          {profileHref(user.username)}
-        </Link>
-      </p>
+      {hasStaticProfile ? (
+        <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
+          نشانی پروفایل عمومی:{' '}
+          <Link href={profileHref(user.username)} className="ltr">
+            {BASE_PATH}
+            {profileHref(user.username)}
+          </Link>
+        </p>
+      ) : (
+        <div className="guest-notice guest-notice--inline" role="status">
+          <Icon name="clock" size={18} />
+          <div>
+            <strong>لینک اختصاصی پنل شما تا چند لحظه دیگر فعال می‌شود</strong>
+            <p>
+              آدرس پروفایل شما پس از اجرای بیلد سایت (معمولاً چند دقیقه) در دسترس
+              قرار می‌گیرد. تا آن زمان می‌توانید از پنل کاربری معمولی استفاده کنید.
+            </p>
+            <Link href="/panel/" className="btn btn--outline btn--sm">
+              رفتن به پنل کاربری
+            </Link>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
