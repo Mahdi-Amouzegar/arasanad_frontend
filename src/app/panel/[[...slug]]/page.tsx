@@ -17,7 +17,7 @@ import { CustomerFiles } from '@/components/panel/CustomerFiles';
 import { CustomerProfileAlias } from '@/components/panel/CustomerProfileAlias';
 import { PublicProfileView } from '@/components/panel/PublicProfileView';
 import { CUSTOMER_GROUPS, CUSTOMER_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
-import { isPublicProfileSlug, profileSlugs } from '@/lib/profiles';
+import { isPublicProfileSlug, profileHandleLabel, profileSlugs } from '@/lib/profiles';
 
 const PANEL_METADATA: Metadata = {
   title: 'پنل کاربری',
@@ -33,7 +33,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   if (slug?.length === 1 && isPublicProfileSlug(slug[0] ?? '')) {
-    const handle = slug[0] ?? '';
+    const handle = profileHandleLabel(slug[0] ?? '');
     return {
       title: `@${handle} — پروفایل کاربر`,
       description: `پروفایل عمومی @${handle} در آراسند`,

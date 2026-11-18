@@ -14,12 +14,21 @@ import { PUBLIC_PROFILES } from './generated/public-profiles';
 
 const PUBLIC_IDS = new Set(PUBLIC_PROFILES.map((item) => item.publicId.toLowerCase()));
 const LEGACY_USERNAMES = new Set(PUBLIC_PROFILES.map((item) => item.username.toLowerCase()));
+const USERNAME_BY_CODE = new Map(
+  PUBLIC_PROFILES.map((item) => [item.publicId.toLowerCase(), item.username.toLowerCase()]),
+);
 
 /** آیا این تکبخش مسیر، یک پروفایل عمومی شناخته‌شده است؟ */
 export function isPublicProfileSlug(value: string): boolean {
   const handle = value.trim().toLowerCase();
   if (isValidPublicId(handle)) return PUBLIC_IDS.has(handle);
   return LEGACY_USERNAMES.has(handle) && isUsernamePathSegment(handle);
+}
+
+/** نام قابل نمایش در متادیتا؛ برای کد پایدار، نام کاربری از اسنپشات گرفته می‌شود. */
+export function profileHandleLabel(handle: string): string {
+  const value = handle.trim().toLowerCase();
+  return USERNAME_BY_CODE.get(value) ?? value;
 }
 
 /** نشانی پروفایل عمومی براساس کد پایدار. */

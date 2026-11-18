@@ -24,6 +24,7 @@ test('P127-08: آدرس canonical براساس کد است و لینک قدیم�
   assert.ok(helper.includes('LEGACY_USERNAMES.has(handle)'), 'آدرس قدیمی پشتیبانی نمی‌شود');
   assert.ok(helper.includes('publicProfileCode(user)'), 'کد کاربر واردشده محاسبه نمی‌شود');
   assert.ok(helper.includes('profileSlugs()'), 'مسیرهای استاتیک تولید نمی‌شوند');
+  assert.ok(helper.includes('profileHandleLabel('), 'متادیتا نام کاربری را نشان نمی‌دهد');
 });
 
 test('P127-09: اسنپشات شامل کد پایدار و نام کاربری هر دو کاربر است', () => {
