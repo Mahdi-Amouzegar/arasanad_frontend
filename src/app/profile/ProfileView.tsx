@@ -15,8 +15,7 @@ import { useAlert } from '@/components/ui/AlertProvider';
 import { OtpQrPanel } from './OtpQrPanel';
 import { useAuth, type AuthUser } from '@/lib/account';
 import { validateUsername } from '@/lib/account/username';
-import { profileHref } from '@/lib/profiles';
-import { PUBLIC_USERNAMES } from '@/lib/generated/public-usernames';
+import { isPublicProfileSlug, profileHrefForUser, publicProfileCode } from '@/lib/profiles';
 import { ApiError, apiRequest } from '@/lib/api';
 import { formatBytes, processAvatar, uploadAvatar } from '@/lib/avatar';
 import { BASE_PATH } from '@/lib/config';
@@ -318,9 +317,9 @@ export function ProfileView() {
     usernameState.status === 'taken' ? usernameState.reason : undefined;
 
   // ⚠️ صفحات پروفایل در بیلد ساخته می‌شوند؛ تا آن زمان آدرس اختصاصی وجود ندارد.
-  const hasStaticProfile = PUBLIC_USERNAMES.some(
-    (name) => name.toLowerCase() === user?.username.toLowerCase(),
-  );
+  const publicCode = publicProfileCode(user);
+  const hasStaticProfile = isPublicProfileSlug(publicCode);
+  const permanentProfileHref = profileHrefForUser(user);
 
   const usernameHint =
     usernameState.status === 'checking'
@@ -678,9 +677,9 @@ export function ProfileView() {
       {hasStaticProfile ? (
         <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
           نشانی پروفایل عمومی:{' '}
-          <Link href={profileHref(user.username)} className="ltr">
+          <Link href={permanentProfileHref} className="ltr">
             {BASE_PATH}
-            {profileHref(user.username)}
+            {permanentProfileHref}
           </Link>
         </p>
       ) : (

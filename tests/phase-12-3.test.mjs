@@ -158,14 +158,16 @@ test('P123-13: اعتبارسنجی نام کاربری با نسخه‌ی بک�
 /* ─────────── فاز ۱۲٫۳-م: آدرس یکتای پروفایل ─────────── */
 
 test('P123-14: آدرس پروفایل عمومی با اسنپشات زمان بیلد ساخته می‌شود', () => {
-  const snapshot = read('src/lib/generated/public-usernames.ts');
-  const match = snapshot.match(/=\s*(\[[^\]]*\])/);
-  assert.ok(match, 'اسنپشات نام کاربری خوانده نشد');
-  const usernames = JSON.parse(match[1]);
-  assert.ok(usernames.length > 0, 'اسنپشات نام کاربری خالی است');
+  const snapshot = read('src/lib/generated/public-profiles.ts');
+  const match = snapshot.match(/=\s*(\[[\s\S]*?\]);/);
+  assert.ok(match, 'اسنپشات پروفایل خوانده نشد');
+  const profiles = JSON.parse(match[1]);
+  assert.ok(profiles.length > 0, 'اسنپشات پروفایل خالی است');
   assert.ok(
-    usernames.every((name) => /^[a-z][a-z0-9_]{1,30}[a-z0-9]$/.test(name)),
-    'نام کاربری نامعتبر در اسنپشات',
+    profiles.every((item) =>
+      /^[0-9a-f]{12}$/.test(item.publicId) &&
+      /^[a-z][a-z0-9_]{1,30}[a-z0-9]$/.test(item.username)),
+    'کد پروفایل یا نام کاربری نامعتبر در اسنپشات',
   );
 
   const helper = read('src/lib/profiles.ts');
@@ -174,10 +176,10 @@ test('P123-14: آدرس پروفایل عمومی با اسنپشات زمان �
   assert.ok(helper.includes('encodeURIComponent'), 'نام کاربری ایمن کدگذاری نمی‌شود');
 
   const pkg = JSON.parse(read('package.json'));
-  assert.match(pkg.scripts.prebuild, /fetch-public-usernames\.mjs/);
+  assert.match(pkg.scripts.prebuild, /fetch-public-profiles\.mjs/);
   const panel = read('src/app/panel/[[...slug]]/page.tsx');
   assert.ok(panel.includes('<PublicProfileView'), 'مسیر پروفایل به کامپوننت وصل نشد');
-  assert.ok(panel.includes('PUBLIC_USERNAMES'), 'مسیرها در بیلد ساخته نمی‌شوند');
+  assert.ok(panel.includes('profileSlugs()'), 'مسیرها در بیلد ساخته نمی‌شوند');
   assert.ok(panel.includes('generateMetadata'), 'متادیتای عمومی تنظیم نشد');
 });
 
@@ -189,7 +191,7 @@ test('P123-14b: پروفایل عمومی فقط دادهٔ ایمن می‌خو
   assert.ok(!view.includes('wallet'), 'داده‌ی مالی در پروفایل عمومی نیست');
 
   const menu = read('src/components/public/AccountMenu.tsx');
-  assert.ok(menu.includes('profileHref(user.username)'), 'منوی حساب به آدرس جدید وصل نشد');
+  assert.ok(menu.includes('profileHrefForUser(user)'), 'منوی حساب به آدرس پایدار وصل نشد');
 
   // ⚠️ تست‌های فرانت‌اند در CI فقط همین مخزن را چکاوت می‌کنند؛ نباید به
   //    پرونده‌ی مخزن بکند وابسته باشیم. قرارداد API در تست‌های بکند پوشش داده شده.

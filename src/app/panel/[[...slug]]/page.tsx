@@ -17,8 +17,7 @@ import { CustomerFiles } from '@/components/panel/CustomerFiles';
 import { CustomerProfileAlias } from '@/components/panel/CustomerProfileAlias';
 import { PublicProfileView } from '@/components/panel/PublicProfileView';
 import { CUSTOMER_GROUPS, CUSTOMER_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
-import { isPublicProfileSlug } from '@/lib/profiles';
-import { PUBLIC_USERNAMES } from '@/lib/generated/public-usernames';
+import { isPublicProfileSlug, profileSlugs } from '@/lib/profiles';
 
 const PANEL_METADATA: Metadata = {
   title: 'پنل کاربری',
@@ -55,8 +54,8 @@ export function generateStaticParams() {
       'pay/result',
     ]),
     // فاز ۱۲٫۳-م: صفحات پروفایل عمومی از اسنپشات زمان بیلد ساخته می‌شوند.
-    ...PUBLIC_USERNAMES.filter((name) => isPublicProfileSlug(name)).map((name) => ({
-      slug: [name],
+    ...profileSlugs().filter((handle) => isPublicProfileSlug(handle)).map((handle) => ({
+      slug: [handle],
     })),
   ];
 }
@@ -84,7 +83,7 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
 
   // فاز ۱۲٫۳-م: `/panel/<username>` پروفایل عمومی است، نه پوسته‌ی خصوصی پنل.
   if (slug?.length === 1 && isPublicProfileSlug(slug[0] ?? '')) {
-    return <PublicProfileView username={slug[0] ?? ''} />;
+    return <PublicProfileView handle={slug[0] ?? ''} />;
   }
 
   const href = hrefFromSlug('/panel', slug);

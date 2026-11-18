@@ -7,7 +7,7 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Icon } from '@/components/ui/Icon';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { useAuth } from '@/lib/account';
-import { profileHref } from '@/lib/profiles';
+import { profileHrefForUser } from '@/lib/profiles';
 
 const PANEL_WIDTH = 224;
 const GAP = 8;
@@ -147,7 +147,7 @@ export function AccountMenu() {
       </Link>
 
       <Link
-        href={profileHref(user.username)}
+        href={profileHrefForUser(user)}
         className="account-menu__item"
         role="menuitem"
         onClick={() => setOpen(false)}

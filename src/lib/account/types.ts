@@ -15,6 +15,8 @@ export type { AuthProviderDescriptor, ProviderDescriptor };
 /** Public user shape returned by the account endpoints. */
 export interface AuthUser {
   id: string;
+  /** Phase 12.7: immutable public profile code; raw UUID stays internal. */
+  publicId?: string;
   username: string;
   firstName: string;
   lastName: string;

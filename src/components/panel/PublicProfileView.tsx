@@ -11,9 +11,12 @@ import { JalaliDate } from '@/components/ui/JalaliDate';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAuth } from '@/lib/account';
 import { ApiError, apiRequest } from '@/lib/api';
+import { isValidPublicId, publicIdFromUserId } from '@/lib/public-id';
+import { profileHref } from '@/lib/profiles';
 
 /** فقط فیلدهایی که بکند برای بازدید عمومی آشکار می‌کند. */
 interface PublicProfile {
+  publicId: string;
   username: string;
   displayName: string;
   avatarUrl: string | null;
@@ -24,13 +27,13 @@ interface PublicProfile {
 }
 
 /**
- * فاز ۱۲٫۳-م — پروفایل عمومی `/panel/<username>`.
+ * فاز ۱۲٫۳-م / ۱۲٫۷ — پروفایل عمومی `/panel/<publicId>`.
  *
  * ⚠️ خواندن اطلاعات برای همه آزاد است، ولی دکمه‌ی ویرایش تنها زمانی
  *    نمایان می‌شود که بیننده صاحب پروفایل یا مدیر سایت باشد. خود بکند
  *    هم ویرایش را تنها از مسیر توکن دار `/me` می‌پذیرد (محافظت در عمق).
  */
-export function PublicProfileView({ username }: { username: string }) {
+export function PublicProfileView({ handle }: { handle: string }) {
   const { user } = useAuth();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +46,7 @@ export function PublicProfileView({ username }: { username: string }) {
     setProfile(null);
 
     apiRequest<{ profile: PublicProfile }>(
-      `/public/profiles/${encodeURIComponent(username)}`,
+      `/public/profiles/${encodeURIComponent(handle)}`,
       { signal: controller.signal },
     )
       .then((data) => setProfile(data.profile))
@@ -58,12 +61,14 @@ export function PublicProfileView({ username }: { username: string }) {
       .finally(() => setLoading(false));
 
     return () => controller.abort();
-  }, [username]);
+  }, [handle]);
 
-  const isOwner =
-    Boolean(user) &&
-    Boolean(profile) &&
-    user!.username.toLowerCase() === profile!.username.toLowerCase();
+  const viewerCode = user
+    ? isValidPublicId(user.publicId ?? '')
+      ? (user.publicId as string).toLowerCase()
+      : publicIdFromUserId(user.id)
+    : null;
+  const isOwner = Boolean(profile) && viewerCode === profile!.publicId.toLowerCase();
   const canEdit = isOwner || user?.role === 'admin';
 
   return (
@@ -71,9 +76,18 @@ export function PublicProfileView({ username }: { username: string }) {
       <section>
         <SectionHeading
           eyebrow="پروفایل عمومی"
-          title={profile ? `@${profile.username}` : `@${username}`}
+          title={profile ? `@${profile.username}` : `@${handle}`}
           description="اطلاعاتی که برای همه بازدیدکنندگان قابل مشاهدهاند."
         />
+
+        {profile && !isValidPublicId(handle) ? (
+          <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
+            آدرس پایدار:{' '}
+            <Link href={profileHref(profile.publicId)} className="ltr">
+              {profileHref(profile.publicId)}
+            </Link>
+          </p>
+        ) : null}
 
         {loading ? (
           <div className="calc-card" aria-busy="true">
