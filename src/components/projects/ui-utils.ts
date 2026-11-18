@@ -41,3 +41,29 @@ export function financialHint(project: Project): string | null {
   if (project.depositPaidAt) return 'بیعانه پرداخت‌شده است';
   return null;
 }
+
+/** فاز ۱۲٫۸-ح: برچسب‌های فارسی مقادیر مشخصات طراحی (نه مقدار خام انگلیسی). */
+const DESIGN_MODE_LABELS: Record<string, string> = {
+  standard: 'استاندارد',
+  custom: 'سفارشی',
+};
+const DESIGN_SUBMODE_LABELS: Record<string, string> = {
+  like_original: 'مانند فایل اصلی',
+  custom: 'تنظیمات دلخواه',
+};
+
+export function designModeLabel(value: string | null | undefined): string {
+  if (!value) return '—';
+  return DESIGN_MODE_LABELS[value] ?? value;
+}
+
+export function designSubmodeLabel(value: string | null | undefined): string {
+  if (!value) return '—';
+  return DESIGN_SUBMODE_LABELS[value] ?? value;
+}
+
+/** الگوی سفارششناسهای است، نه مقدار ثابت؛ فقط حالت خالی برچسب فارسی دارد. */
+export function designPresetLabel(value: string | null | undefined): string {
+  if (!value || value === 'default') return 'پیش‌فرض سامانه';
+  return value;
+}

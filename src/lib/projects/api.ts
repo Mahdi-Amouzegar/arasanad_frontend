@@ -172,6 +172,9 @@ export interface CreateProjectBody {
   specialRequirements: string;
   design: CreateProjectDesign;
   urgent?: boolean;
+  /** فاز ۱۲٫۸-ب: شناسههای فایل/لینک پیوست‌شده هنگام ثبت اولیه (الزامی). */
+  fileIds?: string[];
+  linkIds?: string[];
 }
 
 export interface ProjectListFilters {

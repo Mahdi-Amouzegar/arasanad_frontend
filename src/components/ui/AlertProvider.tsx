@@ -68,6 +68,32 @@ export function AlertProvider({ children }: { children: ReactNode }) {
   const [alert, setAlert] = useState<AlertOptions | null>(null);
   const [toasts, setToasts] = useState<Array<ToastOptions & { id: number }>>([]);
   const toastId = useRef(0);
+  const toastHostRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * فاز ۱۲٫۸-د: دیالوگهای بومی (`<dialog showModal>`) در «لایهٔ بالا»ی مرورگر
+   * قرار می‌گیرند و هیچ z-index نمی‌تواند toast معمولی را بالای مودال قرار دهد.
+   * با تبدیل میزبان toast به popover دستی، آن هم وارد لایهٔ بالا می‌شود و
+   * بر روی تمام مودالها (فایل، اقدام، اعتراض و…) دیده می‌شود — یک راهکار
+   * واحد برای تمام پنجرهها، بدون تغییر تکتک مودالها.
+   */
+  useEffect(() => {
+    const host = toastHostRef.current;
+    if (!host) return;
+    const canPopover =
+      typeof (host as HTMLElement & { showPopover?: () => void }).showPopover === 'function';
+    if (!canPopover) return;
+    const el = host as HTMLElement & {
+      showPopover: () => void;
+      hidePopover: () => void;
+      matches: (s: string) => boolean;
+    };
+    if (toasts.length > 0) {
+      if (!el.matches(':popover-open')) el.showPopover();
+    } else if (el.matches(':popover-open')) {
+      el.hidePopover();
+    }
+  }, [toasts]);
 
   const showAlert = useCallback((options: AlertOptions) => {
     resolverRef.current?.(false);
@@ -187,7 +213,13 @@ export function AlertProvider({ children }: { children: ReactNode }) {
         ) : null}
       </dialog>
 
-      <div className="toast-stack" role="status" aria-live="polite">
+      <div
+        ref={toastHostRef}
+        className="toast-stack"
+        popover="manual"
+        role="status"
+        aria-live="polite"
+      >
         {toasts.map((toast) => (
           <div key={toast.id} className={`toast toast--${toast.type ?? 'info'}`}>
             <Icon

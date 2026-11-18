@@ -147,14 +147,14 @@ export function CustomerFiles() {
                     <tr key={`${entry.scope}-${entry.file.id}-${entry.relationEntityId}`}>
                       <td data-label="فایل">
                         <span className="prj-code">{entry.file.fileCode}</span>
-                        <span className="prj-name">{entry.file.originalName}</span>
+                        <span className="prj-name file-name-ltr" dir="ltr">{entry.file.originalName}</span>
                       </td>
                       <td data-label="دسته">{SCOPE_LABELS[entry.scope] ?? entry.scope}</td>
                       <td data-label="سفارش">
                         {entry.projectId ? (
                           <Link
                             className="btn btn--outline btn--sm"
-                            href={`/projects/detail/?id=${encodeURIComponent(entry.projectId)}`}
+                            href={`/panel/projects/detail/?id=${encodeURIComponent(entry.projectId)}`}
                           >
                             {entry.projectCode ?? 'جزئیات سفارش'}
                           </Link>

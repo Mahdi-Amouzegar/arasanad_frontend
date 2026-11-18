@@ -118,7 +118,7 @@ function CustomerCell({
   );
 }
 
-function FinanceDialog({
+export function FinanceDialog({
   project,
   onClose,
 }: {

@@ -1235,3 +1235,20 @@
   }
 }
 
+
+/* فاز ۱۲٫۸-د: میزبان toast به‌عنوان popover وارد «لایهٔ بالا»ی مرورگر می‌شود
+   تا بر روی دیالوگهای بومی (`showModal`) هم دیده شود. استایل پیش‌فرض popover
+   (حاشیه، پس‌زمینه، قرارگیری مرکزی) خنثی می‌شود. */
+.toast-stack:popover-open {
+  position: fixed;
+  inset: auto auto var(--sp-4) var(--sp-4);
+  width: auto;
+  max-width: min(420px, calc(100vw - 2 * var(--sp-4)));
+  height: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+  pointer-events: none;
+}

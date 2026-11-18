@@ -188,12 +188,13 @@
 
 .fm-progress--indeterminate .fm-progress__fill {
   width: 35%;
-  animation: fm-progress-slide 1.1s ease-in-out infinite;
+  /* فاز ۱۲٫۸-هـ: جهت پیش‌فرض راست‌به‌چپ (مناسب فارسی). */
+  animation: fm-progress-slide-rtl 1.1s ease-in-out infinite;
 }
 
-@keyframes fm-progress-slide {
-  from { transform: translateX(-110%); }
-  to { transform: translateX(310%); }
+@keyframes fm-progress-slide-rtl {
+  from { transform: translateX(310%); }
+  to { transform: translateX(-110%); }
 }
 
 .fm-upload-overall {
@@ -745,4 +746,20 @@
     flex-direction: column;
     gap: var(--sp-2);
   }
+}
+
+/* فاز ۱۲٫۸-ج: نام فایل‌ها همیشه LTR است تا ترتیب نام/پسوند در RTL بههم نریزد. */
+.fm-item__name,
+.file-card__name,
+.file-name-ltr {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+}
+
+
+/* دکمهٔ ضربدر لغو آپلود داخل کادر فایل. */
+.fm-item__cancel {
+  flex: 0 0 auto;
+  color: var(--c-danger);
 }

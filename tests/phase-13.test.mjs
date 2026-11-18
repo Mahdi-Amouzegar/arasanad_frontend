@@ -166,7 +166,9 @@ test('U-03-F8: جدول جامع سفارشات با مرتب‌سازی، فی�
   assert.ok(dataTable.includes('dt-filter'), 'پویانمای فیلتر سرستون وجود ندارد');
   assert.ok(dataTable.includes('انتخاب همه'), 'گزینهٔ انتخاب همه نیست');
   const admin = read('src/app/admin/[[...slug]]/page.tsx');
-  assert.ok(admin.includes('<OrdersWorkspace admin />'), 'مسیر جدول مدیر سوار نشده');
+  assert.ok(!admin.includes('<OrdersWorkspace'), 'مسیر جدول قدیمی هنوز سوار است');
+  assert.ok(admin.includes('<ProjectList admin />'), 'جدول ادغام‌شده مدیر سوار نشده');
   const panel = read('src/app/panel/[[...slug]]/page.tsx');
-  assert.ok(panel.includes('<OrdersWorkspace />'), 'مسیر جدول مشتری سوار نشده');
+  assert.ok(!panel.includes('<OrdersWorkspace'), 'مسیر جدول قدیمی مشتری هنوز سوار است');
+  assert.ok(panel.includes('<ProjectList />'), 'جدول ادغام‌شده مشتری سوار نشده');
 });

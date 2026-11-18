@@ -213,7 +213,7 @@ export function ActivityComposer({
             aria-label={`حذف ${file.originalName}`}
           >
             <Icon name="paperclip" size={13} />
-            {file.originalName}
+            <span dir="ltr" className="file-name-ltr">{file.originalName}</span>
             <Icon name="x" size={12} />
           </button>
         ))}

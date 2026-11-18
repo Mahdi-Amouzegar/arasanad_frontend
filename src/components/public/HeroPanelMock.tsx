@@ -51,7 +51,7 @@ export function HeroPanelMock() {
         <span className="hero-mock__foot-icon" aria-hidden="true">
           <Icon name="shield" size={15} />
         </span>
-        <span>فایل‌ها فقط از حساب خودتان قابل دسترسیاند</span>
+        <span>فایل‌ها فقط از حساب خودتان قابل دسترسی‌اند</span>
       </div>
     </div>
   );

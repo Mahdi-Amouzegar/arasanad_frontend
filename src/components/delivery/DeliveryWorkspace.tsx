@@ -307,7 +307,7 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
           ) : null}
           <Link
             className="btn btn--outline btn--sm"
-            href={`/projects/detail/?id=${encodeURIComponent(id)}`}
+            href={`/panel/projects/detail/?id=${encodeURIComponent(id)}`}
           >
             جزئیات سفارش
           </Link>
@@ -420,7 +420,7 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
                             <div key={file.id} className="dlv-file">
                               <div>
                                 <Icon name="fileText" size={18} />
-                                <strong>{file.originalName}</strong>
+                                <strong dir="ltr" className="file-name-ltr">{file.originalName}</strong>
                                 <code>{file.fileCode}</code>
                               </div>
                               <Button

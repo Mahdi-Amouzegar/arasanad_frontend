@@ -18,12 +18,7 @@ import {
   type ExternalLink,
   type FileItem,
 } from '@/lib/files/api';
-import {
-  DEFAULT_DESIGN_SPEC,
-  canTransition,
-  changedDesignFields,
-  type DesignSpec,
-} from '@/lib/projects/core.mjs';
+import { canTransition } from '@/lib/projects/core.mjs';
 import { PROJECT_STATUS_FLOW, computeDeliveryState, type ProjectStatus } from '@/lib/status';
 import { serverNow } from '@/lib/connectivity/index.mjs';
 import { Button } from '@/components/ui/Button';
@@ -34,7 +29,6 @@ import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import {
   FileManagerModal,
-  localFileSignature,
   type FileManagerResult,
   type SelectedFile,
 } from '@/components/files/FileManagerModal';
@@ -52,7 +46,11 @@ import { useAlert } from '@/components/ui/AlertProvider';
 import { useChat } from '@/components/chat/ChatProvider';
 import { operationsHref } from '@/lib/activities/core.mjs';
 import { ProjectRating } from './ProjectRating';
+import { DesignSpecSnapshot } from './DesignSpecSnapshot';
 import {
+  designModeLabel,
+  designPresetLabel,
+  designSubmodeLabel,
   errorText,
   financialHint,
   financialStatusOf,
@@ -96,7 +94,7 @@ export function ProjectDetail() {
   const [reason, setReason] = useState('');
   const [nextStatus, setNextStatus] = useState('');
 
-  /* ── فاز ۸: فایل‌های اولیه، لینکها و تحویلها ── */
+  /* ── فاز ۸: فایل‌های اولیه، لینکها و تحویل‌ها ── */
   const [initialFiles, setInitialFiles] = useState<FileItem[]>([]);
   const [initialLinks, setInitialLinks] = useState<ExternalLink[]>([]);
   const [deliveries, setDeliveries] = useState<DeliveryFile[]>([]);
@@ -107,7 +105,6 @@ export function ProjectDetail() {
   /* ── فاز ۸: فرم «تحویل کار» مخصوص مدیر ── */
   const [deliveryOpen, setDeliveryOpen] = useState(false);
   const [fmOpen, setFmOpen] = useState(false);
-  const [initialFmOpen, setInitialFmOpen] = useState(false);
   const [deliveryFiles, setDeliveryFiles] = useState<SelectedFile[]>([]);
   const [deliveryPageCount, setDeliveryPageCount] = useState('');
   const [deliveryAmount, setDeliveryAmount] = useState('');
@@ -118,7 +115,7 @@ export function ProjectDetail() {
   useEffect(() => setId(readIdFromLocation()), []);
 
   /**
-   * فایل‌ها، لینکها و تحویلها جداگانه بارگذاری می‌شوند تا شکست یکی از آنها
+   * فایل‌ها، لینکها و تحویل‌ها جداگانه بارگذاری می‌شوند تا شکست یکی از آنها
    * کل صفحه‌ی جزئیات سفارش را از کار نیندازد.
    */
   const loadFiles = useCallback(async () => {
@@ -257,36 +254,6 @@ export function ProjectDetail() {
     setDeliveryFiles((previous) => [...previous, ...result.files]);
   }
 
-  /** افزودن فایل/لینک به سفارش پس از ثبت — بلافاصله به `project_initial` متصل می‌شود. */
-  async function attachInitialFiles(result: FileManagerResult) {
-    try {
-      if (result.files.length > 0) {
-        await filesApi.attachFiles(
-          result.files.map((file) => file.id),
-          'project_initial',
-          id,
-          'initial_file',
-        );
-      }
-      if (result.links.length > 0) {
-        await linksApi.attachLinks(
-          result.links.map((link) => link.id),
-          'project_initial',
-          id,
-          'initial_file',
-        );
-      }
-      await loadFiles();
-      showToast({ type: 'success', title: 'فایل‌ها به سفارش اضافه شدند' });
-    } catch (caught) {
-      showToast({
-        type: 'error',
-        title: 'افزودن فایل انجام نشد',
-        message: errorText(caught, 'اتصال فایل به سفارش انجام نشد'),
-      });
-    }
-  }
-
   async function submitDelivery(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setDeliveryError(null);
@@ -394,6 +361,8 @@ export function ProjectDetail() {
   const { project, history, notes } = detail;
   const isAdmin = user?.role === 'admin';
   const isOwner = Boolean(user && (!project.customerId || project.customerId === user.id));
+  // فاز ۱۲٫۸-ز: پس از لغو، عملیات و یادداشت‌ها غیرفعال می‌شوند.
+  const isCancelled = project.status === 'cancelled';
   // سیگنال سراسری تسویه نهایی؛ در کنار paymentStatus هر تحویل بررسی می‌شود.
   const projectSettled = isProjectSettled(project.status);
   const deliveryState = computeDeliveryState({
@@ -402,10 +371,6 @@ export function ProjectDetail() {
     deliveredAt: project.deliveredAt,
     now: serverNow(),
   });
-  const changed = changedDesignFields(
-    project.designSpec as DesignSpec,
-    DEFAULT_DESIGN_SPEC,
-  );
   const allowedTransitions = PROJECT_STATUS_FLOW.filter((status) =>
     canTransition(project.status, status),
   );
@@ -433,13 +398,15 @@ export function ProjectDetail() {
               {/* فاز ۹، بند ۳: مخاطب از روی سفارش توسط سرور تعیین می‌شود؛
                   مشتری → مدیر، مدیر → مشتری صاحب سفارش. جستجو لازم نیست. */}
               {/* فاز ۹٫۵: هدایت مستقیم به صفحه‌ی کامل ثبت عملیات، برای هر دو نقش. */}
-              <Link
-                className="btn btn--outline btn--sm"
-                href={operationsHref(user?.role === 'admin' ? 'admin' : 'customer', id)}
-              >
-                <Icon name="activity" size={16} />
-                ثبت عملیات سفارش
-              </Link>
+              {!isCancelled ? (
+                <Link
+                  className="btn btn--outline btn--sm"
+                  href={operationsHref(user?.role === 'admin' ? 'admin' : 'customer', id)}
+                >
+                  <Icon name="activity" size={16} />
+                  ثبت عملیات سفارش
+                </Link>
+              ) : null}
               {signedIn ? (
                 <button
                   type="button"
@@ -571,10 +538,6 @@ export function ProjectDetail() {
           {project.quoteReason ? (
             <p className="prj-note">دلیل تغییر نرخ: {project.quoteReason}</p>
           ) : null}
-          <p className="prj-note">
-            پرداخت و کیف پول در فاز ۱۰ پیاده‌سازی می‌شود؛ در فاز ۷ فقط snapshot
-            نرخ‌ها ثبت می‌شود.
-          </p>
         </CardBody>
       </Card>
 
@@ -582,14 +545,11 @@ export function ProjectDetail() {
         <CardHeader title="مشخصات طراحی ثبت‌شده" />
         <CardBody>
           <div className="prj-facts">
-            <div><span>حالت</span><strong>{statusText(project.designMode)}</strong></div>
-            <div><span>زیرحالت</span><strong>{project.designSubmode ?? '—'}</strong></div>
-            <div><span>الگو</span><strong>{project.designPresetId ?? 'پیش‌فرض سامانه'}</strong></div>
-            <div><span>فیلدهای تغییرکرده</span><strong>{changed.length}</strong></div>
+            <div><span>حالت</span><strong>{designModeLabel(project.designMode)}</strong></div>
+            <div><span>زیرحالت</span><strong>{designSubmodeLabel(project.designSubmode)}</strong></div>
+            <div><span>الگو</span><strong dir="auto">{designPresetLabel(project.designPresetId)}</strong></div>
           </div>
-          <pre className="prj-spec-json" dir="ltr">
-            {JSON.stringify(project.designSpec, null, 2)}
-          </pre>
+          <DesignSpecSnapshot spec={project.designSpec} />
           <p className="prj-note">
             این snapshot در لحظه‌ی ثبت سفارش ذخیره شده و قابل ویرایش نیست.
           </p>
@@ -598,21 +558,7 @@ export function ProjectDetail() {
 
       {/* ── فاز ۸: فایل‌ها و لینکهای اولیه ── */}
       <Card>
-        <CardHeader
-          title="فایل‌های پیوستشده به سفارش"
-          actions={
-            isOwner || isAdmin ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setInitialFmOpen(true)}
-                leadingIcon={<Icon name="paperclip" size={14} />}
-              >
-                افزودن فایل یا لینک
-              </Button>
-            ) : undefined
-          }
-        />
+        <CardHeader title="فایل‌های پیوست‌شده به سفارش" />
         <CardBody>
           {filesError ? (
             <div className="prj-alert" role="alert">
@@ -634,7 +580,7 @@ export function ProjectDetail() {
                     <Icon name="fileText" size={20} />
                   </div>
                   <div className="fm-item__body">
-                    <div className="fm-item__name">{file.originalName}</div>
+                    <div className="fm-item__name" dir="ltr">{file.originalName}</div>
                     <div className="fm-item__meta">
                       <span>{file.fileCode}</span>
                       <span>•</span>
@@ -684,7 +630,7 @@ export function ProjectDetail() {
       {/* ── فاز ۸: تحویل فایل نهایی ── */}
       <Card>
         <CardHeader
-          title="فایل‌های نهایی و تحویلها"
+          title="فایل‌های نهایی و تحویل‌ها"
           actions={
             isAdmin ? (
               <Button
@@ -756,7 +702,7 @@ export function ProjectDetail() {
                               <Icon name="fileText" size={20} />
                             </div>
                             <div className="fm-item__body">
-                              <div className="fm-item__name">{file.originalName}</div>
+                              <div className="fm-item__name" dir="ltr">{file.originalName}</div>
                               <div className="fm-item__meta">
                                 <span>{formatBytesFa(file.sizeBytes)}</span>
                               </div>
@@ -839,6 +785,9 @@ export function ProjectDetail() {
       <Card>
         <CardHeader title="اقدامات" />
         <CardBody>
+          {isCancelled ? (
+            <p className="prj-alert" role="status">این سفارش لغو شده است؛ عملیاتی قابل ثبت نیست.</p>
+          ) : null}
           {actionError ? (
             <div className="prj-alert" role="alert">
               <Icon name="alert" size={18} />
@@ -857,7 +806,7 @@ export function ProjectDetail() {
             </FormField>
           </div>
 
-          {isOwner ? (
+          {isOwner && !isCancelled ? (
             <div className="prj-actions">
               {project.status === 'awaiting_deposit' ? (
                 <>
@@ -893,7 +842,7 @@ export function ProjectDetail() {
             </div>
           ) : null}
 
-          {isAdmin ? (
+          {isAdmin && !isCancelled ? (
             <div className="prj-stack">
               <form className="prj-actions" onSubmit={submitQuote}>
                 <FormField label="نرخ هر صفحه (تومان)" htmlFor="prj-quote-rate">
@@ -953,6 +902,7 @@ export function ProjectDetail() {
       <Card>
         <CardHeader title="یادداشت‌ها" />
         <CardBody>
+          {!isCancelled ? (
           <form className="prj-note-form" onSubmit={submitNote}>
             <FormField label="یادداشت تازه" htmlFor="prj-note">
               <Textarea
@@ -966,6 +916,7 @@ export function ProjectDetail() {
               افزودن یادداشت
             </Button>
           </form>
+          ) : null}
 
           {notes.length === 0 ? (
             <p className="prj-note">یادداشتی ثبت نشده است.</p>
@@ -975,7 +926,7 @@ export function ProjectDetail() {
                 <li key={item.id}>
                   <span className="prj-timeline__meta">
                     {item.authorRole === 'admin' ? 'مدیر' : 'مشتری'} ·{' '}
-                    <JalaliDate value={item.createdAt} />
+                    <RelativeTime value={item.createdAt} />
                   </span>
                   <p>{item.text}</p>
                 </li>
@@ -996,7 +947,11 @@ export function ProjectDetail() {
                 <li key={`${item.createdAt}-${index}`}>
                   <span className="prj-timeline__meta">
                     {item.fromStatus ? `${statusText(item.fromStatus)} → ` : ''}
-                    {statusText(item.toStatus)} · <JalaliDate value={item.createdAt} />
+                    {statusText(item.toStatus)}
+                    {item.toStatus === 'cancelled' && item.changedByRole
+                      ? ` توسط ${item.changedByRole === 'admin' ? 'مدیر' : 'مشتری'}`
+                      : ''}
+                    {' · '}<RelativeTime value={item.createdAt} />
                   </span>
                   {item.reason ? <p>{item.reason}</p> : null}
                 </li>
@@ -1013,21 +968,6 @@ export function ProjectDetail() {
 
       {/* فاز ۱۲٫۵-ج-۱: امتیاز مشتری — فقط در سفارش تکمیل‌شده ظاهر می‌شود */}
       <ProjectRating projectId={id} />
-
-      {/* ── فاز ۸: کتابخانه مشترک مدیریت فایل ── */}
-      <FileManagerModal
-        open={initialFmOpen}
-        onClose={() => setInitialFmOpen(false)}
-        config={{
-          role: isAdmin ? 'admin' : 'customer',
-          defaultTab: 'upload',
-          title: 'افزودن فایل به سفارش',
-        
-          excludeIds: initialFiles.map((file) => file.id),
-          excludeSignatures: initialFiles.map((file) => localFileSignature(file.originalName, file.sizeBytes)),
-        }}
-        onSelect={(result) => void attachInitialFiles(result)}
-      />
 
       <FileManagerModal
         open={fmOpen}

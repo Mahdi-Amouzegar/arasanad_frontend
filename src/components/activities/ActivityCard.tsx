@@ -87,7 +87,7 @@ function ActivityAttachments({ activityId }: { activityId: string }) {
           }}
         >
           <Icon name="paperclip" size={14} />
-          {file.originalName}
+          <span dir="ltr" className="file-name-ltr">{file.originalName}</span>
         </button>
       ))}
       {links.map((link) => (
@@ -193,7 +193,7 @@ export function ActivityCard({ activity, role, onReply }: ActivityCardProps) {
           <span className="act-card__auto">خودکار توسط سامانه</span>
         ) : null}
         <span className="act-card__spacer" />
-        <Link className="act-card__link" href={`/projects/detail/?id=${encodeURIComponent(activity.projectId)}`}>
+        <Link className="act-card__link" href={`${role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/'}?id=${encodeURIComponent(activity.projectId)}`}>
           <Icon name="package" size={13} />
           جزئیات سفارش
         </Link>

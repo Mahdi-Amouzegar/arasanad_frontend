@@ -4,7 +4,6 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
 import { ProjectList } from '@/components/projects/ProjectList';
 import { ProjectDetail } from '@/components/projects/ProjectDetail';
-import { OrdersWorkspace } from '@/components/projects/OrdersWorkspace';
 import { AdminRatingsPanel } from '@/components/admin/AdminRatingsPanel';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { AdminPaymentsPanel, AdminWalletsPanel, AdminRefundsPanel, AdminReconciliationPanel } from '@/components/finance/FinancePanels';
@@ -27,7 +26,7 @@ export const metadata: Metadata = {
 
 /** تمام مسیرهای `ADMIN_NAV` با پیشوند `/admin` در بیلد استاتیک تولید می‌شوند. */
 export function generateStaticParams() {
-  return slugsFor(ADMIN_GROUPS, '/admin', ['projects/detail', 'projects/operations', 'projects/delivery']);
+  return slugsFor(ADMIN_GROUPS, '/admin', ['projects/detail', 'projects/operations', 'projects/delivery', 'orders']);
 }
 
 const backToProjects = (
@@ -45,11 +44,6 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
       {content}
     </AppShell>
   );
-
-  // فاز ۱۲٫۱: جدول جامع سفارشات تمام مشتریان.
-  if (href === '/admin/orders') {
-    return shell(info.title, null, <OrdersWorkspace admin />);
-  }
 
   // فاز ۱۲: داشبورد واقعی با اعداد D1.
   if (href === '/admin') {
@@ -87,11 +81,11 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
     return shell(info.title, null, <AdminReconciliationPanel />);
   }
 
-  if (href === '/admin/projects') {
+  if (href === '/admin/orders' || href === '/admin/projects') {
     return shell(info.title, backToProjects, <><ProjectList admin /><AdminRatingsPanel /></>);
   }
 
-  // فاز ۱۲٫۲-ی: جزئیات کامل سفارش (فایل‌ها، لینکها و تحویلها) برای مدیر.
+  // فاز ۱۲٫۲-ی: جزئیات کامل سفارش (فایل‌ها، لینکها و تحویل‌ها) برای مدیر.
   if (href === '/admin/projects/detail') {
     return shell('جزئیات سفارش', backToProjects, <ProjectDetail />, '/admin/projects');
   }

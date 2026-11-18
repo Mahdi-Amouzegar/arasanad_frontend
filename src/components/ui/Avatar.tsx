@@ -4,8 +4,22 @@
    غیرفعال است، پس <img> با ابعاد صریح و lazy انتخاب درست است. */
 
 import { cx } from '@/lib/cx';
+import { API_BASE } from '@/lib/api';
 
 export type AvatarSize = 'sm' | 'md' | 'lg';
+
+/**
+ * فاز ۱۲٫۸-ج: بک‌اند آدرس نسبی `/media/avatar/<userId>` را برمی‌گرداند.
+ * اگر همان آدرس بدون آنکه با مبدأ API ترکیب شود در `<img>` استفاده شود،
+ * مرورگر آن را از دامنهٔ سایت (`arasanad.ir`) می‌گیرد و ۴۰۴ می‌دهد.
+ * این تابع تنها مسیرهای آواتار نسبی را اصلاح می‌کند و بقیه نشانی‌ها
+ * (لینکهای مطلق خارجی) دستنخورده می‌ماند.
+ */
+export function resolveAvatarSrc(src?: string | null): string | null {
+  if (!src) return null;
+  if (src.startsWith('/media/avatar/')) return `${API_BASE}${src}`;
+  return src;
+}
 
 export interface AvatarProps {
   /** آدرس تصویر — در آینده لینک موقت از Backend */
@@ -30,11 +44,12 @@ function initial(name: string): string {
  */
 export function Avatar({ src, name, size = 'md', className }: AvatarProps) {
   const px = SIZES[size];
+  const resolved = resolveAvatarSrc(src);
 
-  if (src) {
+  if (resolved) {
     return (
       <img
-        src={src}
+        src={resolved}
         alt={name}
         width={px}
         height={px}

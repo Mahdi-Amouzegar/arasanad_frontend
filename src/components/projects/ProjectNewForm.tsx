@@ -21,6 +21,7 @@ import {
   deliveryHoursFrom,
   LANGUAGES,
   OUTPUT_FORMATS,
+  PAPER_SIZES,
   SOURCE_TYPES,
   calculateDeposit,
   calculateEstimate,
@@ -38,11 +39,15 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { FileManagerModal, localFileSignature, type SelectedFile, type SelectedLink } from '@/components/files/FileManagerModal';
 import { UploaderBadge } from '@/components/files/UploaderBadge';
-import { createFilesApi } from '@/lib/files/api';
 import { errorText, formatHours } from './ui-utils';
 import { loadGuestDraft } from '@/lib/guest-order';
 
 const EMPTY_RULES = { urgencyMultiplier: 1.3, depositRatio: 0.5, roundStep: 500 };
+
+/** Phase 12.8-y: removed service type must stay hidden even from a stale catalog response. */
+function isVisibleServiceType(item: ServiceType): boolean {
+  return item.isActive && item.id !== 'fa-en' && !item.name.includes('فارسی-انگلیسی');
+}
 
 /**
  * Phase 7+8 order form. The server computes and snapshots every price; this
@@ -54,7 +59,6 @@ export function ProjectNewForm() {
   const { user, loading, authedRequest } = useAuth();
   const { showToast } = useAlert();
   const api = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
-  const filesApi = useMemo(() => authedRequest ? createFilesApi(authedRequest) : null, [authedRequest]);
 
   // Phase 8: file attachment state
   const [fmOpen, setFmOpen] = useState(false);
@@ -93,10 +97,11 @@ export function ProjectNewForm() {
     void Promise.all([getServiceTypes(), getDesignPresets(), getPricingRules()])
       .then(([serviceRows, presetRows, ruleRows]) => {
         if (!alive) return;
-        setServices(serviceRows);
+        const visibleRows = serviceRows.filter(isVisibleServiceType);
+        setServices(visibleRows);
         setPresets(presetRows);
         setRules(ruleRows ?? EMPTY_RULES);
-        setServiceTypeId((current) => current || serviceRows[0]?.id || '');
+        setServiceTypeId((current) => current || visibleRows[0]?.id || '');
         setPresetId((current) => current || presetRows[0]?.id || '');
         setCatalogError(null);
       })
@@ -128,6 +133,11 @@ export function ProjectNewForm() {
       message: 'برآورد مهمان در فرم ثبت سفارش بازگردانده شد.',
     });
   }, [services, showToast]);
+
+  useEffect(() => {
+    if (services.length === 0 || services.some((item) => item.id === serviceTypeId)) return;
+    setServiceTypeId(services[0]?.id ?? '');
+  }, [services, serviceTypeId]);
 
   const preset = presets.find((item) => item.id === presetId) ?? null;
   const baseSpec = (preset?.spec ?? DEFAULT_DESIGN_SPEC) as DesignSpec;
@@ -183,6 +193,18 @@ export function ProjectNewForm() {
     }
     setErrors({});
 
+    const attachedFileIds = attachedFiles.map((f) => f.id);
+    const attachedLinkIds = attachedLinks.map((l) => l.id);
+    if (attachedFileIds.length === 0 && attachedLinkIds.length === 0) {
+      setSubmitError('برای ثبت سفارش، حداقل یک فایل یا لینک پیوست کنید.');
+      showToast({
+        type: 'error',
+        title: 'پیوست الزامی است',
+        message: 'برای ثبت سفارش، حداقل یک فایل یا لینک پیوست کنید.',
+      });
+      return;
+    }
+
     const body: CreateProjectBody = {
       name: name.trim(),
       serviceTypeId,
@@ -199,33 +221,15 @@ export function ProjectNewForm() {
         presetId: presetId || null,
         spec: spec as Record<string, unknown>,
       },
+      fileIds: attachedFileIds,
+      linkIds: attachedLinkIds,
     };
 
     setSubmitting(true);
     try {
+      // فاز ۱۲٫۸-ب: فایل/لینک در همان تراکنش ثبت سفارش پیوست می‌شوند؛
+      // مسیر جداگانهٔ attach برای سفارش ثبت‌شده مسدود است.
       const project = await api.createProject(body);
-
-      // Phase 8: attach files and links to the new project
-      if (filesApi && attachedFiles.length > 0) {
-        await filesApi.attachFiles(
-          attachedFiles.map((f) => f.id),
-          'project_initial',
-          project.id,
-          'initial_file',
-        );
-      }
-      if (filesApi && attachedLinks.length > 0) {
-        // Links need to be attached via external-links API
-        await authedRequest('/external-links/attach', {
-          method: 'POST',
-          body: {
-            linkIds: attachedLinks.map((l) => l.id),
-            entityType: 'project_initial',
-            entityId: project.id,
-            role: 'initial_file',
-          },
-        });
-      }
 
       showToast({
         type: 'success',
@@ -473,7 +477,7 @@ export function ProjectNewForm() {
                           <Icon name="fileText" size={20} />
                         </div>
                         <div className="fm-item__body">
-                          <div className="fm-item__name">{file.originalName}</div>
+                          <div className="fm-item__name" dir="ltr">{file.originalName}</div>
                           <div className="fm-item__meta">
                             <span>{file.fileCode || 'جدید'}</span>
                             <UploaderBadge username={user?.username} avatarUrl={user?.avatarUrl} sizeBytes={file.sizeBytes} />
@@ -603,12 +607,16 @@ export function ProjectNewForm() {
                 onChange={(event) => updateSpec('lineSpacing', Number(event.target.value))}
               />
             </FormField>
-            <FormField label="اندازه‌ی کاغذ" htmlFor="prj-paper">
-              <Input
+            <FormField label="اندازه کاغذ" htmlFor="prj-paper">
+              <Select
                 id="prj-paper"
                 value={String(spec.paperSize ?? 'A4')}
                 onChange={(event) => updateSpec('paperSize', event.target.value)}
-              />
+              >
+                {PAPER_SIZES.map((size) => (
+                  <option key={size} value={size}>{size}</option>
+                ))}
+              </Select>
             </FormField>
             <FormField label="حاشیه‌ی بالا (cm)" htmlFor="prj-mt">
               <Input

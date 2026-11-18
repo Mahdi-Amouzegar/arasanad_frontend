@@ -18,7 +18,9 @@ import { formatNumberFa } from '@/lib/datetime';
 import {
   uploadFileWithProgress,
   retryUpload,
+  type UploadHandle,
   getFileDownloadUrl,
+  isInlinePreviewable,
   getFileConfig,
   createFilesApi,
   createExternalLinksApi,
@@ -166,6 +168,8 @@ export function FileManagerModal({
   // حتی با z-index بالا زیر لایه dialog می‌ماند و خوانده نمی‌شود.
   const [notice, setNotice] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  /** فاز ۱۲٫۸-هـ: کنترلکنندههای لغو آپلود به ازای هر فایل. */
+  const uploadHandlesRef = useRef<Map<number, UploadHandle>>(new Map());
 
   // Select tab state
   const [existingFiles, setExistingFiles] = useState<FileItem[]>([]);
@@ -283,7 +287,9 @@ export function FileManagerModal({
     };
 
     try {
-      const result = await uploadFileWithProgress(token, item.file, onProgress);
+      const handle = uploadFileWithProgress(token, item.file, onProgress);
+      uploadHandlesRef.current.set(index, handle);
+      const result = await handle.done;
       setPendingFiles((prev) => prev.map((p, i) =>
         i === index ? {
           ...p, status: 'uploaded', fileId: result.id,
@@ -326,9 +332,11 @@ export function FileManagerModal({
       // اگر آپلود اولیه در همان لحظه شکست خورده باشد، سرور شناسهای به
       // کلاینت نداده است؛ در این حالت یک آپلود تازه انجام می‌دهیم تا
       // درخواست به `/files//retry` نرود و خطا تکرار نشود.
-      const result = item.fileId
-        ? await retryUpload(token, item.fileId, item.file, onProgress)
-        : await uploadFileWithProgress(token, item.file, onProgress);
+      const handle = item.fileId
+        ? retryUpload(token, item.fileId, item.file, onProgress)
+        : uploadFileWithProgress(token, item.file, onProgress);
+      uploadHandlesRef.current.set(index, handle);
+      const result = await handle.done;
       setPendingFiles((prev) => prev.map((p, i) =>
         i === index ? {
           ...p, status: 'uploaded', fileId: result.id,
@@ -369,6 +377,13 @@ export function FileManagerModal({
       });
     }
   }, [pendingFiles]);
+
+  /** فاز ۱۲٫۸-هـ: لغو آپلود درحجریان یک فایل و حذف آن از صف. */
+  const handleCancelUpload = useCallback((index: number) => {
+    uploadHandlesRef.current.get(index)?.abort();
+    uploadHandlesRef.current.delete(index);
+    handleRemovePending(index);
+  }, [handleRemovePending]);
 
   /** حذف نرم فایل — فقط مدیر (config.role === 'admin'). */
   const handleDeleteExisting = useCallback(
@@ -565,6 +580,7 @@ export function FileManagerModal({
               onUploadAll={handleUploadAll}
               onRetry={handleRetry}
               onRemove={handleRemovePending}
+              onCancelUpload={handleCancelUpload}
               canDelete={config.role === 'admin'}
               maxSize={limits.maxFileSize}
               allowedExtensions={limits.allowedExtensions}
@@ -640,6 +656,7 @@ interface UploadTabProps {
   onUploadAll: () => void;
   onRetry: (index: number) => void;
   onRemove: (index: number) => void;
+  onCancelUpload: (index: number) => void;
   canDelete: boolean;
   maxSize: number;
   allowedExtensions: string[];
@@ -659,6 +676,7 @@ function UploadTab({
   onUploadAll,
   onRetry,
   onRemove,
+  onCancelUpload,
   canDelete,
   maxSize,
   allowedExtensions,
@@ -739,7 +757,7 @@ function UploadTab({
                   <Icon name="fileText" size={20} />
                 </div>
                 <div className="fm-item__body">
-                  <div className="fm-item__name">{item.file.name}</div>
+                  <div className="fm-item__name" dir="ltr">{item.file.name}</div>
                   <div className="fm-item__meta">
                     <span>{formatBytesFa(item.file.size)}</span>
                     {item.status === 'uploading' ? (
@@ -799,6 +817,20 @@ function UploadTab({
                     آماده ارسال
                   </span>
                 )}
+                {item.status === 'uploading' ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    className="fm-item__cancel"
+                    onClick={() => onCancelUpload(index)}
+                    aria-label={`لغو آپلود ${item.file.name}`}
+                    title="لغو آپلود"
+                  >
+                    <Icon name="x" size={16} />
+                  </Button>
+                ) : null}
                 {canDelete && item.status !== 'uploading' && item.status !== 'uploaded' ? (
                   <Button
                     type="button"
@@ -894,7 +926,7 @@ function SelectTab({
             <Icon name="fileText" size={20} />
           </div>
           <div className="fm-item__body">
-            <div className="fm-item__name">{file.originalName}</div>
+            <div className="fm-item__name" dir="ltr">{file.originalName}</div>
             <div className="fm-item__meta">
               <span>{file.fileCode}</span>
               <span>•</span>
@@ -914,7 +946,7 @@ function SelectTab({
               onClick={(event) => {
                 // دانلود با هدر Authorization از طریق fetch و سپس save-as
                 event.preventDefault();
-                void downloadFile(file.id, file.originalName, token);
+                void downloadFile(file.id, file.originalName, token, file.mimeType);
               }}
               style={{ color: 'var(--c-primary)', cursor: 'pointer' }}
               aria-label="دانلود"
@@ -1049,21 +1081,26 @@ function formatBytesFa(bytes: number): string {
 }
 
 /** Download file via fetch with auth header, then trigger save-as. */
-async function downloadFile(fileId: string, fileName: string, token: string) {
+async function downloadFile(fileId: string, fileName: string, token: string, mimeType?: string) {
   try {
-    const response = await fetch(getFileDownloadUrl(fileId), {
+    const inline = isInlinePreviewable(mimeType, fileName);
+    const response = await fetch(getFileDownloadUrl(fileId, inline), {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!response.ok) throw new Error('دانلود ناموفق بود');
     const blob = await response.blob();
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    if (inline) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } else {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
   } catch (err) {
     console.error('[FileDownload]', err);
   }

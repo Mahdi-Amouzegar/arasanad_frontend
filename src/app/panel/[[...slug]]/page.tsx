@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AppShell } from '@/components/layout/AppShell';
 import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
-import { OrdersWorkspace } from '@/components/projects/OrdersWorkspace';
 import { ProjectList } from '@/components/projects/ProjectList';
 import { ProjectNewForm } from '@/components/projects/ProjectNewForm';
 import { ProjectDetail } from '@/components/projects/ProjectDetail';
@@ -35,8 +34,8 @@ export async function generateMetadata({
   if (slug?.length === 1 && isPublicProfileSlug(slug[0] ?? '')) {
     const handle = profileHandleLabel(slug[0] ?? '');
     return {
-      title: `@${handle} — پروفایل کاربر`,
-      description: `پروفایل عمومی @${handle} در آراسند`,
+      title: `@${handle} — داشبورد عمومی`,
+      description: `داشبورد عمومی @${handle} در آراسند`,
       robots: { index: true, follow: true },
     };
   }
@@ -50,6 +49,7 @@ export function generateStaticParams() {
       'projects/detail',
       'projects/operations',
       'projects/delivery',
+      'orders',
       'pay',
       'pay/result',
     ]),
@@ -61,11 +61,11 @@ export function generateStaticParams() {
 }
 
 /** سفارش‌ها در فاز ۷ و گفتگو/اعلان در فاز ۹ واقعی‌اند؛ بقیه پوسته‌ی صادقانه دارند. */
-const REAL_VIEWS: Record<string, 'dashboard' | 'files' | 'profile-alias' | 'list' | 'orders' | 'detail' | 'new' | 'messages' | 'notifications' | 'operations' | 'delivery' | 'wallet' | 'pay' | 'pay-result'> = {
+const REAL_VIEWS: Record<string, 'dashboard' | 'files' | 'profile-alias' | 'list' | 'detail' | 'new' | 'messages' | 'notifications' | 'operations' | 'delivery' | 'wallet' | 'pay' | 'pay-result'> = {
   '/panel': 'dashboard',
   '/panel/files': 'files',
   '/panel/profile': 'profile-alias',
-  '/panel/orders': 'orders',
+  '/panel/orders': 'list', // فاز ۱۲٫۸-ک: آدرس قدیمی همان جدول ادغام‌شده را نشان می‌دهد.
   '/panel/projects': 'list',
   '/panel/projects/new': 'new',
   '/panel/projects/detail': 'detail',
@@ -143,9 +143,7 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
           )
         }
       >
-        {view === 'orders' ? (
-          <OrdersWorkspace />
-        ) : view === 'dashboard' ? (
+        {view === 'dashboard' ? (
           <CustomerDashboard />
         ) : view === 'files' ? (
           <CustomerFiles />

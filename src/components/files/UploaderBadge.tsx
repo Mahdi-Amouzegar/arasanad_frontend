@@ -1,6 +1,7 @@
 'use client';
 
 import { formatNumberFa } from '@/lib/datetime';
+import { resolveAvatarSrc } from '@/components/ui/Avatar';
 
 function formatBytesFa(bytes: number): string {
   if (bytes < 1024) return `${formatNumberFa(bytes)} بایت`;
@@ -18,9 +19,9 @@ interface UploaderBadgeProps {
 export function UploaderBadge({ username, avatarUrl, sizeBytes }: UploaderBadgeProps) {
   return (
     <span className="fm-uploader">
-      {avatarUrl ? (
+      {resolveAvatarSrc(avatarUrl) ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="fm-uploader__avatar" src={avatarUrl} alt="" />
+        <img className="fm-uploader__avatar" src={resolveAvatarSrc(avatarUrl) ?? ''} alt="" />
       ) : (
         <span className="fm-uploader__avatar fm-uploader__avatar--empty" aria-hidden="true" />
       )}

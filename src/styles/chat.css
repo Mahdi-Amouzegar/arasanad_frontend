@@ -1107,3 +1107,32 @@ button.public-side__link:hover {
     transition: none;
   }
 }
+
+/* فاز ۱۲٫۸-ج: نام فایل‌ها در گفتگو‌ها LTR. */
+.chat-file-btn__name,
+.chat-chip__name {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+}
+
+/* فاز ۱۲٫۸-و: پانل اعلان‌ها به لایهٔ بالا منتقل و با متغیرهای موقعیت
+   محاسبهشده از روی دکمه، همیشه داخل نمای کاربر قرار می‌گیرد. */
+.notif-panel[popover] {
+  position: fixed;
+  inset: auto;
+  inset-block-start: var(--notif-top, 72px);
+  inset-inline-start: var(--notif-left, 8px);
+  inset-inline-end: auto;
+  width: var(--notif-width, min(360px, calc(100vw - 16px)));
+  max-height: min(520px, calc(100dvh - 96px));
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: var(--sh-lg);
+  overflow: hidden;
+  z-index: var(--z-toast);
+}

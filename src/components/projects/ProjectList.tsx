@@ -10,11 +10,12 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { Input, Select } from '@/components/ui/Field';
 import { RelativeTime } from '@/components/ui/JalaliDate';
-import { Money } from '@/components/ui/Money';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { formatNumberFa } from '@/lib/datetime';
 import { DisputeFlag } from '@/components/activities/DisputeFlag';
 import { ProjectActionDialog } from './ProjectActionDialog';
+import { FinanceDialog } from './OrdersWorkspace';
 import { errorText, formatHours, formatProjectCodeSafe } from './ui-utils';
 
 /** فقط مسیرهای نسبی درون‌برنامه‌ای؛ پاسخ سرور هرگز کورکورانه لینک نمی‌شود. */
@@ -39,15 +40,13 @@ function ProjectActionsCell({
 }) {
   const detailPath = role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
   const fallback = `${detailPath}?id=${encodeURIComponent(project.id)}`;
-  const actions = Array.isArray(project.availableActions) ? project.availableActions : [];
+  const actions = (Array.isArray(project.availableActions) ? project.availableActions : [])
+    // Phase 12.8-k: details are opened from the code/title cells, not a second button.
+    .filter((action) => action.id !== 'view_detail' && action.label !== 'جزئیات سفارش');
   const [active, setActive] = useState<ProjectAction | null>(null);
 
   if (actions.length === 0) {
-    return (
-      <Link className="btn btn--outline btn--sm" href={fallback}>
-        جزئیات
-      </Link>
-    );
+    return <span className="prj-muted">—</span>;
   }
 
   const links = actions.filter((action) => action.kind === 'link');
@@ -119,6 +118,7 @@ function ProjectActionsCell({
 export function ProjectList({ admin = false }: { admin?: boolean }) {
   const { authedRequest, user } = useAuth();
   const role: 'admin' | 'customer' = admin || user?.role === 'admin' ? 'admin' : 'customer';
+  const detailPath = role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
   const api = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -129,6 +129,7 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<'new' | 'old'>('new');
   const [reloadKey, setReloadKey] = useState(0);
+  const [financeFor, setFinanceFor] = useState<Project | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -177,27 +178,29 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
           </Button>
         </form>
 
-        <Select
-          aria-label="فیلتر وضعیت"
-          value={status}
-          onChange={(event) => setStatus(event.target.value)}
-        >
-          <option value="">همه‌ی وضعیت‌ها</option>
-          {PROJECT_STATUS_FLOW.map((item) => (
-            <option key={item} value={item}>
-              {PROJECT_STATUS[item].label}
-            </option>
-          ))}
-        </Select>
+        <div className="prj-toolbar__selects">
+          <Select
+            aria-label="فیلتر وضعیت"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+          >
+            <option value="">همه‌ی وضعیت‌ها</option>
+            {PROJECT_STATUS_FLOW.map((item) => (
+              <option key={item} value={item}>
+                {PROJECT_STATUS[item].label}
+              </option>
+            ))}
+          </Select>
 
-        <Select
-          aria-label="ترتیب"
-          value={sort}
-          onChange={(event) => setSort(event.target.value === 'old' ? 'old' : 'new')}
-        >
-          <option value="new">جدیدترین</option>
-          <option value="old">قدیمی‌ترین</option>
-        </Select>
+          <Select
+            aria-label="ترتیب"
+            value={sort}
+            onChange={(event) => setSort(event.target.value === 'old' ? 'old' : 'new')}
+          >
+            <option value="new">جدیدترین</option>
+            <option value="old">قدیمی‌ترین</option>
+          </Select>
+        </div>
 
         <Button variant="ghost" size="sm" onClick={refresh} aria-label="بازخوانی">
           <Icon name="refresh" size={16} />
@@ -242,54 +245,69 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
           <table className="prj-table">
             <thead>
               <tr>
-                <th scope="col">کد / عنوان</th>
-                <th scope="col">خدمت</th>
-                <th scope="col">وضعیت</th>
+                <th scope="col">نام سفارش</th>
+                <th scope="col">نوع سفارش</th>
                 <th scope="col">مشخصات</th>
-                <th scope="col">مبلغ برآوردی</th>
                 <th scope="col">تاریخ ثبت</th>
+                <th scope="col">تاریخ تحویل</th>
+                <th scope="col">مبلغ</th>
                 <th scope="col">اقدام</th>
               </tr>
             </thead>
             <tbody>
-              {projects.map((project) => (
-                <tr key={project.id}>
-                  <td data-label="کد / عنوان">
-                    <span className="prj-code">{formatProjectCodeSafe(project.code)}</span>
-                    <span className="prj-name">{project.name}</span>
-                    {/* فاز ۱۰: نشانگر اعتراض کنار نام سفارش، بدون اثر بر وضعیت. */}
-                    <DisputeFlag
-                      projectId={project.id}
-                      projectName={project.name}
-                      openDispute={project.openDispute}
-                      role={role}
-                      onResolved={refresh}
-                    />
-                  </td>
-                  <td data-label="خدمت">{project.serviceName}</td>
-                  <td data-label="وضعیت">
-                    <ProjectStatusBadge status={project.status as ProjectStatus} />
-                  </td>
-                  <td data-label="مشخصات">
-                    <span className="prj-muted">
-                      {project.sourcePageCount} صفحه · {formatHours(project.deliveryHours)}
-                    </span>
-                  </td>
-                  <td data-label="مبلغ برآوردی">
-                    <Money value={project.estimateAmount} />
-                  </td>
-                  <td data-label="تاریخ ثبت">
-                    <RelativeTime value={project.createdAt} />
-                  </td>
-                  <td data-label="اقدام">
-                    <ProjectActionsCell project={project} role={role} onDone={refresh} />
-                  </td>
-                </tr>
-              ))}
+              {projects.map((project) => {
+                const detailHref = `${detailPath}?id=${encodeURIComponent(project.id)}`;
+                const deliveryAt = project.deliveredAt ?? project.deadlineAt;
+                return (
+                  <tr key={project.id}>
+                    <td data-label="نام سفارش">
+                      <div className="prj-name-cell">
+                        <Link className="prj-code prj-table__title-link" href={detailHref}>
+                          {formatProjectCodeSafe(project.code)}
+                        </Link>
+                        <Link className="prj-name prj-table__title-link" href={detailHref}>
+                          {project.name}
+                        </Link>
+                        <DisputeFlag
+                          projectId={project.id}
+                          projectName={project.name}
+                          openDispute={project.openDispute}
+                          role={role}
+                          onResolved={refresh}
+                        />
+                      </div>
+                    </td>
+                    <td data-label="نوع سفارش">{project.serviceName}</td>
+                    <td data-label="مشخصات">
+                      <div className="prj-specs-cell">
+                        <ProjectStatusBadge status={project.status as ProjectStatus} />
+                        <span className="prj-muted">
+                          {formatNumberFa(project.sourcePageCount)} صفحه · {formatHours(project.deliveryHours)}
+                        </span>
+                      </div>
+                    </td>
+                    <td data-label="تاریخ ثبت">
+                      <RelativeTime value={project.createdAt} />
+                    </td>
+                    <td data-label="تاریخ تحویل">
+                      {deliveryAt ? <RelativeTime value={deliveryAt} /> : '—'}
+                    </td>
+                    <td data-label="مبلغ">
+                      <Button size="sm" variant="outline" onClick={() => setFinanceFor(project)}>
+                        مبلغ
+                      </Button>
+                    </td>
+                    <td data-label="اقدام">
+                      <ProjectActionsCell project={project} role={role} onDone={refresh} />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
+      {financeFor ? <FinanceDialog project={financeFor} onClose={() => setFinanceFor(null)} /> : null}
     </div>
   );
 }

@@ -86,7 +86,7 @@
   "src/lib/cx.ts": 1,
   "src/lib/datetime.ts": 13,
   "src/lib/jalali.ts": 16,
-  "src/lib/navigation.ts": 19,
+  "src/lib/navigation.ts": 18,
   "src/lib/order-message.mjs": 4,
   "src/lib/otp-format.mjs": 7,
   "src/lib/otp-qr.mjs": 14,

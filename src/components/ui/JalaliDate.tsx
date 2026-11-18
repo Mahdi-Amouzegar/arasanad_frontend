@@ -64,7 +64,15 @@ export function JalaliDate({
  * زمان نسبی زنده — هر دقیقه یک بار به‌روز می‌شود.
  * ⚠️ طبق design.md §11.1: زمان نسبی نباید ثابت بماند.
  */
-export function RelativeTime({ value, className }: { value: string | Date; className?: string }) {
+export function RelativeTime({
+  value,
+  className,
+  windowDays,
+}: {
+  value: string | Date;
+  className?: string;
+  windowDays?: number;
+}) {
   // ⚠️ «اکنون» فقط از کتابخانه‌ی اتصال می‌آید؛ `new Date()` مستقیم
   //    باعث دوباره‌کاری و ناهماهنگی با ساعت سرور می‌شد.
   const clock = useServerTime();
@@ -84,7 +92,7 @@ export function RelativeTime({ value, className }: { value: string | Date; class
   return (
     <Tooltip label={formatDateFull(value)} pinnable>
       <time dateTime={iso} className={className} suppressHydrationWarning>
-        {formatRelative(value, now)}
+        {formatRelative(value, now, { windowDays })}
       </time>
     </Tooltip>
   );

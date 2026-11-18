@@ -64,11 +64,12 @@ test('P123-06: پس از ثبت سفارش به جزئیات کامل پنل م�
 });
 
 test('P123-07: زمان نسبی آینده و تولتیپ پینشده در فهرستها', () => {
-  const lib = read('src/lib/datetime.ts');
-  for (const unit of ['دقیقه', 'ساعت', 'روز'].map((word) => word + String.fromCharCode(8204) + 'دیگر')) {
-    assert.ok(lib.includes(unit), `واحد ${unit} نیست`);
+  const lib = read('src/lib/relative-time.mjs');
+  for (const unit of ['دقیقه', 'ساعت', 'روز']) {
+    assert.ok(lib.includes(`${unit} آینده`), `واحد ${unit} آینده نیست`);
   }
-  assert.ok(lib.includes('if (diffSec < 0) {'), 'شاخه آینده اضافه نشد');
+  assert.ok(lib.includes('const future = diffSec < 0'), 'شاخه آینده اضافه نشد');
+  assert.ok(read('src/lib/datetime.ts').includes("from './relative-time.mjs'"), 'کتابخانه relative متصل نیست');
   const tooltip = read('src/components/ui/Tooltip.tsx');
   assert.ok(tooltip.includes('pinnable') && tooltip.includes("document.addEventListener('pointerdown'"), 'پین/بستن بیرون نیست');
   assert.ok(tooltip.includes('aria-expanded'), 'دسترس‌پذیری پین نیست');
@@ -185,7 +186,7 @@ test('P123-14: آدرس پروفایل عمومی با اسنپشات زمان �
 
 test('P123-14b: پروفایل عمومی فقط دادهٔ ایمن می‌خواند و ویرایش محافظت می‌شود', () => {
   const view = read('src/components/panel/PublicProfileView.tsx');
-  assert.ok(view.includes('/public/profiles/'), 'از endpoint عمومی خوانده نمی‌شود');
+  assert.ok(view.includes('/public/dashboard/'), 'از endpoint عمومی خوانده نمی‌شود');
   assert.ok(view.includes('canEdit'), 'دکمه‌ی ویرایش محدود نشد');
   assert.ok(view.includes("user?.role === 'admin'"), 'نقش مدیر در نمایش دکمه لحاظ نشد');
   assert.ok(!view.includes('wallet'), 'داده‌ی مالی در پروفایل عمومی نیست');
@@ -195,6 +196,6 @@ test('P123-14b: پروفایل عمومی فقط دادهٔ ایمن می‌خو
 
   // ⚠️ تست‌های فرانت‌اند در CI فقط همین مخزن را چکاوت می‌کنند؛ نباید به
   //    پرونده‌ی مخزن بکند وابسته باشیم. قرارداد API در تست‌های بکند پوشش داده شده.
-  assert.ok(view.includes('apiRequest<{ profile: PublicProfile }>'), 'خواندن عمومی وصل نشد');
+  assert.ok(view.includes('apiRequest<{ profile: PublicProfile; dashboard: PublicDashboard }>'), 'خواندن عمومی وصل نشد');
   assert.ok(!view.includes('token:'), 'پروفایل عمومی نباید توکن ارسال کند');
 });

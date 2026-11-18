@@ -40,3 +40,21 @@ export function safeHref(value) {
   const href = String(value ?? '');
   return href.startsWith('/') && !href.startsWith('//') ? href : '/panel/';
 }
+
+/**
+ * فاز ۱۲٫۸-و: اگر هدف اعلان، یک گفتگوی خاص است، شناسهٔ آن را برمی‌گرداند
+ * تا مستقیماً همان مکالمه در کشوی چت باز شود، نه فقط فهرست پیام‌ها.
+ */
+export function conversationIdFromHref(value) {
+  const href = safeHref(value);
+  const match = /[?&]conversation=([^&#]+)/u.exec(href);
+  if (!match) return null;
+  try {
+    const id = decodeURIComponent(match[1]);
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(id)
+      ? id
+      : null;
+  } catch {
+    return null;
+  }
+}

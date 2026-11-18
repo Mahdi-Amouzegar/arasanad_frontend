@@ -9,6 +9,14 @@
 
 import { toJalali, jalaliMonthName } from './jalali';
 import { nowMs } from './connectivity/index.mjs';
+import { formatRelativeTime } from './relative-time.mjs';
+
+export {
+  configureRelativeTime,
+  DEFAULT_RELATIVE_WINDOW_DAYS,
+  relativeTimeWindowDays,
+  resetRelativeTimeConfig,
+} from './relative-time.mjs';
 
 const FA_DIGITS = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'] as const;
 
@@ -133,41 +141,25 @@ export function formatDateOnly(input: string | Date): string {
   return toFaDigits(`${d.jy}/${pad2(d.jm)}/${pad2(d.jd)}`);
 }
 
+export interface RelativeDateOptions {
+  /** بازهٔ پیکربندپذیر به روز؛ پیش‌فرض: ۱۰ روز. */
+  windowDays?: number;
+}
+
 /**
- * زمان نسبی برای فهرست‌های اخیر.
+ * زمان نسبی در بازهٔ پیکربندپذیر؛ خارج از بازه، تاریخ دقیق شمسی برگردانده می‌شود.
  * ⚠️ در رابط کاربری باید هر دقیقه به‌روزرسانی شود تا ثابت نماند.
  */
-export function formatRelative(input: string | Date, now: Date = new Date(nowMs())): string {
-  const date = input instanceof Date ? input : new Date(input);
-  if (Number.isNaN(date.getTime())) return '—';
-
-  const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-  if (diffSec < 0) {
-    // فاز ۱۲٫۳-و: زمانهای آینده هم نسبی نمایش داده می‌شوند.
-    const ahead = -diffSec;
-    if (ahead < 60) return 'کمتر از یک دقیقه‌دیگر';
-    const aheadMinutes = Math.floor(ahead / 60);
-    if (aheadMinutes < 60) return `${formatNumberFa(aheadMinutes)} دقیقه‌دیگر`;
-    const aheadHours = Math.floor(aheadMinutes / 60);
-    if (aheadHours < 24) return `${formatNumberFa(aheadHours)} ساعت‌دیگر`;
-    const aheadDays = Math.floor(aheadHours / 24);
-    if (aheadDays < 7) return `${formatNumberFa(aheadDays)} روز‌دیگر`;
-    return formatDateShort(input);
-  }
-  if (diffSec < 60) return 'همین حالا';
-
-  const minutes = Math.floor(diffSec / 60);
-  if (minutes < 60) return `${formatNumberFa(minutes)} دقیقه پیش`;
-
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${formatNumberFa(hours)} ساعت پیش`;
-
-  const days = Math.floor(hours / 24);
-  if (days === 1) return 'دیروز';
-  if (days < 7) return `${formatNumberFa(days)} روز پیش`;
-
-  return formatDateShort(input);
+export function formatRelative(
+  input: string | Date,
+  now: Date = new Date(nowMs()),
+  options: RelativeDateOptions = {},
+): string {
+  return formatRelativeTime(input, {
+    now,
+    windowDays: options.windowDays,
+    formatExact: (value) => formatDateShort(value),
+  });
 }
 
 /** نمایش تاریخ میلادی برای Tooltip. */

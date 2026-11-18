@@ -39,7 +39,7 @@ export interface ExternalLink {
 
 export interface DeliveryFile {
   id: string;
-  /** فاز ۱۱ — شماره نسخه؛ تحویلهای قدیمی `1`اند. */
+  /** فاز ۱۱ — شماره نسخه؛ تحویل‌های قدیمی `1`اند. */
   version?: number;
   projectId?: string;
   deliveredBy?: string;
@@ -181,6 +181,12 @@ export type UploadProgressHandler = (
   phase: 'uploading' | 'confirming',
 ) => void;
 
+/** فاز ۱۲٫۸-هـ: لغو آپلود تکی از طریق دکمهٔ ضربدر داخل کادر فایل. */
+export interface UploadHandle {
+  abort: () => void;
+  done: Promise<FileItem>;
+}
+
 interface UploadEnvelope {
   ok: boolean;
   data: { file: FileItem } | null;
@@ -197,8 +203,9 @@ function xhrUpload(
   file: File,
   onProgress?: UploadProgressHandler,
   fallbackMessage = 'آپلود فایل انجام نشد',
-): Promise<FileItem> {
-  return new Promise((resolve, reject) => {
+): UploadHandle {
+  let handleAbort: () => void = () => {};
+  const done = new Promise<FileItem>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
     for (const [name, value] of Object.entries(headers)) xhr.setRequestHeader(name, value);
@@ -223,16 +230,18 @@ function xhrUpload(
       reject(new Error(payload?.error?.message ?? fallbackMessage));
     };
     xhr.onerror = () => reject(new Error('ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.'));
-    xhr.onabort = () => reject(new Error('ارسال فایل لغو شد'));
+    xhr.onabort = () => reject(new DOMException('ارسال فایل لغو شد', 'AbortError'));
     xhr.send(file);
+    handleAbort = () => { if (xhr.readyState !== 4) xhr.abort(); };
   });
+  return { abort: () => handleAbort(), done };
 }
 
-export async function uploadFileWithProgress(
+export function uploadFileWithProgress(
   token: string,
   file: File,
   onProgress?: UploadProgressHandler,
-): Promise<FileItem> {
+): UploadHandle {
   return xhrUpload(
     `${API_BASE}/files/upload`,
     {
@@ -246,17 +255,17 @@ export async function uploadFileWithProgress(
   );
 }
 
-export async function uploadFile(token: string, file: File): Promise<FileItem> {
+export function uploadFile(token: string, file: File): UploadHandle {
   return uploadFileWithProgress(token, file);
 }
 
 /** Retry uploading a failed file, with the same progress channel. */
-export async function retryUpload(
+export function retryUpload(
   token: string,
   fileId: string,
   file: File,
   onProgress?: UploadProgressHandler,
-): Promise<FileItem> {
+): UploadHandle {
   return xhrUpload(
     `${API_BASE}/files/${fileId}/retry`,
     {
@@ -272,8 +281,17 @@ export async function retryUpload(
 /**
  * Download a file — triggers save-as dialog.
  */
-export function getFileDownloadUrl(fileId: string): string {
-  return `${API_BASE}/files/${fileId}/download`;
+export function getFileDownloadUrl(fileId: string, inline = false): string {
+  return `${API_BASE}/files/${fileId}/download${inline ? '?inline=1' : ''}`;
+}
+
+/** انواعی که مرورگر می‌تواند در همان تب پیش‌نمایش کند (همسو با بک‌اند). */
+export function isInlinePreviewable(mime?: string | null, name?: string): boolean {
+  const value = (mime ?? '').split(';')[0]?.trim().toLowerCase();
+  if (value === 'application/pdf' || value === 'image/jpeg' || value === 'image/png') return true;
+  // بک‌اند MIME را تعیین می‌کند؛ نام فقط زمانی کمک می‌کند که MIME عمومی باشد.
+  if (value && value !== 'application/octet-stream') return false;
+  return /\.(pdf|jpe?g|png)$/i.test(name ?? '');
 }
 
 /* ─────────────────────────── External Links API ─────────────────────────── */

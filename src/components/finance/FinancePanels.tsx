@@ -281,7 +281,7 @@ export function AdminPaymentsPanel() {
               </table>
             </div>
           )}
-          <p className="prj-note">مبلغ تأییدی مدیر مبنای محاسبه است؛ رسید پیوستشده توسط مشتری در سرور بررسی می‌شود.</p>
+          <p className="prj-note">مبلغ تأییدی مدیر مبنای محاسبه است؛ رسید پیوست‌شده توسط مشتری در سرور بررسی می‌شود.</p>
         </CardBody>
       </Card>
     </div>

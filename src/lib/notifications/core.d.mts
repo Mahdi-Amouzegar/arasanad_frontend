@@ -23,3 +23,4 @@ export declare function unseenItems<T extends { id?: string }>(
 /** ترتیب را نگه می‌دارد و نوع دقیق ورودی (مثلاً `NotificationItem`) را برمی‌گرداند. */
 export declare function inDisplayOrder<T extends { createdAt?: string }>(items: T[]): T[];
 export declare function safeHref(value: string | null | undefined): string;
+export declare function conversationIdFromHref(value: string | null | undefined): string | null;

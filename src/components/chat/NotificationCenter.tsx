@@ -11,7 +11,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { RelativeTime } from '@/components/ui/JalaliDate';
-import { safeHref } from '@/lib/notifications/core.mjs';
+import { safeHref, conversationIdFromHref } from '@/lib/notifications/core.mjs';
+import { useChat } from './ChatProvider';
 import { formatBadge, truncate } from '@/lib/chat/core.mjs';
 import { useNotifications } from './NotificationProvider';
 import { TelegramConnectCard } from './TelegramConnectCard';
@@ -30,8 +31,11 @@ export function NotificationCenter() {
     markAllRead,
     signedIn,
   } = useNotifications();
+  const { openChat } = useChat();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -57,11 +61,37 @@ export function NotificationCenter() {
     };
   }, [open]);
 
+  /**
+   * فاز ۱۲٫۸-و: پانل اعلان‌ها دو مشکل داشت: در نوار بالای صفحهٔ اصلی
+   * بریده می‌شد و زیر لایهٔ صفحه می‌ماند. با popover وارد لایهٔ بالای
+   * مرورگر می‌شود و موقعیت آن دقیقاً زیر دکمه و داخل نمای کاربر تنظیم می‌گردد.
+   */
+  useEffect(() => {
+    const panel = panelRef.current;
+    const trigger = triggerRef.current;
+    if (!panel || !trigger) return;
+    const el = panel as HTMLElement & {
+      showPopover?: () => void;
+      hidePopover?: () => void;
+      matches?: (s: string) => boolean;
+    };
+    if (typeof el.showPopover === 'function' && !el.matches?.(':popover-open')) {
+      el.showPopover();
+    }
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(360, window.innerWidth - 16);
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+    panel.style.setProperty('--notif-left', `${left}px`);
+    panel.style.setProperty('--notif-top', `${Math.min(rect.bottom + 8, window.innerHeight - 120)}px`);
+    panel.style.setProperty('--notif-width', `${width}px`);
+  }, [open]);
+
   if (!signedIn) return null;
 
   return (
     <div className="notif-center" ref={containerRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="notif-trigger"
         aria-label={`اعلان‌ها${unreadCount > 0 ? `، ${unreadCount} خوانده‌نشده` : ''}`}
@@ -77,7 +107,7 @@ export function NotificationCenter() {
       </button>
 
       {open ? (
-        <section className="notif-panel" role="dialog" aria-label="اعلان‌ها">
+        <section ref={panelRef} className="notif-panel" popover="manual" role="dialog" aria-label="اعلان‌ها">
           <header className="notif-panel__header">
             <strong>اعلان‌ها</strong>
             <button
@@ -108,9 +138,16 @@ export function NotificationCenter() {
                 key={item.id}
                 href={safeHref(item.href)}
                 className={`notif-item ${item.readAt ? '' : 'notif-item--unread'}`}
-                onClick={() => {
+                onClick={(event) => {
                   if (!item.readAt) void markRead(item.id);
                   setOpen(false);
+                  // فاز ۱۲٫۸-و: اعلان‌های گفتگو مستقیماً همان مکالمه را در
+                  // کشوی چت باز می‌کنند؛ بقیه اعلان‌ها مسیر عادی خود را طی می‌کنند.
+                  const conversationId = conversationIdFromHref(item.href);
+                  if (conversationId) {
+                    event.preventDefault();
+                    void openChat({ conversationId }, 'drawer');
+                  }
                 }}
               >
                 <span className="notif-item__dot" aria-hidden="true" />

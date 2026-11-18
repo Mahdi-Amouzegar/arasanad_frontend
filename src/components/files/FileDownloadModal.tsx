@@ -7,7 +7,7 @@ import { RelativeTime } from '@/components/ui/JalaliDate';
 import { useAuth } from '@/lib/account';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { formatNumberFa } from '@/lib/datetime';
-import { getFileDownloadUrl, type FileItem } from '@/lib/files/api';
+import { getFileDownloadUrl, isInlinePreviewable, type FileItem } from '@/lib/files/api';
 
 export interface FileDownloadModalProps {
   open: boolean;
@@ -50,19 +50,26 @@ export function FileDownloadModal({
     if (!token || !file) return;
     setDownloading(true);
     try {
-      const response = await fetch(getFileDownloadUrl(file.id), {
+      // فاز ۱۲٫۸-هـ: تصویر و PDF در همان مرورگر دیده می‌شوند؛ سایر انواع
+      // با `download` پنجرهٔ ذخیرهٔ فایل را نشان می‌دهند.
+      const inline = isInlinePreviewable(file.mimeType, file.originalName);
+      const response = await fetch(getFileDownloadUrl(file.id, inline), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!response.ok) throw new Error('دانلود ناموفق بود');
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.originalName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      if (inline) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } else {
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = file.originalName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
       if (onDownloaded) await onDownloaded();
       showToast({ type: 'success', title: 'فایل دریافت شد' });
     } catch (err) {
@@ -108,7 +115,7 @@ export function FileDownloadModal({
                 <Icon name="fileText" size={24} />
               </div>
               <div className="file-card__info">
-                <div className="file-card__name">{file.originalName}</div>
+                <div className="file-card__name" dir="ltr">{file.originalName}</div>
                 <div className="file-card__code">{file.fileCode}</div>
               </div>
             </div>
@@ -160,7 +167,7 @@ export function FileDownloadModal({
             loading={downloading}
             leadingIcon={!downloading ? <Icon name="download" size={16} /> : undefined}
           >
-            دانلود فایل
+            {isInlinePreviewable(file.mimeType, file.originalName) ? 'مشاهدهٔ فایل' : 'دانلود فایل'}
           </Button>
         </div>
       </div>

@@ -40,6 +40,7 @@ export const LANGUAGES = ['فارسی', 'انگلیسی', 'عربی', 'ترکی�
 export const SOURCE_TYPES = ['چاپی', 'دست\u200cنویس', 'ترکیبی'];
 
 export const OUTPUT_FORMATS = ['PDF', 'Word'];
+export const PAPER_SIZES = ['A3', 'A4', 'A5'];
 
 /** فاز ۱۲٫۳-ج: فرمت خروجی می‌تواند یک رشته یا آرایه‌ای از چند فرمت باشد. */
 export function parseOutputFormats(value) {
@@ -287,6 +288,8 @@ export function validateProjectDraft(draft) {
     }
     if (!isPlainObject(d.design.spec)) {
       errors['design.spec'] = 'مشخصات طراحی باید یک شیء ساده باشد.';
+    } else if (!PAPER_SIZES.includes(d.design.spec.paperSize)) {
+      errors['design.spec.paperSize'] = 'اندازه کاغذ را از فهرست A3/A4/A5 انتخاب کنید.';
     }
   }
 

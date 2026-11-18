@@ -43,6 +43,8 @@ export type ChatView = 'list' | 'thread';
 export interface OpenChatInput {
   peerUserId?: string;
   projectId?: string;
+  /** فاز ۱۲٫۸-و: باز کردن مستقیم گفتگوی شناخته‌شده (مانند کلیک روی اعلان). */
+  conversationId?: string;
   /** عنوان بستر، فقط برای نمایش در سربرگ */
   projectLabel?: string;
 }
@@ -203,6 +205,22 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       try {
         let peerId = input.peerUserId?.trim() ?? '';
         const contextProjectId = input.projectId?.trim() ?? null;
+        const directConversationId = input.conversationId?.trim() ?? '';
+
+        // فاز ۱۲٫۸-و: اگر شناسهٔ گفتگو معلوم است، همان مکالمه را مستقیماً
+        // باز می‌کنیم تا کاربر نیازی به پیدا کردن آن در فهرست نداشته باشد.
+        if (directConversationId) {
+          const page = await api.listConversations();
+          const found = page.conversations.find((row) => row.id === directConversationId);
+          if (!found) throw new Error('گفتگو یافت نشد');
+          setConversationId(found.id);
+          setActivePeer(found.peer);
+          setProjectId(found.projectId);
+          await loadMessages(found.id);
+          void api.markRead(found.id).then(refreshUnread).catch(() => undefined);
+          void refreshConversations();
+          return;
+        }
 
         // بند ۳: مخاطب سفارش ازپیشتعیینشده است؛ سرور تصمیم می‌گیرد.
         if (!peerId && contextProjectId) {

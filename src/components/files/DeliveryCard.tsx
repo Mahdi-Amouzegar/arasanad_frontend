@@ -129,7 +129,7 @@ export function DeliveryCard({
                   <Icon name="fileText" size={20} />
                 </div>
                 <div className="fm-item__body">
-                  <div className="fm-item__name">{file.originalName}</div>
+                  <div className="fm-item__name" dir="ltr">{file.originalName}</div>
                   <div className="fm-item__meta">
                     <span>{file.fileCode}</span>
                     <span>•</span>

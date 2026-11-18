@@ -165,7 +165,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
           </Button>
           <Link
             className="btn btn--outline btn--sm"
-            href={`/projects/detail/?id=${encodeURIComponent(id)}`}
+            href={`${admin ? '/admin/projects/detail/' : '/panel/projects/detail/'}?id=${encodeURIComponent(id)}`}
           >
             جزئیات سفارش
           </Link>

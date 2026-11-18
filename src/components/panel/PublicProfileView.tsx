@@ -23,7 +23,19 @@ interface PublicProfile {
   avatarVersion: string;
   role: 'admin' | 'customer';
   memberSince: string;
-  stats: { completedProjects: number };
+}
+
+interface PublicDashboard {
+  stats: {
+    totalProjects: number;
+    completedProjects: number;
+    activeProjects: number;
+  };
+  recentProjects: Array<{
+    code: string;
+    name: string;
+    completedAt: string | null;
+  }>;
 }
 
 /**
@@ -36,6 +48,7 @@ interface PublicProfile {
 export function PublicProfileView({ handle }: { handle: string }) {
   const { user } = useAuth();
   const [profile, setProfile] = useState<PublicProfile | null>(null);
+  const [dashboard, setDashboard] = useState<PublicDashboard | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,12 +57,16 @@ export function PublicProfileView({ handle }: { handle: string }) {
     setLoading(true);
     setError(null);
     setProfile(null);
+    setDashboard(null);
 
-    apiRequest<{ profile: PublicProfile }>(
-      `/public/profiles/${encodeURIComponent(handle)}`,
+    apiRequest<{ profile: PublicProfile; dashboard: PublicDashboard }>(
+      `/public/dashboard/${encodeURIComponent(handle)}`,
       { signal: controller.signal },
     )
-      .then((data) => setProfile(data.profile))
+      .then((data) => {
+        setProfile(data.profile);
+        setDashboard(data.dashboard);
+      })
       .catch((reason: unknown) => {
         if (reason instanceof DOMException && reason.name === 'AbortError') return;
         setError(
@@ -75,9 +92,9 @@ export function PublicProfileView({ handle }: { handle: string }) {
     <PublicLayout>
       <section>
         <SectionHeading
-          eyebrow="پروفایل عمومی"
+          eyebrow="داشبورد عمومی"
           title={profile ? `@${profile.username}` : `@${handle}`}
-          description="اطلاعاتی که برای همه بازدیدکنندگان قابل مشاهدهاند."
+          description="سابقه و آمار قابل نمایش عمومی کاربر."
         />
 
         {profile && !isValidPublicId(handle) ? (
@@ -136,9 +153,9 @@ export function PublicProfileView({ handle }: { handle: string }) {
                 </div>
                 <div>
                   <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
-                    سفارشات تکمیل‌شده
+                    نقش کاربر
                   </p>
-                  <strong>{profile.stats.completedProjects}</strong>
+                  <strong>{profile.role === 'admin' ? 'مدیر سایت' : 'کاربر'}</strong>
                 </div>
               </div>
 
@@ -150,6 +167,45 @@ export function PublicProfileView({ handle }: { handle: string }) {
                 </div>
               ) : null}
             </div>
+
+            {dashboard ? (
+              <>
+                <div className="adm-stats-grid">
+                  <div className="stat">
+                    <span className="stat__label">کل سفارشات</span>
+                    <span className="stat__value">{dashboard.stats.totalProjects.toLocaleString('fa-IR')}</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat__label">تکمیل‌شده</span>
+                    <span className="stat__value">{dashboard.stats.completedProjects.toLocaleString('fa-IR')}</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat__label">در حال انجام</span>
+                    <span className="stat__value">{dashboard.stats.activeProjects.toLocaleString('fa-IR')}</span>
+                  </div>
+                </div>
+
+                <div className="calc-card">
+                  <h2 style={{ fontSize: 'var(--fs-section)', marginBottom: 'var(--sp-3)' }}>
+                    آخرین سفارشات تکمیل‌شده
+                  </h2>
+                  {dashboard.recentProjects.length === 0 ? (
+                    <p style={{ color: 'var(--c-text-secondary)' }}>هنوز سفارش تکمیل‌شدهای ثبت نشده است.</p>
+                  ) : (
+                    <ul className="row" style={{ flexDirection: 'column', gap: 'var(--sp-2)' }}>
+                      {dashboard.recentProjects.map((project) => (
+                        <li key={`${project.code}-${project.completedAt ?? ''}`}>
+                          <span className="prj-code">{project.code}</span> — <strong>{project.name}</strong>
+                          {project.completedAt ? (
+                            <> · <JalaliDate value={project.completedAt} variant="date" /></>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </>
+            ) : null}
 
             {!user ? (
               <div className="guest-notice" role="note">
