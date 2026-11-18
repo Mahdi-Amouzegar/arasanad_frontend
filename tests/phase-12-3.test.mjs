@@ -190,7 +190,8 @@ test('P123-14b: پروفایل عمومی فقط دادهٔ ایمن می‌خو
   const menu = read('src/components/public/AccountMenu.tsx');
   assert.ok(menu.includes('profileHref(user.username)'), 'منوی حساب به آدرس جدید وصل نشد');
 
-  const api = read('../arasanad_backend/src/routes/public-profile.ts');
-  assert.ok(api.includes("status = 'active'"), 'کاربر غیرفعال فهرست نشد');
-  assert.ok(!api.includes('requireAuth'), 'مسیر خواندن نیاز به توکن دارد');
+  // ⚠️ تست‌های فرانت‌اند در CI فقط همین مخزن را چکاوت می‌کنند؛ نباید به
+  //    پرونده‌ی مخزن بکند وابسته باشیم. قرارداد API در تست‌های بکند پوشش داده شده.
+  assert.ok(view.includes('apiRequest<{ profile: PublicProfile }>'), 'خواندن عمومی وصل نشد');
+  assert.ok(!view.includes('token:'), 'پروفایل عمومی نباید توکن ارسال کند');
 });
