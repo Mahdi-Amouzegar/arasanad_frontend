@@ -81,17 +81,21 @@ export function ChatComposer() {
 
   const handleSend = useCallback(async () => {
     const check = validateDraft(draft);
-    if (!check.ok) {
+    // فاز ۱۲٫۹-ز: متن خالی فقط زمانی مجاز است که پیوستی آماده باشد.
+    if (!check.ok && pendingCount === 0) {
       setDraftError(check.reason ?? 'متن پیام نامعتبر است');
       return;
     }
-    if (!check.value) return;
-    const ok = await sendText(check.value);
+    const text = check.ok ? check.value : '';
+    if (!text && pendingCount === 0) return;
+    const ok = await sendText(text, pendingFiles, pendingLinks);
     if (ok) {
       setDraft('');
+      setPendingFiles([]);
+      setPendingLinks([]);
       setDraftError(null);
     }
-  }, [draft, sendText]);
+  }, [draft, pendingCount, pendingFiles, pendingLinks, sendText]);
 
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     // Enter بفرستد، Shift+Enter خط تازه؛ مطابق الگوی رایج پیامرسان‌ها
@@ -168,7 +172,7 @@ export function ChatComposer() {
             onClick={() => void handleFileButton()}
             disabled={disabled}
             loading={busy && pendingCount > 0}
-            title={pendingCount > 0 ? 'ارسال فایل‌های انتخاب‌شده' : 'باز کردن انتخابگر فایل'}
+            title={pendingCount > 0 ? 'ارسال فایل‌های انتخاب‌شده' : 'انتخاب فایل'}
           >
             ارسال فایل{pendingCount > 0 ? ` (${toFaDigits(pendingCount)})` : ''}
           </Button>
@@ -177,7 +181,7 @@ export function ChatComposer() {
             size="sm"
             leadingIcon={<Icon name="send" size={16} />}
             onClick={() => void handleSend()}
-            disabled={disabled || !draft.trim()}
+            disabled={disabled || (!draft.trim() && pendingCount === 0)}
             loading={busy && pendingCount === 0}
           >
             ارسال

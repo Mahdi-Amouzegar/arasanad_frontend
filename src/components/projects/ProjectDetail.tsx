@@ -44,7 +44,6 @@ import {
 } from '@/components/ui/StatusBadge';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { useChat } from '@/components/chat/ChatProvider';
-import { operationsHref } from '@/lib/activities/core.mjs';
 import { ProjectRating } from './ProjectRating';
 import { DesignSpecSnapshot } from './DesignSpecSnapshot';
 import {
@@ -397,16 +396,6 @@ export function ProjectDetail() {
             <div className="row" style={{ gap: 'var(--sp-2)' }}>
               {/* فاز ۹، بند ۳: مخاطب از روی سفارش توسط سرور تعیین می‌شود؛
                   مشتری → مدیر، مدیر → مشتری صاحب سفارش. جستجو لازم نیست. */}
-              {/* فاز ۹٫۵: هدایت مستقیم به صفحه‌ی کامل ثبت عملیات، برای هر دو نقش. */}
-              {!isCancelled ? (
-                <Link
-                  className="btn btn--outline btn--sm"
-                  href={operationsHref(user?.role === 'admin' ? 'admin' : 'customer', id)}
-                >
-                  <Icon name="activity" size={16} />
-                  ثبت عملیات سفارش
-                </Link>
-              ) : null}
               {signedIn ? (
                 <button
                   type="button"
@@ -424,10 +413,25 @@ export function ProjectDetail() {
           }
         />
         <CardBody>
+          {/* فاز ۱۲٫۹-س: نشانگر اعتراض در ردیف نشانها، با تاکید قرمز. */}
           <div className="prj-badges">
             <ProjectStatusBadge status={project.status as ProjectStatus} />
             <FinancialStatusBadge status={financialStatusOf(project)} />
             {deliveryState ? <DeliveryStateBadge state={deliveryState} /> : null}
+            {(Array.isArray(project.availableActions) ? project.availableActions : [])
+              .filter((item) => item.kind === 'flag')
+              .map((item) => (
+                <DisputeFlag
+                  key={item.id}
+                  projectId={project.id}
+                  projectName={project.name}
+                  openDispute={project.openDispute}
+                  role={role}
+                  label={item.label}
+                  variant="name"
+                  onResolved={() => void load()}
+                />
+              ))}
           </div>
           {/* فاز ۱۰: اقدامهای مالی دقیقاً همان availableActions[] فهرست. */}
           {(() => {
@@ -439,8 +443,7 @@ export function ProjectDetail() {
             const buttons = actions.filter(
               (item) => item.kind === 'button' || item.kind === 'link',
             );
-            const flags = actions.filter((item) => item.kind === 'flag');
-            if (buttons.length === 0 && flags.length === 0) return null;
+            if (buttons.length === 0) return null;
             return (
               <div className="prj-action-cell prj-action-cell--detail">
                 {buttons.map((item, index) => {
@@ -463,18 +466,6 @@ export function ProjectDetail() {
                     </button>
                   );
                 })}
-                {flags.map((item) => (
-                  <DisputeFlag
-                    key={item.id}
-                    projectId={project.id}
-                    projectName={project.name}
-                    openDispute={project.openDispute}
-                    role={role}
-                    label={item.label}
-                    variant="action"
-                    onResolved={() => void load()}
-                  />
-                ))}
               </div>
             );
           })()}
@@ -961,10 +952,7 @@ export function ProjectDetail() {
         </CardBody>
       </Card>
 
-      <p className="prj-note">
-        رویداد‌ها در Outbox ثبت و به اعلان درون‌سامانه‌ای و تلگرام تبدیل می‌شوند؛
-        رویدادهای مالی فاز ۱۰ نیز همان مسیر و سابقه عملیات سفارش را دارند.
-      </p>
+      {/* فاز ۱۲٫۹: توضیح مسیر Outbox/اعلان از جزئیات سفارش حذف شد. */}
 
       {/* فاز ۱۲٫۵-ج-۱: امتیاز مشتری — فقط در سفارش تکمیل‌شده ظاهر می‌شود */}
       <ProjectRating projectId={id} />

@@ -81,7 +81,7 @@ interface ChatContextValue {
   searchUsers: (query: string) => Promise<void>;
   clearSearch: () => void;
   openWithUser: (user: ChatPeer) => Promise<void>;
-  sendText: (text: string) => Promise<boolean>;
+  sendText: (text: string, files?: SelectedFile[], links?: SelectedLink[]) => Promise<boolean>;
   sendAttachments: (files: SelectedFile[], links: SelectedLink[]) => Promise<boolean>;
   clearError: () => void;
 }
@@ -222,7 +222,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        // بند ۳: مخاطب سفارش ازپیشتعیینشده است؛ سرور تصمیم می‌گیرد.
+        // بند ۳: مخاطب سفارش ازپیشتعیین‌شده است؛ سرور تصمیم می‌گیرد.
         if (!peerId && contextProjectId) {
           const result = await api.peerByProject(contextProjectId);
           peerId = result.peer.id;
@@ -351,11 +351,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [api, busy, conversationId, pushMessage, showToast],
   );
 
+  /** فاز ۱۲٫۹-ز: پیوستهای آماده همراه همان پیام متنی فرستاده می‌شوند. */
   const sendText = useCallback(
-    (text: string) =>
+    (text: string, files: SelectedFile[] = [], links: SelectedLink[] = []) =>
       sendMessage({
         text,
         clientNonce: createNonce(),
+        ...(files.length > 0 ? { fileIds: files.map((file) => file.id) } : {}),
+        ...(links.length > 0 ? { linkIds: links.map((link) => link.id) } : {}),
         ...(projectId ? { projectId } : {}),
       }),
     [projectId, sendMessage],

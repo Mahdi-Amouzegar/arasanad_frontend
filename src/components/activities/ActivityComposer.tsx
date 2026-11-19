@@ -25,6 +25,10 @@ import {
   type FileManagerResult,
 } from '@/components/files/FileManagerModal';
 import { createActivitiesApi, type ActivityKind, type ActivityItem } from '@/lib/activities/api';
+import { PeykDropTarget } from '@/components/files/PeykDropTarget';
+import { createPeykApiUploader } from '@/lib/files/peyk-api-adapter';
+import { localFileSignature } from '@/components/files/FileManagerModal';
+import type { PeykResult } from '@/lib/files/peyk';
 import {
   ACTIVITY_ENTITY_TYPE,
   ACTIVITY_FILE_ROLE,
@@ -49,7 +53,7 @@ export function ActivityComposer({
   onClearReply,
   onCreated,
 }: ActivityComposerProps) {
-  const { authedRequest } = useAuth();
+  const { authedRequest, token } = useAuth();
   const { showToast } = useAlert();
   const api = useMemo(() => createActivitiesApi(authedRequest), [authedRequest]);
   const filesApi = useMemo(() => createFilesApi(authedRequest), [authedRequest]);
@@ -61,6 +65,8 @@ export function ActivityComposer({
   const [fmOpen, setFmOpen] = useState(false);
   const [files, setFiles] = useState<FileItem[]>([]);
   const [links, setLinks] = useState<ExternalLink[]>([]);
+  /** فاز ۱۲٫۹: پیام‌های دقیق فایل‌های ناموفق در همان کادر. */
+  const [uploadIssues, setUploadIssues] = useState<string[]>([]);
 
   const onFilesSelected = useCallback((result: FileManagerResult) => {
     const nextFiles: FileItem[] = result.files.map((file) => ({
@@ -101,6 +107,50 @@ export function ActivityComposer({
       return [...prev, ...added];
     });
   }, []);
+
+  /** فاز ۱۲٫۹: کیت Peyk تمام آپلود را در پس‌زمینه انجام می‌دهد و نتیجه می‌دهد. */
+  const peykConfig = useMemo(
+    () => ({
+      upload: createPeykApiUploader(token ?? ''),
+      excludeSignatures: files.map((file) => localFileSignature(file.originalName, file.sizeBytes)),
+    }),
+    [token, files],
+  );
+
+  const handlePeykResult = useCallback((result: PeykResult) => {
+    if (result.uploaded.length > 0) {
+      const added: FileItem[] = result.uploaded.map((file) => ({
+        id: file.id,
+        uploaderId: '',
+        originalName: file.originalName,
+        fileCode: file.fileCode ?? '',
+        mimeType: file.mimeType ?? 'application/octet-stream',
+        extension: file.extension ?? file.originalName.split('.').pop() ?? '',
+        sizeBytes: file.sizeBytes ?? 0,
+        status: 'uploaded',
+        description: null,
+        downloadCount: 0,
+        createdAt: '',
+        uploadedAt: null,
+      }));
+      setFiles((prev) => [...prev, ...added.filter((item) => !prev.some((old) => old.id === item.id))]);
+    }
+    const issues = [
+      ...result.rejected.map((item) => `${item.name}: ${item.message}`),
+      ...result.failed.map((item) => `${item.name}: ${item.message}`),
+    ];
+    if (issues.length > 0) setUploadIssues((prev) => [...prev, ...issues]);
+    const bad = result.rejected.length + result.failed.length;
+    if (result.uploaded.length > 0) {
+      showToast({
+        type: 'success',
+        title: `تعداد ${result.uploaded.length} فایل به صورت موفق ارسال شد`,
+      });
+    }
+    if (bad > 0) {
+      showToast({ type: 'error', title: `ارسال تعداد ${bad} فایل، ناموفق بود` });
+    }
+  }, [showToast]);
 
   const submit = useCallback(
     async (kind: ActivityKind) => {
@@ -156,6 +206,7 @@ export function ActivityComposer({
         setText('');
         setFiles([]);
         setLinks([]);
+        setUploadIssues([]);
         onClearReply?.();
         showToast({
           type: attachErrors.length > 0 ? 'info' : 'success',
@@ -181,6 +232,7 @@ export function ActivityComposer({
   );
 
   return (
+    <PeykDropTarget config={peykConfig} onResult={handlePeykResult} disabled={fmOpen}>
     <section className="act-composer" aria-label="ثبت عملیات تازه">
       {replyTo ? (
         <div className="act-composer__reply">
@@ -232,6 +284,20 @@ export function ActivityComposer({
         ))}
       </div>
 
+      {uploadIssues.length > 0 ? (
+        <div className="act-composer__upload-issues" role="alert">
+          <strong>فایل‌های زیر ارسال نشدند:</strong>
+          <ul>
+            {uploadIssues.map((issue, index) => (
+              <li key={`${index}-${issue}`}>{issue}</li>
+            ))}
+          </ul>
+          <button type="button" className="chat-link-btn" onClick={() => setUploadIssues([])}>
+            پاک کردن پیام‌ها
+          </button>
+        </div>
+      ) : null}
+
       <div className="act-composer__actions">
         <Button
           variant="outline"
@@ -282,5 +348,6 @@ export function ActivityComposer({
         onSelect={onFilesSelected}
       />
     </section>
+    </PeykDropTarget>
   );
 }

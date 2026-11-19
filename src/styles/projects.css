@@ -676,6 +676,11 @@
 }
 
 .ord-dialog {
+  /* فاز ۱۲٫۹-الف: بدون `inset`/`margin` صریح، برخی مرورگرها دیالوگ را
+     در گوشه‌ی بالا و راست میچسبانند؛ مرکزیت modal باید قطعی باشد. */
+  position: fixed;
+  inset: 0;
+  margin: auto;
   width: min(860px, calc(100vw - 2 * var(--sp-4)));
   max-height: calc(100vh - 2 * var(--sp-4));
   overflow: auto;
@@ -710,4 +715,123 @@
   align-items: center;
   gap: var(--sp-2);
   cursor: pointer;
+}
+
+/* ═══════════════════════ فاز ۱۲٫۹ — اصلاحات فرم سفارش ═══════════════════════ */
+
+/* بند ۹: پیام برجسته در slotted-cell مقابل «زیرحالت» */
+.prj-submode-notice {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border-inline-start: 4px solid var(--c-info);
+  border-radius: var(--r-sm);
+  background: var(--c-info-bg);
+  color: var(--c-text);
+  font-size: var(--fs-sm);
+  line-height: 1.8;
+}
+
+.prj-submode-notice svg {
+  flex: 0 0 auto;
+  margin-top: 3px;
+  color: var(--c-info);
+}
+
+.prj-submode-notice p {
+  margin: 0;
+}
+
+/* بند ۱۰: برجسته کردن کادر «فایل‌های ضمیمه» در صورت نبودن پیوست */
+.prj-attachment-field--warning > .field {
+  padding: var(--sp-3);
+  border: 1px solid var(--c-danger);
+  border-radius: var(--r-sm);
+  background: var(--c-danger-bg);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-danger) 12%, transparent);
+}
+
+.prj-attachment-field--warning > .field .field__label {
+  color: var(--c-danger);
+  font-weight: var(--fw-bold);
+}
+
+/* بند ۱۶: فهرست متمرکز ایرادها بالای دکمه‌ی ثبت */
+.prj-submit-issues {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  margin-block: var(--sp-4) var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--c-danger);
+  border-radius: var(--r-sm);
+  background: var(--c-danger-bg);
+  color: var(--c-text);
+  font-size: var(--fs-sm);
+}
+
+.prj-submit-issues > svg {
+  flex: 0 0 auto;
+  color: var(--c-danger);
+  margin-top: 2px;
+}
+
+.prj-submit-issues strong {
+  display: block;
+  margin-bottom: var(--sp-2);
+  color: var(--c-danger);
+}
+
+.prj-submit-issues ol {
+  margin: 0;
+  padding-inline-start: 1.4em;
+}
+
+.prj-submit-issues li + li {
+  margin-top: 2px;
+}
+
+/* فاز ۱۲٫۹-ی: سلول «کد / نام» به‌صورت یک دکمه */
+.prj-name-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+}
+
+.prj-name-cell--button {
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--r-xs);
+  transition: background var(--t-fast), color var(--t-fast);
+}
+
+.prj-name-cell--button:hover {
+  background: var(--c-surface-hover, transparent);
+  color: var(--c-primary);
+}
+
+.prj-name-cell--button:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.prj-name-cell--button:hover .prj-name,
+.prj-name-cell--button:hover .prj-code {
+  color: var(--c-primary);
+}
+
+/* فاز ۱۲٫۹-س: اعتراض در ردیف نشانها، با تاکید قرمز */
+.prj-badges .dsp-flag {
+  border-color: var(--c-danger);
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+  font-weight: var(--fw-bold);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-danger) 12%, transparent);
+}
+
+.prj-badges .dsp-flag--clickable:hover {
+  background: var(--c-danger);
+  color: var(--c-text-inverse, #fff);
 }

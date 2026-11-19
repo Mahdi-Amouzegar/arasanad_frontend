@@ -26,6 +26,12 @@ export interface ActivityItem {
   correlationId: string | null;
   createdAt: string;
   seenAt: string | null;
+  /** فاز ۱۲٫۹: وضعیت دیده‌شدن به تفکیک نقش (برای سه تیک مستقل). */
+  seenBy?: {
+    admin: string | null;
+    customer: string | null;
+    typist: string | null;
+  };
   code: string | null;
   name: string | null;
 }

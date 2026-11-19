@@ -177,8 +177,8 @@ export function FinanceDialog({
       ) : (
         <div className="prj-stack">
           <div className="fin-stats">
-            <div><span>بیعانه تعیینشده</span><strong><Money value={view?.targets?.depositTarget ?? 0} /></strong></div>
-            <div><span>مبلغ نهایی تعیینشده</span><strong><Money value={view?.targets?.finalTarget ?? 0} /></strong></div>
+            <div><span>بیعانه تعیین‌شده</span><strong><Money value={view?.targets?.depositTarget ?? 0} /></strong></div>
+            <div><span>مبلغ نهایی تعیین‌شده</span><strong><Money value={view?.targets?.finalTarget ?? 0} /></strong></div>
             <div><span>واریز بیعانه تأییدشده</span><strong><Money value={view?.approvedDeposit ?? 0} /></strong></div>
             <div><span>تسویه نهایی تأییدشده</span><strong><Money value={view?.approvedFinal ?? 0} /></strong></div>
             <div><span>مانده امانی</span><strong><Money value={view?.escrow?.balance ?? 0} /></strong></div>
@@ -195,7 +195,7 @@ export function FinanceDialog({
                 </tr>
               </thead>
               <tbody>
-                {row('بیعانه تعیینشده توسط مدیر', <Money value={view?.targets?.depositTarget ?? 0} />, null)}
+                {row('بیعانه تعیین‌شده توسط مدیر', <Money value={view?.targets?.depositTarget ?? 0} />, null)}
                 {deposits.map((p) => (
                   <tr key={p.id}>
                     <td data-label="مورد">واریز بیعانه {p.code ?? ''}</td>
@@ -204,7 +204,7 @@ export function FinanceDialog({
                     <td data-label="روش پرداخت">{p.rail === 'online' ? 'آنلاین' : 'دستی'}</td>
                   </tr>
                 ))}
-                {row('مبلغ نهایی تعیینشده توسط مدیر', <Money value={view?.targets?.finalTarget ?? 0} />, null)}
+                {row('مبلغ نهایی تعیین‌شده توسط مدیر', <Money value={view?.targets?.finalTarget ?? 0} />, null)}
                 {finals.map((p) => (
                   <tr key={p.id}>
                     <td data-label="مورد">واریز تسویه نهایی {p.code ?? ''}</td>

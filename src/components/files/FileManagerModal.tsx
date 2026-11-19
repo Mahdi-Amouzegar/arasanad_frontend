@@ -13,6 +13,7 @@ import { RelativeTime } from '@/components/ui/JalaliDate';
 import { useAuth } from '@/lib/account';
 import { UploaderBadge } from './UploaderBadge';
 import { normalizeExternalUrl } from '@/lib/files/links';
+import { openFileFromServer } from '@/lib/files/file-open';
 import { cx } from '@/lib/cx';
 import { formatNumberFa } from '@/lib/datetime';
 import {
@@ -20,7 +21,6 @@ import {
   retryUpload,
   type UploadHandle,
   getFileDownloadUrl,
-  isInlinePreviewable,
   getFileConfig,
   createFilesApi,
   createExternalLinksApi,
@@ -184,8 +184,21 @@ export function FileManagerModal({
   const [selectedLinks, setSelectedLinks] = useState<Set<string>>(new Set());
   const [loadingLinks, setLoadingLinks] = useState(false);
 
-  const filesApi = authedRequest ? createFilesApi(authedRequest) : null;
-  const linksApi = authedRequest ? createExternalLinksApi(authedRequest) : null;
+  const filesApi = useMemo(() => (authedRequest ? createFilesApi(authedRequest) : null), [authedRequest]);
+  const linksApi = useMemo(() => (authedRequest ? createExternalLinksApi(authedRequest) : null), [authedRequest]);
+
+  /** فاز ۱۲٫۹-ه: بازخوانی لیست «فایل‌های موجود» پس از آپلود یا بهدرخواست کاربر. */
+  const refreshExistingFiles = useCallback(async () => {
+    if (!filesApi) return;
+    setLoadingFiles(true);
+    try {
+      setExistingFiles(await filesApi.listFiles());
+    } catch {
+      // لیست قبلی نگه داشته می‌شود تا تجربه‌ی کاربر مختل نشود.
+    } finally {
+      setLoadingFiles(false);
+    }
+  }, [filesApi]);
 
   // ─── Dialog open/close ───
   useEffect(() => {
@@ -315,7 +328,9 @@ export function FileManagerModal({
     for (const { i } of pending) {
       await uploadOne(i);
     }
-  }, [pendingFiles, uploadOne]);
+    // فاز ۱۲٫۹-ه: فایل تازهآپلودشده بلافاصله در تب «فایل‌های موجود» دیده شود.
+    if (pending.length > 0) await refreshExistingFiles();
+  }, [pendingFiles, uploadOne, refreshExistingFiles]);
 
   const handleRetry = useCallback(async (index: number) => {
     const item = pendingFiles[index];
@@ -344,6 +359,7 @@ export function FileManagerModal({
         } : p,
       ));
       setSelectedUploaded((prev) => new Set(prev).add(localFileSignature(item.file.name, item.file.size)));
+      await refreshExistingFiles();
     } catch (err) {
       setPendingFiles((prev) => prev.map((p, i) =>
         i === index ? {
@@ -353,7 +369,7 @@ export function FileManagerModal({
         } : p,
       ));
     }
-  }, [token, pendingFiles]);
+  }, [token, pendingFiles, refreshExistingFiles]);
 
   // ─── Select tab ───
   const toggleExistingFile = useCallback((id: string) => {
@@ -492,6 +508,9 @@ export function FileManagerModal({
   const hasSelectedExisting = selectedExisting.size > 0;
   const hasSelectedLinks = visibleTabs.includes('link') && selectedLinks.size > 0;
   const canSelect = hasUploadedFiles || hasSelectedExisting || hasSelectedLinks;
+  /** فاز ۱۲٫۹-و: همان دکمه‌ی پایین مودال، ابتدا آپلود و سپس انتخاب را انجام می‌دهد. */
+  const hasPendingUpload = pendingFiles.some((p) => p.status === 'pending' || p.status === 'failed');
+  const uploading = pendingFiles.some((p) => p.status === 'uploading');
 
   if (!open) return null;
 
@@ -577,7 +596,6 @@ export function FileManagerModal({
                 else next.add(key);
                 return next;
               })}
-              onUploadAll={handleUploadAll}
               onRetry={handleRetry}
               onRemove={handleRemovePending}
               onCancelUpload={handleCancelUpload}
@@ -596,6 +614,8 @@ export function FileManagerModal({
               token={token}
               canDelete={config.role === 'admin'}
               onDelete={handleDeleteExisting}
+              onRefresh={() => void refreshExistingFiles()}
+              refreshing={loadingFiles}
             />
           )}
           {activeTab === 'link' && visibleTabs.includes('link') && (
@@ -620,11 +640,12 @@ export function FileManagerModal({
             انصراف
           </Button>
           <Button
-            onClick={handleSelectFiles}
-            disabled={!canSelect}
-            leadingIcon={<Icon name="check" size={16} />}
+            onClick={hasPendingUpload ? () => void handleUploadAll() : handleSelectFiles}
+            disabled={uploading ? true : hasPendingUpload ? false : !canSelect}
+            loading={uploading}
+            leadingIcon={!uploading ? <Icon name={hasPendingUpload ? 'send' : 'check'} size={16} /> : undefined}
           >
-            انتخاب فایل‌ها
+            {hasPendingUpload ? 'ارسال فایل‌ها' : 'انتخاب فایل‌ها'}
           </Button>
         </div>
       </div>
@@ -653,7 +674,6 @@ interface UploadTabProps {
   uploader?: { username?: string; avatarUrl?: string | null };
   selectedUploaded: Set<string>;
   onToggleUploaded: (key: string) => void;
-  onUploadAll: () => void;
   onRetry: (index: number) => void;
   onRemove: (index: number) => void;
   onCancelUpload: (index: number) => void;
@@ -673,7 +693,6 @@ function UploadTab({
   uploader,
   selectedUploaded,
   onToggleUploaded,
-  onUploadAll,
   onRetry,
   onRemove,
   onCancelUpload,
@@ -681,7 +700,6 @@ function UploadTab({
   maxSize,
   allowedExtensions,
 }: UploadTabProps) {
-  const hasPending = pendingFiles.some((p) => p.status === 'pending' || p.status === 'failed');
   // فاز ۱۲٫۳-ح: میلهٔ کلی از مجموع بایت‌های ارسالشدهٔ تمام فایل‌ها پر می‌شود.
   const totalBytes = pendingFiles.reduce((sum, p) => sum + (p.total ?? p.file.size), 0);
   const loadedBytes = pendingFiles.reduce(
@@ -723,17 +741,6 @@ function UploadTab({
 
       {pendingFiles.length > 0 && (
         <>
-          <div style={{ marginTop: '16px', marginBottom: '8px' }}>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={onUploadAll}
-              disabled={!hasPending}
-              leadingIcon={<Icon name="send" size={14} />}
-            >
-              ارسال فایل‌ها
-            </Button>
-          </div>
           <div className="fm-list">
             {pendingFiles.map((item, index) => (
               <div
@@ -887,6 +894,8 @@ interface SelectTabProps {
   token: string | null;
   canDelete: boolean;
   onDelete: (id: string) => void;
+  onRefresh: () => void;
+  refreshing: boolean;
 }
 
 function SelectTab({
@@ -898,9 +907,11 @@ function SelectTab({
   token,
   canDelete,
   onDelete,
+  onRefresh,
+  refreshing,
 }: SelectTabProps) {
   const visibleFiles = files.filter((file) => !excludeIds.includes(file.id));
-  if (loading) {
+  if (loading && files.length === 0) {
     return <div className="fm-empty"><div className="btn__spinner" /></div>;
   }
   if (visibleFiles.length === 0) {
@@ -912,7 +923,21 @@ function SelectTab({
     );
   }
   return (
-    <div className="fm-list">
+    <div>
+      <div className="fm-list-head">
+        <span>فایل‌های موجود</span>
+        <Button
+          variant="ghost"
+          size="sm"
+          iconOnly
+          onClick={onRefresh}
+          loading={refreshing}
+          aria-label="بازخوانی فایل‌های موجود"
+          title="بازخوانی فایل‌های موجود"
+          leadingIcon={refreshing ? undefined : <Icon name="refresh" size={15} />}
+        />
+      </div>
+      <div className="fm-list">
       {visibleFiles.map((file) => (
         <div key={file.id} className="fm-item">
           <input
@@ -946,7 +971,12 @@ function SelectTab({
               onClick={(event) => {
                 // دانلود با هدر Authorization از طریق fetch و سپس save-as
                 event.preventDefault();
-                void downloadFile(file.id, file.originalName, token, file.mimeType);
+                void openFileFromServer({
+                  fileId: file.id,
+                  token,
+                  fileName: file.originalName,
+                  mode: 'download',
+                }).catch((err) => console.error('[FileDownload]', err));
               }}
               style={{ color: 'var(--c-primary)', cursor: 'pointer' }}
               aria-label="دانلود"
@@ -967,6 +997,7 @@ function SelectTab({
           ) : null}
         </div>
       ))}
+      </div>
     </div>
   );
 }
@@ -998,6 +1029,12 @@ function LinkTab({
   selected,
   onToggle,
 }: LinkTabProps) {
+  const onEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    onAdd();
+  };
+
   return (
     <div>
       <div className={`fm-link-input${error ? ' fm-link-input--invalid' : ''}`}>
@@ -1008,12 +1045,14 @@ function LinkTab({
           aria-invalid={Boolean(error)}
           aria-describedby={error ? 'fm-link-error' : undefined}
           onChange={(e) => onUrlChange(e.target.value)}
+          onKeyDown={onEnter}
         />
         <input
           type="text"
           placeholder="توضیحات (اختیاری)"
           value={desc}
           onChange={(e) => onDescChange(e.target.value)}
+          onKeyDown={onEnter}
           style={{ maxWidth: '180px' }}
         />
         <Button
@@ -1078,30 +1117,4 @@ function formatBytesFa(bytes: number): string {
   if (bytes < 1024) return `${formatNumberFa(bytes)} بایت`;
   if (bytes < 1024 * 1024) return `${formatNumberFa(Math.round(bytes / 1024))} کیلوبایت`;
   return `${formatNumberFa(Math.round(bytes / (1024 * 1024)))} مگابایت`;
-}
-
-/** Download file via fetch with auth header, then trigger save-as. */
-async function downloadFile(fileId: string, fileName: string, token: string, mimeType?: string) {
-  try {
-    const inline = isInlinePreviewable(mimeType, fileName);
-    const response = await fetch(getFileDownloadUrl(fileId, inline), {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) throw new Error('دانلود ناموفق بود');
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    if (inline) {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } else {
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-  } catch (err) {
-    console.error('[FileDownload]', err);
-  }
 }

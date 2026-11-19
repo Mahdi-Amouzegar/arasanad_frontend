@@ -724,11 +724,16 @@
     grid-template-columns: 1fr;
   }
 
-  /* سایدبار از جریان خارج و به پنل کشویی تبدیل می‌شود */
+  /* سایدبار از جریان خارج و به پنل کشویی تبدیل می‌شود.
+     فاز ۱۲٫۹-ج: جای `inset-inline-end` که در RTL سمت چپ است، از `right`
+     فیزیکی استفاده شد. پیش از آن تبدیل `translateX(100%)` در RTL دراور
+     را به وسط صفحه می‌آورد و دکمه‌ی منو هم فقط overlay را عوض می‌کرد.
+     دراور پنل عمداً سمت راست است تا با public-drawer سمت چپ اشتباه نشود. */
   .sidebar {
     position: fixed;
     inset-block: 0;
-    inset-inline-end: 0;
+    right: 0;
+    left: auto;
     width: min(84vw, 300px);
     height: 100dvh;
     transform: translateX(100%);
@@ -739,12 +744,14 @@
     overflow-y: auto;
   }
 
-  /* در RTL، پنل از سمت راست می‌آید */
   [dir='rtl'] .sidebar {
+    right: 0;
+    left: auto;
     transform: translateX(100%);
   }
 
-  .sidebar--open {
+  .sidebar--open,
+  [dir='rtl'] .sidebar--open {
     transform: translateX(0);
   }
 

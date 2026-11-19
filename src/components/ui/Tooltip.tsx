@@ -15,6 +15,11 @@ export interface TooltipProps {
 }
 
 /**
+ * فاز ۱۲٫۹: پینشدن با کلیک، رفتار پیش‌فرض همه‌ی تولتیپهاست و با کلیک
+ * بیرون بسته می‌شود؛ بنابراین نیازی به تنظیم جداگانه در هر مصرف‌کننده نیست.
+ */
+
+/**
  * تولتیپ سفارشی.
  *
  * ⚠️ چرا از `title` بومی استفاده نمی‌کنیم:
@@ -26,7 +31,7 @@ export interface TooltipProps {
  *
  * ⚠️ از Portal استفاده می‌شود تا `overflow` جدول یا کارت  آن را نبرد.
  */
-export function Tooltip({ label, children, pinnable = false }: TooltipProps) {
+export function Tooltip({ label, children, pinnable = true }: TooltipProps) {
   const id = useId();
   const anchorRef = useRef<HTMLSpanElement>(null);
   const [position, setPosition] = useState<{ top: number; right: number } | null>(null);

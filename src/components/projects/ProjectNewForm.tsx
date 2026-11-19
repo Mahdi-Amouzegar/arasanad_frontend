@@ -39,14 +39,19 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { FileManagerModal, localFileSignature, type SelectedFile, type SelectedLink } from '@/components/files/FileManagerModal';
 import { UploaderBadge } from '@/components/files/UploaderBadge';
+import { cx } from '@/lib/cx';
 import { errorText, formatHours } from './ui-utils';
 import { loadGuestDraft } from '@/lib/guest-order';
 
 const EMPTY_RULES = { urgencyMultiplier: 1.3, depositRatio: 0.5, roundStep: 500 };
+const ATTACHMENT_ISSUE = 'حداقل یک فایل یا لینک پیوست کنید.';
 
 /** Phase 12.8-y: removed service type must stay hidden even from a stale catalog response. */
 function isVisibleServiceType(item: ServiceType): boolean {
-  return item.isActive && item.id !== 'fa-en' && !item.name.includes('فارسی-انگلیسی');
+  return item.isActive
+    && item.id !== 'fa-en'
+    && !['table-ar', 'table-en'].includes(item.id)
+    && !item.name.includes('فارسی-انگلیسی');
 }
 
 /**
@@ -91,6 +96,8 @@ export function ProjectNewForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  /** فاز ۱۲٫۹-ط: تمام ایرادها یکجا بالای دکمه‌ی ثبت نمایش داده می‌شوند. */
+  const [submitIssues, setSubmitIssues] = useState<string[]>([]);
 
   useEffect(() => {
     let alive = true;
@@ -139,6 +146,9 @@ export function ProjectNewForm() {
     setServiceTypeId(services[0]?.id ?? '');
   }, [services, serviceTypeId]);
 
+  /** فاز ۱۲٫۹-د: در حالت «مانند فایل اصلی» مشخصات فایل نهایی قابل ویرایش نیست. */
+  const likeOriginal = designMode === 'custom' && designSubmode === 'like_original';
+
   const preset = presets.find((item) => item.id === presetId) ?? null;
   const baseSpec = (preset?.spec ?? DEFAULT_DESIGN_SPEC) as DesignSpec;
 
@@ -186,25 +196,20 @@ export function ProjectNewForm() {
       design: { mode: designMode, submode: designSubmode, presetId: presetId || null, spec },
     };
     const result = validateProjectDraft(draft);
-    if (!result.ok) {
+    const noAttachment = attachedFiles.length === 0 && attachedLinks.length === 0;
+    const issues = [...Object.values(result.errors), ...(noAttachment ? [ATTACHMENT_ISSUE] : [])];
+    setSubmitIssues(issues);
+    if (issues.length > 0) {
       setErrors(result.errors);
-      showToast({ type: 'error', title: 'فرم ناقص است', message: 'موارد مشخص‌شده را اصلاح کنید.' });
+      setSubmitError(noAttachment ? ATTACHMENT_ISSUE : null);
+      showToast({ type: 'error', title: 'فرم ناقص است', message: 'موارد مشخصشده را اصلاح کنید.' });
       return;
     }
     setErrors({});
+    setSubmitError(null);
 
     const attachedFileIds = attachedFiles.map((f) => f.id);
     const attachedLinkIds = attachedLinks.map((l) => l.id);
-    if (attachedFileIds.length === 0 && attachedLinkIds.length === 0) {
-      setSubmitError('برای ثبت سفارش، حداقل یک فایل یا لینک پیوست کنید.');
-      showToast({
-        type: 'error',
-        title: 'پیوست الزامی است',
-        message: 'برای ثبت سفارش، حداقل یک فایل یا لینک پیوست کنید.',
-      });
-      return;
-    }
-
     const body: CreateProjectBody = {
       name: name.trim(),
       serviceTypeId,
@@ -227,6 +232,7 @@ export function ProjectNewForm() {
 
     setSubmitting(true);
     try {
+      setSubmitIssues([]);
       // فاز ۱۲٫۸-ب: فایل/لینک در همان تراکنش ثبت سفارش پیوست می‌شوند؛
       // مسیر جداگانهٔ attach برای سفارش ثبت‌شده مسدود است.
       const project = await api.createProject(body);
@@ -292,7 +298,10 @@ export function ProjectNewForm() {
   }
 
   return (
-    <form className="prj-form" onSubmit={submit} noValidate>
+    <>
+      {/* فاز ۱۲٫۹-ی: مودال بیرون از <form> است تا Enter داخل پنجره‌ی فایل،
+          فرم اصلی «ثبت سفارش» را بهاشتباه ارسال نکند. */}
+      <form className="prj-form" onSubmit={submit} noValidate>
       {catalogError ? (
         <div className="prj-alert" role="alert">
           <Icon name="alert" size={18} />
@@ -456,8 +465,12 @@ export function ProjectNewForm() {
             </FormField>
           </div>
 
-          {/* Phase 8: File attachment section */}
-          <div className="prj-grid prj-grid--one">
+          <div
+            className={cx(
+              'prj-grid prj-grid--one',
+              submitIssues.includes(ATTACHMENT_ISSUE) && 'prj-attachment-field--warning',
+            )}
+          >
             <FormField label="فایل‌های ضمیمه" htmlFor="prj-files">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <Button
@@ -575,12 +588,22 @@ export function ProjectNewForm() {
                   <option value="custom">تنظیمات دلخواه</option>
                 </Select>
               </FormField>
-            ) : null}
+              ) : null}
+              {likeOriginal ? (
+                <div className="prj-submode-notice" role="note">
+                  <Icon name="sparkles" size={17} />
+                  <p>
+                    فایل نهایی تا جای ممکن مطابق فایل اصلی تهیه‌شود، ولی یکسان بودن دقیق آن تضمین‌شود.
+                    اگر پس از بررسی اولیه اجرای این درخواست ممکن نباشد، سفارش توسط مدیریت لغو‌شود.
+                  </p>
+                </div>
+              ) : null}
           </div>
 
           <div className="prj-grid prj-spec">
             <FormField label="قلم فارسی" htmlFor="prj-font">
               <Input
+                disabled={likeOriginal}
                 id="prj-font"
                 value={String(spec.fontFa ?? '')}
                 onChange={(event) => updateSpec('fontFa', event.target.value)}
@@ -588,6 +611,7 @@ export function ProjectNewForm() {
             </FormField>
             <FormField label="اندازه‌ی متن" htmlFor="prj-size">
               <Input
+                disabled={likeOriginal}
                 id="prj-size"
                 type="number"
                 min={8}
@@ -598,6 +622,7 @@ export function ProjectNewForm() {
             </FormField>
             <FormField label="فاصله‌ی خطوط" htmlFor="prj-spacing">
               <Input
+                disabled={likeOriginal}
                 id="prj-spacing"
                 type="number"
                 step="0.1"
@@ -609,6 +634,7 @@ export function ProjectNewForm() {
             </FormField>
             <FormField label="اندازه کاغذ" htmlFor="prj-paper">
               <Select
+                disabled={likeOriginal}
                 id="prj-paper"
                 value={String(spec.paperSize ?? 'A4')}
                 onChange={(event) => updateSpec('paperSize', event.target.value)}
@@ -620,6 +646,7 @@ export function ProjectNewForm() {
             </FormField>
             <FormField label="حاشیه‌ی بالا (cm)" htmlFor="prj-mt">
               <Input
+                disabled={likeOriginal}
                 id="prj-mt"
                 type="number"
                 step="0.1"
@@ -629,6 +656,7 @@ export function ProjectNewForm() {
             </FormField>
             <FormField label="حاشیه‌ی چپ (cm)" htmlFor="prj-ml">
               <Input
+                disabled={likeOriginal}
                 id="prj-ml"
                 type="number"
                 step="0.1"
@@ -685,6 +713,20 @@ export function ProjectNewForm() {
             پیش از ثبت سفارش می‌توانید سیاست اصلاح را مطالعه کنید؛ درخواست اصلاح
             وضعیت سفارش و مهلت تحویل را تغییر نمی‌دهد.
           </p>
+          {submitIssues.length > 0 ? (
+            <div className="prj-submit-issues" role="alert">
+              <Icon name="alert" size={18} />
+              <div>
+                <strong>پیش از ثبت سفارش، موارد زیر را اصلاح کنید:</strong>
+                <ol>
+                  {submitIssues.map((issue, index) => (
+                    <li key={`${index}-${issue}`}>{issue}</li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          ) : null}
+
           <div className="prj-actions">
             <Link className="btn btn--ghost btn--sm" href="/revision-policy/">
               <Icon name="shield" size={15} />
@@ -700,7 +742,9 @@ export function ProjectNewForm() {
         </CardBody>
       </Card>
 
-      {/* Phase 8: File Manager Modal */}
+      </form>
+
+      {/* Phase 8: File Manager Modal — بیرون از فرم (توضیح بالا) */}
       <FileManagerModal
         open={fmOpen}
         onClose={() => setFmOpen(false)}
@@ -717,6 +761,6 @@ export function ProjectNewForm() {
           setAttachedLinks((prev) => [...prev, ...result.links]);
         }}
       />
-    </form>
+    </>
   );
 }

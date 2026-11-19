@@ -99,7 +99,9 @@ test('P128-F08: order detail links point to full panel detail', () => {
 test('P128-F09: cancelled orders disable actions and name the canceller', () => {
   const src = read('src/components/projects/ProjectDetail.tsx');
   assert.match(src, /const isCancelled = project\.status === 'cancelled'/);
-  assert.ok(src.includes('!isCancelled ? (') && src.includes('ثبت عملیات سفارش'));
+  assert.ok(src.includes('!isCancelled ? ('));
+  // فاز ۱۲٫۹: دکمهٔ «ثبت عملیات سفارش» از صفحهٔ جزئیات حذف شد.
+  assert.ok(!src.includes('ثبت عملیات سفارش'));
   assert.match(src, /changedByRole === 'admin' \? 'مدیر' : 'مشتری'/);
 });
 
@@ -161,7 +163,9 @@ test('P128-F14: orders tables are merged into one سفارشات من table', ()
   assert.ok(!list.includes('مبلغ برآوردی'));
   assert.ok(!list.includes('کد / عنوان'));
   assert.match(list, /action\.id !== 'view_detail'/);
-  assert.match(list, /className="prj-code prj-table__title-link"/);
+  // فاز ۱۲٫۹: کد و نام یک دکمه‌ی واحداند، نه دو لینک جداگانه.
+  assert.match(list, /className="prj-name-cell prj-name-cell--button"/);
+  assert.ok(!list.includes('prj-table__title-link'));
   assert.match(list, /prj-toolbar__selects/);
   assert.match(list, /setFinanceFor\(project\)/);
   const nav = read('src/lib/navigation.ts');

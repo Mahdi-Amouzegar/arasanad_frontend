@@ -5,7 +5,7 @@
  *
  * ⚠️ فقط سفارش‌های دارای عملیات دیده‌نشده در منو هستند و زیرمنو فقط همان
  *    ردیفها را نشان می‌دهد (§9.5.4).
- * ⚠️ باز کردن منو هیچ ردیفی را دیدهشده نمی‌کند؛ فقط کلیک روی یک عملیات
+ * ⚠️ باز کردن منو هیچ ردیفی را دیده‌شده نمی‌کند؛ فقط کلیک روی یک عملیات
  *    یا دکمه‌ی صریح «همه دیده شد» وضعیت را عوض می‌کند.
  * ⚠️ آیکن `activityBell` عمداً با `bell` اعلان فاز ۹ متفاوت است.
  */
@@ -77,7 +77,7 @@ export function ActivityBell() {
         onClick={() => {
           setOpen((value) => !value);
           setActiveProject(null);
-          // ⚠️ فقط بارگذاری داده؛ هیچ ردیفی دیدهشده نمی‌شود.
+          // ⚠️ فقط بارگذاری داده؛ هیچ ردیفی دیده‌شده نمی‌شود.
           void refresh(false).catch(() => undefined);
         }}
       >
@@ -86,7 +86,7 @@ export function ActivityBell() {
       </button>
 
       {open ? (
-        <section className="act-bell__panel" role="dialog" aria-label="عملیاتهای دیده‌نشده">
+        <section className="act-bell__panel" role="dialog" aria-label="عملیات‌های دیده‌نشده">
           <header className="act-bell__header">
             <strong>ثبت عملیات سفارش</strong>
             <button
@@ -108,7 +108,7 @@ export function ActivityBell() {
               {!loading && visible.length === 0 ? (
                 <div className="chat-empty">
                   <span className="chat-empty__icon"><Icon name="inbox" size={24} /></span>
-                  <p className="chat-empty__title">عملیات دیدهنشدهای نیست</p>
+                  <p className="chat-empty__title">عملیات دیده‌نشدهای نیست</p>
                   <p className="chat-empty__text">رویدادهای تازه‌ی سفارش‌ها اینجا نمایش داده می‌شوند.</p>
                 </div>
               ) : null}
@@ -157,7 +157,7 @@ export function ActivityBell() {
                     href={safeActivityHref(operationsHref(role, active.projectId))}
                     className="act-bell__item"
                     onClick={() => {
-                      // یک ردیف، فقط برای همین بیننده دیدهشده می‌شود.
+                      // یک ردیف، فقط برای همین بیننده دیده‌شده می‌شود.
                       void markSeen([item.id], active.projectId).catch(() => undefined);
                       setOpen(false);
                       setActiveProject(null);

@@ -903,3 +903,39 @@
 .pay-result--success { background: rgb(22 128 70 / 8%); }
 .pay-result--pending { background: rgb(197 145 36 / 10%); }
 .pay-result--failed { background: rgb(190 45 45 / 8%); }
+
+/* فاز ۱۲٫۹: مقادیر فنی با تولتیپ قابلپین — متن کوتاه، مقدار کامل در تولتیپ */
+.act-card__mono {
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.act-card__foot .tooltip-anchor {
+  max-width: 100%;
+}
+
+.act-card__seen {
+  white-space: nowrap;
+}
+
+/* فاز ۱۲٫۹: نتایج ناموفق آپلود Peyk در همان کادر عملیات */
+.act-composer__upload-issues {
+  margin-top: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-danger);
+  border-radius: var(--r-sm);
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+  font-size: var(--fs-xs);
+}
+
+.act-composer__upload-issues strong {
+  display: block;
+  margin-bottom: var(--sp-1);
+}
+
+.act-composer__upload-issues ul {
+  margin: 0 0 var(--sp-1);
+  padding-inline-start: 1.4em;
+}

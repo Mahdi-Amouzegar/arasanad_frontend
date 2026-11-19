@@ -221,7 +221,7 @@ Next یا DOM ندارند. تست‌ها: `tests/chat-core.test.mjs` و
   هدایت از `ProjectDetail` و ستون «اقدام» `ProjectList` (`availableActions[]`).
 - **زنگوله‌ی مستقل:** `ActivityBell` کنار زنگ اعلان فاز ۹، با آیکن
   `activityBell`، نقطه‌ی هشدار، منوی فقط سفارش‌های دیده‌نشده و زیرمنوی
-  فقط همان ردیفها؛ دیدهشدن به‌ازای بیننده (`project_activity_read_states`).
+  فقط همان ردیفها؛ دیده‌شدن به‌ازای بیننده (`project_activity_read_states`).
 - **کارت و ارسال:** `ActivityCard` سه استایل کنشگر (سامانه / مدیر / مشتری)
   با تاریخ شمسی دقیق و پیوست ← `FileDownloadModal`؛ `ActivityComposer`
   همان `FileManagerModal` سه‌تبه فاز ۸ را با `role='activity_attachment'`

@@ -98,7 +98,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       setError(null);
       const ids = new Set(nextGroups.flatMap((group) => group.items.map((item) => item.id)));
       if (!initializedRef.current) {
-        // نخستین بار پس از ورود، عملیاتهای قدیمی toast نمی‌دهند.
+        // نخستین بار پس از ورود، عملیات‌های قدیمی toast نمی‌دهند.
         for (const id of ids) shownIdsRef.current.add(id);
         initializedRef.current = true;
       } else if (notify && nextTotal > lastTotalRef.current) {

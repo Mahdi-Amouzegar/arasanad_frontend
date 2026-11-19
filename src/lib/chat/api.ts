@@ -46,7 +46,7 @@ export function createChatApi(request: ChatApiRequest) {
       };
     },
 
-    /** مخاطب ازپیشتعیینشده‌ی یک سفارش — سرور تصمیم می‌گیرد، نه کلاینت. */
+    /** مخاطب ازپیشتعیین‌شده‌ی یک سفارش — سرور تصمیم می‌گیرد، نه کلاینت. */
     async peerByProject(projectId: string): Promise<{ peer: ChatPeer; projectId: string }> {
       return request<{ peer: ChatPeer; projectId: string }>(
         `/conversations/peer-by-project?projectId=${encodeURIComponent(projectId)}`,

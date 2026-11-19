@@ -90,7 +90,8 @@ export function AppShell({
               {actions}
             </>
           }
-          onMenu={() => setOpen(true)}
+          expanded={open}
+          onMenu={() => setOpen((value) => !value)}
         />
         <main className="shell__content">{children}</main>
       </div>

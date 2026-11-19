@@ -33,39 +33,27 @@ export const SERVICE_TYPES: ServiceType[] = [
     description: 'تایپ متون حاوی فرمول ریاضی',
   },
   {
+    // فاز ۱۲٫۹-ز: سه نوع «جدول فارسی/عربی/انگلیسی» به یک گزینه‌ی واحد بدل شدند.
+    // زبان محتوا در فیلد مستقل `language` انتخاب می‌شود.
     id: 'table-fa',
-    name: 'جدول فارسی',
+    name: 'جدول',
     pricePerPage: 51_000,
     unit: 'page',
-    description: 'تایپ جدول با محتوای فارسی',
-  },
-  {
-    id: 'table-ar',
-    name: 'جدول عربی',
-    pricePerPage: 59_000,
-    unit: 'page',
-    description: 'تایپ جدول با محتوای عربی',
-  },
-  {
-    id: 'table-en',
-    name: 'جدول انگلیسی',
-    pricePerPage: 53_000,
-    unit: 'page',
-    description: 'تایپ جدول با محتوای انگلیسی',
+    description: 'تایپ جدول؛ زبان محتوا به‌صورت جداگانه انتخاب می‌شود',
   },
   {
     id: 'fa-math',
-    name: 'فارسی-فرمول',
+    name: 'متن-فرمول',
     pricePerPage: 44_000,
     unit: 'page',
-    description: 'متن فارسی همراه با فرمول',
+    description: 'متن همراه با فرمول',
   },
   {
     id: 'fa-table',
-    name: 'فارسی-جدول',
+    name: 'متن-جدول',
     pricePerPage: 43_000,
     unit: 'page',
-    description: 'متن فارسی همراه با جدول',
+    description: 'متن همراه با جدول',
   },
 ];
 

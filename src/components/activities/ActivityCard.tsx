@@ -5,15 +5,16 @@
  *
  * سه استایل پس‌زمینه و آیکن گوشه برای سامانه / مدیر / مشتری؛ در تم تیره
  * هم از متغیرهای `tokens.css` استفاده می‌کند تا خوانا بماند.
- * سابقه فقطالحاقی است: هیچ دکمه‌ی ویرایش یا حذفی وجود ندارد.
+ * سابقه فقط الحاقی است: هیچ دکمه‌ی ویرایش یا حذفی وجود ندارد.
  */
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
 import { Icon, type IconName } from '@/components/ui/Icon';
-import { JalaliDate } from '@/components/ui/JalaliDate';
-import { formatMoneyFa, toFaDigits } from '@/lib/datetime';
+import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { formatDateFull, formatMoneyFa, toFaDigits } from '@/lib/datetime';
 import { PROJECT_STATUS } from '@/lib/status';
 import { createFilesApi, createExternalLinksApi, type ExternalLink, type FileItem } from '@/lib/files/api';
 import { FileDownloadModal } from '@/components/files/FileDownloadModal';
@@ -137,7 +138,7 @@ export function ActivityCard({ activity, role, onReply }: ActivityCardProps) {
 
       <div className="act-card__time">
         <Icon name="clock" size={13} />
-        <JalaliDate value={activity.createdAt} variant="full" withTooltip={false} />
+        <RelativeTime value={activity.createdAt} />
       </div>
 
       {activity.body ? <p className="act-card__body">{activity.body}</p> : null}
@@ -161,34 +162,67 @@ export function ActivityCard({ activity, role, onReply }: ActivityCardProps) {
         </div>
         <div className="act-card__meta-row">
           <dt>ردیف / ترتیب سروری</dt>
-          <dd dir="ltr">{activity.id.slice(0, 12)}… / {toFaDigits(String(activity.seq))}</dd>
+          <dd dir="ltr">
+            <Tooltip
+              label={`${activity.id} / ${toFaDigits(String(activity.seq))}`}
+              pinnable
+            >
+              <span className="act-card__mono">
+                {activity.id.slice(0, 12)}… / {toFaDigits(String(activity.seq))}
+              </span>
+            </Tooltip>
+          </dd>
         </div>
         {activity.correlationId ? (
           <div className="act-card__meta-row">
             <dt>زنجیره</dt>
-            <dd dir="ltr">{activity.correlationId.slice(0, 16)}…</dd>
+            <dd dir="ltr">
+              <Tooltip label={activity.correlationId} pinnable>
+                <span className="act-card__mono">{activity.correlationId.slice(0, 16)}…</span>
+              </Tooltip>
+            </dd>
           </div>
         ) : null}
         {activity.replyToActivityId ? (
           <div className="act-card__meta-row">
             <dt>پاسخ به</dt>
-            <dd dir="ltr">{activity.replyToActivityId.slice(0, 12)}…</dd>
+            <dd dir="ltr">
+              <Tooltip label={activity.replyToActivityId} pinnable>
+                <span className="act-card__mono">{activity.replyToActivityId.slice(0, 12)}…</span>
+              </Tooltip>
+            </dd>
           </div>
         ) : null}
         <div className="act-card__meta-row">
           <dt>نوع رویداد</dt>
-          <dd dir="ltr">{activity.eventType}</dd>
+          <dd>
+            <Tooltip label={`شناسهٔ رویداد: ${activity.eventType}`} pinnable>
+              <span>{event.label}</span>
+            </Tooltip>
+          </dd>
         </div>
       </dl>
 
       <footer className="act-card__foot">
-        <span className={`act-card__seen ${activity.seenAt ? 'act-card__seen--yes' : ''}`}>
-          <Icon name={activity.seenAt ? 'checkDouble' : 'clock'} size={13} />
-          {activity.seenAt ? 'دیدهشده' : 'دیده‌نشده'}
-          {activity.seenAt ? (
-            <> · <JalaliDate value={activity.seenAt} variant="short" withTooltip={false} /></>
-          ) : null}
-        </span>
+        {/* فاز ۱۲٫۹: سه تیک مستقل؛ تیک تایپیست تنها زمانی که ثبت شده نمایش مییابد. */}
+        {([['admin', 'دیده‌شده توسط مدیر'], ['customer', 'دیده‌شده توسط مشتری'], ['typist', 'دیده‌شده توسط تایپیست']] as const)
+          .filter(([key]) => key !== 'typist' || activity.seenBy?.typist)
+          .map(([key, label]) => {
+            const at = activity.seenBy?.[key] ?? null;
+            return (
+              <Tooltip
+                key={key}
+                label={at ? `${label} — ${formatDateFull(at)}` : label}
+                pinnable
+              >
+                <span className={`act-card__seen ${at ? 'act-card__seen--yes' : ''}`}>
+                  <Icon name={at ? 'checkDouble' : 'clock'} size={13} />
+                  {label}
+                  {at ? <> · <JalaliDate value={at} variant="relative" withTooltip={false} /></> : null}
+                </span>
+              </Tooltip>
+            );
+          })}
         {automatic ? (
           <span className="act-card__auto">خودکار توسط سامانه</span>
         ) : null}

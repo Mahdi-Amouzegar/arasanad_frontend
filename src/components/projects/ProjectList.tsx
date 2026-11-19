@@ -261,13 +261,13 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                 return (
                   <tr key={project.id}>
                     <td data-label="نام سفارش">
-                      <div className="prj-name-cell">
-                        <Link className="prj-code prj-table__title-link" href={detailHref}>
-                          {formatProjectCodeSafe(project.code)}
-                        </Link>
-                        <Link className="prj-name prj-table__title-link" href={detailHref}>
-                          {project.name}
-                        </Link>
+                      {/* فاز ۱۲٫۹-ی: کد و نام، یک دکمه‌ی واحداند؛ فلگ اعتراض
+                          بیرون از دکمه می‌ماند تا کلیک مستقل خود را حفظ کند. */}
+                      <div className="prj-name-wrap">
+                      <Link className="prj-name-cell prj-name-cell--button" href={detailHref}>
+                        <span className="prj-code">{formatProjectCodeSafe(project.code)}</span>
+                        <span className="prj-name">{project.name}</span>
+                      </Link>
                         <DisputeFlag
                           projectId={project.id}
                           projectName={project.name}

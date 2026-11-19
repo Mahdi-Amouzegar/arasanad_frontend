@@ -5,8 +5,8 @@
  *
  * ⚠️ خروجی استاتیک: شناسه‌ی سفارش فقط از `?id=...` خوانده می‌شود.
  * ⚠️ ترتیب **جدیدترین در بالا** بر اساس `seq` سروری (§9.5.1).
- * ⚠️ باز کردن صفحه، عملیاتهای دیدهنشده‌ی همین سفارش را فقط برای همین
- *    بیننده دیدهشده می‌کند؛ زنگوله‌ی مدیر و مشتری مستقل باقی می‌ماند.
+ * ⚠️ باز کردن صفحه، عملیات‌های دیده‌نشده‌ی همین سفارش را فقط برای همین
+ *    بیننده دیده‌شده می‌کند؛ زنگوله‌ی مدیر و مشتری مستقل باقی می‌ماند.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -65,7 +65,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
         setHasMore(page.hasMore);
         setError(null);
 
-        // دیدهشدن به‌ازای بیننده: فقط عملیاتهای دیدهنشده‌ی همین سفارش.
+        // دیده‌شدن به‌ازای بیننده: فقط عملیات‌های دیده‌نشده‌ی همین سفارش.
         if (!more && !markedRef.current.has(id)) {
           markedRef.current.add(id);
           const unseenIds = page.activities
@@ -78,7 +78,12 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
                 setActivities((prev) =>
                   prev.map((item) =>
                     unseenIds.includes(item.id)
-                      ? { ...item, seenAt: page.serverTime }
+                      ? {
+                          ...item,
+                          seenAt: page.serverTime,
+                          // فاز ۱۲٫۹: تیک مربوط به نقش بیننده بدون بازخوانی صفحه به‌روز شود.
+                          seenBy: { ...item.seenBy, [role]: page.serverTime } as ActivityItem['seenBy'],
+                        }
                       : item,
                   ),
                 );
@@ -94,7 +99,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
         setLoadingMore(false);
       }
     },
-    [api, id, markedRef, refreshBell, user],
+    [api, id, markedRef, refreshBell, role, user],
   );
 
   useEffect(() => {
@@ -150,7 +155,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
           <span className="act-page__code">{formatProjectCodeSafe(project?.code ?? '')}</span>
           <h2 className="act-page__title">{project?.name ?? 'ثبت عملیات سفارش'}</h2>
           <p className="act-page__hint">
-            سابقه‌ی فقطالحاقی عملیاتها، جدیدترین در بالا. اصلاح فقط با ثبت ردیف تازه انجام می‌شود.
+            سابقه‌ی فقط الحاقی عملیات‌ها، جدیدترین در بالا. اصلاح فقط با ثبت ردیف تازه انجام می‌شود.
           </p>
         </div>
         <div className="act-page__actions">
@@ -220,7 +225,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
               disabled={loadingMore}
               loading={loadingMore}
             >
-              عملیاتهای قدیمیتر
+              عملیات‌های قدیمیتر
             </Button>
           ) : null}
         </div>

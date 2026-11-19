@@ -7,7 +7,8 @@ import { RelativeTime } from '@/components/ui/JalaliDate';
 import { useAuth } from '@/lib/account';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { formatNumberFa } from '@/lib/datetime';
-import { getFileDownloadUrl, isInlinePreviewable, type FileItem } from '@/lib/files/api';
+import { isInlinePreviewable, type FileItem } from '@/lib/files/api';
+import { openFileFromServer } from '@/lib/files/file-open';
 
 export interface FileDownloadModalProps {
   open: boolean;
@@ -32,7 +33,7 @@ export function FileDownloadModal({
   const { token } = useAuth();
   const { showToast } = useAlert();
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [downloading, setDownloading] = useState(false);
+  const [downloading, setDownloading] = useState<'preview' | 'download' | null>(null);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -46,40 +47,31 @@ export function FileDownloadModal({
 
   if (!open || !file) return null;
 
-  const handleDownload = async () => {
+  const inline = isInlinePreviewable(file.mimeType, file.originalName);
+
+  const run = async (mode: 'preview' | 'download') => {
     if (!token || !file) return;
-    setDownloading(true);
+    setDownloading(mode);
     try {
-      // فاز ۱۲٫۸-هـ: تصویر و PDF در همان مرورگر دیده می‌شوند؛ سایر انواع
-      // با `download` پنجرهٔ ذخیرهٔ فایل را نشان می‌دهند.
-      const inline = isInlinePreviewable(file.mimeType, file.originalName);
-      const response = await fetch(getFileDownloadUrl(file.id, inline), {
-        headers: { Authorization: `Bearer ${token}` },
+      await openFileFromServer({
+        fileId: file.id,
+        token,
+        fileName: file.originalName,
+        mode,
+        onSuccess: onDownloaded,
       });
-      if (!response.ok) throw new Error('دانلود ناموفق بود');
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      if (inline) {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      } else {
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = file.originalName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-      }
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-      if (onDownloaded) await onDownloaded();
-      showToast({ type: 'success', title: 'فایل دریافت شد' });
+      showToast({
+        type: 'success',
+        title: mode === 'preview' ? 'فایل در تب تازه باز شد' : 'فایل دریافت شد',
+      });
     } catch (err) {
       showToast({
         type: 'error',
-        title: 'دانلود انجام نشد',
+        title: mode === 'preview' ? 'نمایش فایل انجام نشد' : 'دانلود انجام نشد',
         message: err instanceof Error ? err.message : 'اتصال اینترنت را بررسی کنید',
       });
     } finally {
-      setDownloading(false);
+      setDownloading(null);
     }
   };
 
@@ -160,14 +152,25 @@ export function FileDownloadModal({
           <Button variant="outline" onClick={onClose}>
             بستن
           </Button>
+          {inline ? (
+            <Button
+              variant="outline"
+              onClick={() => void run('download')}
+              disabled={!canDownload || downloading !== null}
+              loading={downloading === 'download'}
+              leadingIcon={downloading === 'download' ? undefined : <Icon name="download" size={16} />}
+            >
+              دریافت فایل
+            </Button>
+          ) : null}
           <Button
             variant="primary"
-            onClick={handleDownload}
-            disabled={!canDownload || downloading}
-            loading={downloading}
-            leadingIcon={!downloading ? <Icon name="download" size={16} /> : undefined}
+            onClick={() => void run(inline ? 'preview' : 'download')}
+            disabled={!canDownload || downloading !== null}
+            loading={downloading !== null}
+            leadingIcon={downloading === null ? <Icon name={inline ? 'fileText' : 'download'} size={16} /> : undefined}
           >
-            {isInlinePreviewable(file.mimeType, file.originalName) ? 'مشاهدهٔ فایل' : 'دانلود فایل'}
+            {inline ? 'مشاهدهٔ فایل' : 'دانلود فایل'}
           </Button>
         </div>
       </div>

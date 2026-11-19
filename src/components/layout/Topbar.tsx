@@ -5,13 +5,15 @@ import { Icon } from '@/components/ui/Icon';
 export interface TopbarProps {
   title?: string;
   onMenu?: () => void;
+  /** فاز ۱۲٫۹: وضعیت باز بودن دراور برای `aria-expanded`. */
+  expanded?: boolean;
   actions?: ReactNode;
   /** جستجوی سراسری — در موبایل پنهان می‌شود */
   search?: ReactNode;
 }
 
 /** نوار بالای پنل: دکمه‌ی منو (موبایل)، جستجو، اقدام‌ها. */
-export function Topbar({ title, onMenu, actions, search }: TopbarProps) {
+export function Topbar({ title, onMenu, expanded, actions, search }: TopbarProps) {
   return (
     <header className="topbar">
       <div className="row" style={{ gap: 'var(--sp-3)', minWidth: 0 }}>
@@ -19,8 +21,9 @@ export function Topbar({ title, onMenu, actions, search }: TopbarProps) {
           variant="ghost"
           iconOnly
           className="topbar__menu"
-          aria-label="باز کردن منو"
+          aria-label="باز کردن یا بستن منو"
           aria-controls="app-sidebar"
+          aria-expanded={expanded}
           onClick={onMenu}
         >
           <Icon name="chevronDown" size={20} />
