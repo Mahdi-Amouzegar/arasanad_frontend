@@ -76,6 +76,9 @@ export function PeykDropTarget({
   }, [config, disabled, uploading]);
 
   const confirm = useCallback(async () => {
+    // فاز ۱۲٫۱۰-و: از لحظه‌ی تأیید تا اتمام آپلود، پنجره باز می‌ماند و چرخش/
+    // نوار پیشرفت نامعین نشان می‌دهد تا کاربر بداند سامانه درگیر است.
+    setUploading(true);
     const result = await peykUploadFiles(queued, config);
     setConfirmOpen(false);
     setQueued([]);
@@ -132,7 +135,7 @@ export function PeykDropTarget({
                 ? `${queued.length} فایل برای ارسال انتخاب شده‌اند. آیا مطمئنید؟`
                 : 'فایل‌های رها شده قابل ارسال نیستند.'}
             </p>
-            <ul className="peyk-confirm__list">
+            <ul className="peyk-confirm__list" aria-hidden={uploading}>
               {queued.map((file) => (
                 <li key={`ok-${file.name}-${file.size}`}>
                   <Icon name="fileText" size={15} />
@@ -148,6 +151,14 @@ export function PeykDropTarget({
                 </li>
               ))}
             </ul>
+            {uploading ? (
+              <div className="peyk-progress" role="status" aria-live="polite">
+                <span className="fm-progress fm-progress--indeterminate" aria-hidden="true">
+                  <span className="fm-progress__fill" />
+                </span>
+                <span>در حال ارسال فایل‌ها؛ لطفاً صبر کنید…</span>
+              </div>
+            ) : null}
           </div>
           <div className="fm-modal__footer">
             <Button variant="ghost" onClick={() => setConfirmOpen(false)}>انصراف</Button>
@@ -158,7 +169,11 @@ export function PeykDropTarget({
               onClick={() => void confirm()}
               leadingIcon={!uploading ? <Icon name="send" size={16} /> : undefined}
             >
-              {queued.length > 0 ? `ارسال ${queued.length} فایل` : 'بستن'}
+              {uploading
+                ? 'در حال ارسال…'
+                : queued.length > 0
+                  ? `ارسال ${queued.length} فایل`
+                  : 'بستن'}
             </Button>
           </div>
         </div>

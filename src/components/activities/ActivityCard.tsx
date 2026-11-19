@@ -18,6 +18,7 @@ import { formatDateFull, formatMoneyFa, toFaDigits } from '@/lib/datetime';
 import { PROJECT_STATUS } from '@/lib/status';
 import { createFilesApi, createExternalLinksApi, type ExternalLink, type FileItem } from '@/lib/files/api';
 import { FileDownloadModal } from '@/components/files/FileDownloadModal';
+import { FileActions } from '@/components/files/FileActions';
 import type { ActivityItem } from '@/lib/activities/api';
 import {
   ACTIVITY_ENTITY_TYPE,
@@ -78,18 +79,16 @@ function ActivityAttachments({ activityId }: { activityId: string }) {
   return (
     <div className="act-card__attachments">
       {files.map((file) => (
-        <button
-          key={file.id}
-          type="button"
-          className="act-card__file"
-          onClick={() => {
-            setPreview(file);
-            setOpen(true);
-          }}
-        >
-          <Icon name="paperclip" size={14} />
-          <span dir="ltr" className="file-name-ltr">{file.originalName}</span>
-        </button>
+        <div key={file.id} className="act-card__file-actions">
+          <FileActions
+            file={file}
+            detailsLabel={file.originalName}
+            onOpenDetails={() => {
+              setPreview(file);
+              setOpen(true);
+            }}
+          />
+        </div>
       ))}
       {links.map((link) => (
         <a

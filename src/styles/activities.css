@@ -939,3 +939,24 @@
   margin: 0 0 var(--sp-1);
   padding-inline-start: 1.4em;
 }
+
+/* فاز ۱۲٫۱۰-د: سه دکمه‌ی فایل در کارت عملیات */
+.act-card__file-actions .file-actions {
+  gap: var(--sp-1);
+}
+
+/* فاز ۱۲٫۱۰-هـ: منو در لایه‌ی بالا، گوشه‌ی بالا-راست زیر آیکن مربوطه */
+.act-bell__panel[popover] {
+  position: fixed;
+  inset: auto;
+  inset-block-start: var(--bell-top, 72px);
+  inset-inline-start: var(--bell-right, 8px);
+  inset-inline-end: auto;
+  z-index: var(--z-modal);
+  width: var(--bell-width, min(560px, calc(100vw - 16px)));
+  max-height: min(520px, calc(100dvh - 96px));
+  margin: 0;
+  padding: 0;
+  color: var(--c-text);
+  box-shadow: var(--sh-lg);
+}

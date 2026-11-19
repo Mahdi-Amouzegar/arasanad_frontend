@@ -37,6 +37,31 @@ export function ActivityBell() {
   const [open, setOpen] = useState(false);
   const [activeProject, setActiveProject] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+
+  /**
+   * فاز ۱۲٫۱۰-هـ: منو در لایه‌ی بالا (popover) و دقیقاً زیر آیکن باز می‌شود
+   * تا زیر محتوای دراور/صفحه نیفتد و بریده نشود.
+   */
+  useEffect(() => {
+    const panel = panelRef.current;
+    const trigger = triggerRef.current;
+    if (!panel || !trigger || !open) return;
+    const el = panel as HTMLElement & {
+      showPopover?: () => void;
+      matches?: (s: string) => boolean;
+    };
+    if (typeof el.showPopover === 'function' && !el.matches?.(':popover-open')) {
+      el.showPopover();
+    }
+    const rect = trigger.getBoundingClientRect();
+    const width = Math.min(560, window.innerWidth - 16);
+    const rightOffset = Math.max(8, Math.min(window.innerWidth - rect.right, window.innerWidth - width - 8));
+    panel.style.setProperty('--bell-right', `${rightOffset}px`);
+    panel.style.setProperty('--bell-top', `${Math.min(rect.bottom + 8, window.innerHeight - 120)}px`);
+    panel.style.setProperty('--bell-width', `${width}px`);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -69,6 +94,7 @@ export function ActivityBell() {
   return (
     <div className="act-bell" ref={containerRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="act-bell__trigger"
         aria-label={`ثبت عملیات سفارش${hasDot ? `، ${unseenTotal} دیده‌نشده` : ''}`}
@@ -86,7 +112,11 @@ export function ActivityBell() {
       </button>
 
       {open ? (
-        <section className="act-bell__panel" role="dialog" aria-label="عملیات‌های دیده‌نشده">
+        <section
+          ref={panelRef}
+          className="act-bell__panel"
+          popover="manual"
+          role="dialog" aria-label="عملیات‌های دیده‌نشده">
           <header className="act-bell__header">
             <strong>ثبت عملیات سفارش</strong>
             <button

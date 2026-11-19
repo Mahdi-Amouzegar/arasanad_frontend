@@ -100,8 +100,10 @@ test('P128-F09: cancelled orders disable actions and name the canceller', () => 
   const src = read('src/components/projects/ProjectDetail.tsx');
   assert.match(src, /const isCancelled = project\.status === 'cancelled'/);
   assert.ok(src.includes('!isCancelled ? ('));
-  // فاز ۱۲٫۹: دکمهٔ «ثبت عملیات سفارش» از صفحهٔ جزئیات حذف شد.
-  assert.ok(!src.includes('ثبت عملیات سفارش'));
+  // فاز ۱۲٫۱۰-ب: دکمهٔ «ثبت عملیات سفارش» به هدر کارت منتقل شد (از سلول اقدام
+  // و card__body حذف شد). حضور آن در هدر مجاز است.
+  assert.match(src, /operationsAction/);
+  assert.match(src, /operationsAction\?\.href/);
   assert.match(src, /changedByRole === 'admin' \? 'مدیر' : 'مشتری'/);
 });
 

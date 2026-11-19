@@ -9,6 +9,7 @@ import { useAlert } from '@/components/ui/AlertProvider';
 import { formatNumberFa } from '@/lib/datetime';
 import { isInlinePreviewable, type FileItem } from '@/lib/files/api';
 import { openFileFromServer } from '@/lib/files/file-open';
+import { AddToPersonalButton } from './FileActions';
 
 export interface FileDownloadModalProps {
   open: boolean;
@@ -20,6 +21,10 @@ export interface FileDownloadModalProps {
   lockedMessage?: string;
   /** پس از دانلود موفق — مثلاً ثبت `downloaded_at` روی کارت تحویل */
   onDownloaded?: () => void | Promise<void>;
+  /** نمایش دکمه‌ی «اضافه به فایل‌های شخصی» (پیش‌فرض: بله) */
+  showPersonal?: boolean;
+  /** پس از اضافه شدن به فایل‌های شخصی */
+  onPersonalAdded?: () => void | Promise<void>;
 }
 
 export function FileDownloadModal({
@@ -29,6 +34,8 @@ export function FileDownloadModal({
   canDownload,
   lockedMessage,
   onDownloaded,
+  showPersonal = true,
+  onPersonalAdded,
 }: FileDownloadModalProps) {
   const { token } = useAuth();
   const { showToast } = useAlert();
@@ -152,6 +159,9 @@ export function FileDownloadModal({
           <Button variant="outline" onClick={onClose}>
             بستن
           </Button>
+          {showPersonal && file ? (
+            <AddToPersonalButton file={file} onAdded={onPersonalAdded} />
+          ) : null}
           {inline ? (
             <Button
               variant="outline"

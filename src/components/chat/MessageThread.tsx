@@ -10,7 +10,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Icon';
-import { JalaliDate } from '@/components/ui/JalaliDate';
+import { RelativeTime } from '@/components/ui/JalaliDate';
+import { FileActions } from '@/components/files/FileActions';
 import { FileDownloadModal } from '@/components/files/FileDownloadModal';
 import type { FileItem } from '@/lib/files/api';
 import { useAuth } from '@/lib/account';
@@ -74,17 +75,12 @@ function MessageBubble({
           {message.files.length > 0 ? (
             <div className="chat-attachments">
               {message.files.map((file) => (
-                <button
-                  type="button"
+                <FileActions
                   key={file.id}
-                  className="chat-file-btn"
-                  onClick={() => onOpenFile(file)}
-                  title={`اطلاعات و دانلود ${file.originalName}`}
-                >
-                  <Icon name="fileText" size={16} />
-                  <span className="chat-file-btn__name">{file.originalName}</span>
-                  <Icon name="download" size={15} />
-                </button>
+                  file={toFileItem(file)}
+                  detailsLabel={file.originalName}
+                  onOpenDetails={() => onOpenFile(file)}
+                />
               ))}
             </div>
           ) : null}
@@ -110,7 +106,7 @@ function MessageBubble({
         <span className="chat-msg__meta">
           <span>{mine ? 'شما' : message.senderName}</span>
           <span aria-hidden="true">·</span>
-          <JalaliDate value={message.createdAt} variant="short" />
+          <RelativeTime value={message.createdAt} />
         </span>
       </div>
     </div>

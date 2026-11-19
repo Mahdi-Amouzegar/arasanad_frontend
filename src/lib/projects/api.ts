@@ -137,6 +137,10 @@ export interface Project {
   depositSource: string | null;
   customerId?: string;
   customerDisplayName: string | null;
+  /** فاز ۱۲٫۱۰: هویت ثبتکننده برای مودال «مشخصات». */
+  customerUsername?: string | null;
+  customerAvatarUrl?: string | null;
+  customerAvatarFileId?: string | null;
   deliveryState: string | null;
   finalTotal: number;
   /** فاز ۹٫۵: اقدامات مجاز همین نقش در همین وضعیت. */

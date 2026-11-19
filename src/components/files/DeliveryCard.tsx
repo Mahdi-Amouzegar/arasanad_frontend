@@ -6,6 +6,7 @@ import { Icon } from '@/components/ui/Icon';
 import { Badge } from '@/components/ui/Badge';
 import { RelativeTime } from '@/components/ui/JalaliDate';
 import { FileDownloadModal } from './FileDownloadModal';
+import { FileActions } from './FileActions';
 import { UploaderBadge } from './UploaderBadge';
 import { useAuth } from '@/lib/account';
 import { formatMoneyFa, formatNumberFa } from '@/lib/datetime';
@@ -137,15 +138,13 @@ export function DeliveryCard({
                     <UploaderBadge username={file.uploaderUsername} avatarUrl={file.uploaderAvatarUrl} sizeBytes={file.sizeBytes} />
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleFileClick(file)}
-                  disabled={!canDownload}
-                  leadingIcon={<Icon name="download" size={14} />}
-                >
-                  دریافت فایل نهایی
-                </Button>
+                <FileActions
+                  file={file}
+                  canDownload={canDownload}
+                  detailsLabel="دریافت فایل نهایی"
+                  onOpenDetails={() => handleFileClick(file)}
+                  onDownloaded={handleDownloaded}
+                />
               </div>
             ))}
           </div>

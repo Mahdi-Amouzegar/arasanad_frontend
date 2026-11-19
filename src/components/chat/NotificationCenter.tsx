@@ -80,8 +80,11 @@ export function NotificationCenter() {
     }
     const rect = trigger.getBoundingClientRect();
     const width = Math.min(360, window.innerWidth - 16);
-    const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
-    panel.style.setProperty('--notif-left', `${left}px`);
+    // فاز ۱۲٫۱۰-ج/هـ: گوشه‌ی بالا-راست پنل دقیقاً زیر گوشه‌ی بالا-راست آیکن
+    // قرار می‌گیرد. در RTL، `inset-inline-start` معادل `right` است؛ بنابراین
+    // فاصله از لبه‌ی راست نمای کاربر = innerWidth - rect.right محاسبه می‌شود.
+    const rightOffset = Math.max(8, Math.min(window.innerWidth - rect.right, window.innerWidth - width - 8));
+    panel.style.setProperty('--notif-left', `${rightOffset}px`);
     panel.style.setProperty('--notif-top', `${Math.min(rect.bottom + 8, window.innerHeight - 120)}px`);
     panel.style.setProperty('--notif-width', `${width}px`);
   }, [open]);

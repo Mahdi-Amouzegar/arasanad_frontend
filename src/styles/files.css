@@ -849,3 +849,25 @@
   background: var(--c-danger-bg);
   color: var(--c-danger);
 }
+
+/* فاز ۱۲٫۱۰ — سه دکمه‌ی استاندارد اقدام فایل */
+.file-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.file-actions .tooltip-anchor {
+  display: inline-flex;
+}
+
+/* فاز ۱۲٫۱۰-و: نشانگر پیشرفت در پنجره تأیید Peyk */
+.peyk-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+}

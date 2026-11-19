@@ -1259,3 +1259,36 @@
   overflow: visible;
   pointer-events: none;
 }
+
+/* فاز ۱۲٫۱۰-هـ: ردیف برند دراور + آیکنهای اعلان در انتهای آن (سمت چپ) */
+.sidebar__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.sidebar__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: auto;
+}
+
+.sidebar__head-actions .notif-center,
+.sidebar__head-actions .act-bell {
+  position: relative;
+  display: inline-flex;
+}
+
+/* فاز ۱۲٫۱۰-هـ: در ریل آیکونی تبلت، آیکنهای اعلان عمودی زیر برند قرار می‌گیرند */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar__head {
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+  .sidebar__head-actions {
+    margin-inline-start: 0;
+    flex-direction: column;
+  }
+}

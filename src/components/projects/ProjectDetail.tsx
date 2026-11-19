@@ -9,6 +9,7 @@ import {
   type ProjectAction,
 } from '@/lib/projects/api';
 import { DisputeFlag } from '@/components/activities/DisputeFlag';
+import { CopyableCode } from './CopyableCode';
 import { ProjectActionDialog } from './ProjectActionDialog';
 import {
   createFilesApi,
@@ -33,6 +34,7 @@ import {
   type SelectedFile,
 } from '@/components/files/FileManagerModal';
 import { FileDownloadModal } from '@/components/files/FileDownloadModal';
+import { FileActions } from '@/components/files/FileActions';
 import { UploaderBadge } from '@/components/files/UploaderBadge';
 import { DeliveryCard } from '@/components/files/DeliveryCard';
 import { formatNumberFa } from '@/lib/datetime';
@@ -360,6 +362,22 @@ export function ProjectDetail() {
   const { project, history, notes } = detail;
   const isAdmin = user?.role === 'admin';
   const isOwner = Boolean(user && (!project.customerId || project.customerId === user.id));
+  // فاز ۱۲٫۱۰-ب: «ثبت عملیات سفارش» از سلول اقدام به هدر کارت منتقل می‌شود؛
+  // «جزئیات سفارش» چون خود صفحه‌ی جزئیات است، حذف می‌شود.
+  const headerActions = (Array.isArray(project.availableActions)
+    ? project.availableActions
+    : []
+  ).filter((item) => item.kind === 'link' && item.id !== 'view_detail');
+  const operationsAction = headerActions.find((item) => item.id === 'open_operations');
+  const detailCellActions = (Array.isArray(project.availableActions)
+    ? project.availableActions
+    : []
+  ).filter(
+    (item) =>
+      (item.kind === 'button' || item.kind === 'link') &&
+      item.id !== 'view_detail' &&
+      item.id !== 'open_operations',
+  );
   // فاز ۱۲٫۸-ز: پس از لغو، عملیات و یادداشت‌ها غیرفعال می‌شوند.
   const isCancelled = project.status === 'cancelled';
   // سیگنال سراسری تسویه نهایی؛ در کنار paymentStatus هر تحویل بررسی می‌شود.
@@ -380,7 +398,7 @@ export function ProjectDetail() {
         <CardHeader
           title={
             <span className="prj-headline">
-              <span className="prj-code">{formatProjectCodeSafe(project.code)}</span>
+              <CopyableCode value={formatProjectCodeSafe(project.code)} />
               <span>{project.name}</span>
               {/* فاز ۱۰ (D-355): اعتراض فقط یک نشانگر است، وضعیت را عوض نمی‌کند. */}
               <DisputeFlag
@@ -394,6 +412,17 @@ export function ProjectDetail() {
           }
           actions={
             <div className="row" style={{ gap: 'var(--sp-2)' }}>
+              {/* فاز ۱۲٫۱۰-ب: «ثبت عملیات سفارش» قبل از گفتگو، در هدر کارت. */}
+              {operationsAction?.href?.startsWith('/') && !operationsAction.href.startsWith('//') ? (
+                <Link
+                  className="btn btn--primary btn--sm"
+                  href={operationsAction.href}
+                  title={operationsAction.hint ?? operationsAction.label}
+                >
+                  <Icon name="activity" size={16} />
+                  {operationsAction.label}
+                </Link>
+              ) : null}
               {/* فاز ۹، بند ۳: مخاطب از روی سفارش توسط سرور تعیین می‌شود؛
                   مشتری → مدیر، مدیر → مشتری صاحب سفارش. جستجو لازم نیست. */}
               {signedIn ? (
@@ -435,14 +464,7 @@ export function ProjectDetail() {
           </div>
           {/* فاز ۱۰: اقدامهای مالی دقیقاً همان availableActions[] فهرست. */}
           {(() => {
-            const actions = Array.isArray(project.availableActions)
-              ? project.availableActions
-              : [];
-            // فاز ۱۲٫۵-ث: اقدامهای link (مثل «درخواست اصلاح») هم در جزئیات
-            // قابل کلیکاند، نه فقط دکمه‌های intent.
-            const buttons = actions.filter(
-              (item) => item.kind === 'button' || item.kind === 'link',
-            );
+            const buttons = detailCellActions;
             if (buttons.length === 0) return null;
             return (
               <div className="prj-action-cell prj-action-cell--detail">
@@ -495,7 +517,10 @@ export function ProjectDetail() {
 
           {project.description ? <p className="prj-note">{project.description}</p> : null}
           {project.specialRequirements ? (
-            <p className="prj-note">نیازمندی‌های ویژه: {project.specialRequirements}</p>
+            <div className="prj-special-req">
+              <strong className="prj-special-req__title">نیازمندی‌های ویژه</strong>
+              <p className="prj-special-req__body">{project.specialRequirements}</p>
+            </div>
           ) : null}
           {isAdmin && project.customerDisplayName ? (
             <p className="prj-note">مشتری: {project.customerDisplayName}</p>
@@ -581,14 +606,11 @@ export function ProjectDetail() {
                       <UploaderBadge username={file.uploaderUsername} avatarUrl={file.uploaderAvatarUrl} sizeBytes={file.sizeBytes} />
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openInitialFile(file)}
-                    leadingIcon={<Icon name="download" size={14} />}
-                  >
-                    اطلاعات و دانلود
-                  </Button>
+                  <FileActions
+                    file={file}
+                    detailsLabel="اطلاعات و دانلود"
+                    onOpenDetails={() => openInitialFile(file)}
+                  />
                 </div>
               ))}
 

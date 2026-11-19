@@ -104,6 +104,15 @@ export function createFilesApi(request: AuthedRequest) {
       await request<{ deleted: boolean }>(`/files/${id}`, { method: 'DELETE' });
     },
 
+    /** فاز ۱۲٫۱۰: اضافه کردن فایل به «فایل‌های شخصی» کاربر جاری. */
+    async addToPersonal(id: string): Promise<boolean> {
+      const data = await request<{ added: boolean }>(`/files/${id}/personal`, {
+        method: 'POST',
+        body: {},
+      });
+      return data.added;
+    },
+
     async attachFiles(
       fileIds: string[],
       entityType: string,

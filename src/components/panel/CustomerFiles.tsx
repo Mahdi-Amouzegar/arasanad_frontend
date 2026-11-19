@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/account';
 import { createPanelApi, type CustomerFileEntry, type FileFilterId } from '@/lib/panel/api';
 import { FileDownloadModal } from '@/components/files/FileDownloadModal';
+import { FileActions } from '@/components/files/FileActions';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -165,10 +166,12 @@ export function CustomerFiles() {
                       <td data-label="حجم">{formatBytesFa(entry.file.sizeBytes)}</td>
                       <td data-label="تاریخ اتصال"><JalaliDate value={entry.relatedAt} variant="short" /></td>
                       <td data-label="اقدام">
-                        <Button variant="outline" size="sm" onClick={() => setSelected(entry)}>
-                          <Icon name="download" size={14} />
-                          دانلود
-                        </Button>
+                        <FileActions
+                          file={entry.file}
+                          canDownload={entry.canDownload}
+                          detailsLabel="دانلود"
+                          onOpenDetails={() => setSelected(entry)}
+                        />
                       </td>
                     </tr>
                   ))}

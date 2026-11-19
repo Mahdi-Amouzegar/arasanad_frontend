@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { formatNumberFa } from '@/lib/datetime';
 import { DisputeFlag } from '@/components/activities/DisputeFlag';
 import { ProjectActionDialog } from './ProjectActionDialog';
+import { ProjectSpecsDialog } from './ProjectSpecsDialog';
 import { FinanceDialog } from './OrdersWorkspace';
 import { errorText, formatHours, formatProjectCodeSafe } from './ui-utils';
 
@@ -130,6 +131,7 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
   const [sort, setSort] = useState<'new' | 'old'>('new');
   const [reloadKey, setReloadKey] = useState(0);
   const [financeFor, setFinanceFor] = useState<Project | null>(null);
+  const [specsFor, setSpecsFor] = useState<Project | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -268,23 +270,26 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                         <span className="prj-code">{formatProjectCodeSafe(project.code)}</span>
                         <span className="prj-name">{project.name}</span>
                       </Link>
-                        <DisputeFlag
-                          projectId={project.id}
-                          projectName={project.name}
-                          openDispute={project.openDispute}
-                          role={role}
-                          onResolved={refresh}
-                        />
                       </div>
                     </td>
                     <td data-label="نوع سفارش">{project.serviceName}</td>
                     <td data-label="مشخصات">
-                      <div className="prj-specs-cell">
-                        <ProjectStatusBadge status={project.status as ProjectStatus} />
-                        <span className="prj-muted">
-                          {formatNumberFa(project.sourcePageCount)} صفحه · {formatHours(project.deliveryHours)}
-                        </span>
-                      </div>
+                      {/* فاز ۱۲٫۱۰-ج: کلیک روی «مشخصات» مودال توضیحات و
+                          نیازمندی‌های ویژه را باز می‌کند. */}
+                      <button
+                        type="button"
+                        className="prj-specs-cell"
+                        onClick={() => setSpecsFor(project)}
+                        aria-label={`مشخصات سفارش ${project.name}`}
+                      >
+                        <div className="prj-specs-cell__inner">
+                          <ProjectStatusBadge status={project.status as ProjectStatus} />
+                          <span className="prj-muted">
+                            {formatNumberFa(project.sourcePageCount)} صفحه · {formatHours(project.deliveryHours)}
+                          </span>
+                          <Icon name="chevronLeft" size={14} />
+                        </div>
+                      </button>
                     </td>
                     <td data-label="تاریخ ثبت">
                       <RelativeTime value={project.createdAt} />
@@ -308,6 +313,7 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
         </div>
       )}
       {financeFor ? <FinanceDialog project={financeFor} onClose={() => setFinanceFor(null)} /> : null}
+      <ProjectSpecsDialog project={specsFor} onClose={() => setSpecsFor(null)} />
     </div>
   );
 }

@@ -824,6 +824,22 @@ function UploadTab({
                     آماده ارسال
                   </span>
                 )}
+                {/* فاز ۱۲٫۱۰-د: ضربدر حذف فایل «آماده ارسال» پیش از آپلود —
+                    برای_all نقشها، بدون نیاز به مجوز حذف سرور. */}
+                {item.status === 'pending' ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    className="fm-item__remove-pending"
+                    onClick={() => onRemove(index)}
+                    aria-label={`حذف ${item.file.name} از فهرست آماده ارسال`}
+                    title="حذف از فهرست آماده ارسال"
+                  >
+                    <Icon name="x" size={16} />
+                  </Button>
+                ) : null}
                 {item.status === 'uploading' ? (
                   <Button
                     type="button"
@@ -838,7 +854,7 @@ function UploadTab({
                     <Icon name="x" size={16} />
                   </Button>
                 ) : null}
-                {canDelete && item.status !== 'uploading' && item.status !== 'uploaded' ? (
+                {canDelete && item.status === 'failed' ? (
                   <Button
                     type="button"
                     variant="ghost"

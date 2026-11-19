@@ -201,7 +201,9 @@ export function ProjectNewForm() {
     setSubmitIssues(issues);
     if (issues.length > 0) {
       setErrors(result.errors);
-      setSubmitError(noAttachment ? ATTACHMENT_ISSUE : null);
+      // فاز ۱۲٫۱۰-ب: پیام نبود پیوست فقط در prj-submit-issues نمایش داده
+      // می‌شود؛ تنظیم جداگانه‌ی submitError باعث تکرار هشدار می‌شد.
+      setSubmitError(null);
       showToast({ type: 'error', title: 'فرم ناقص است', message: 'موارد مشخصشده را اصلاح کنید.' });
       return;
     }

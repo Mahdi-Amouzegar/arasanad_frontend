@@ -179,11 +179,42 @@
 }
 
 .prj-specs-cell {
+  display: block;
+  min-width: 150px;
+  padding: var(--sp-1);
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.prj-specs-cell:hover {
+  border-color: var(--c-border);
+  background: var(--c-surface-hover, var(--c-surface));
+}
+
+.prj-specs-cell:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.prj-specs-cell__inner {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--sp-1);
-  min-width: 150px;
+  position: relative;
+}
+
+.prj-specs-cell__inner > svg {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+  color: var(--c-text-secondary);
 }
 
 .prj-muted {
@@ -834,4 +865,134 @@
 .prj-badges .dsp-flag--clickable:hover {
   background: var(--c-danger);
   color: var(--c-text-inverse, #fff);
+}
+
+/* فاز ۱۲٫۱۰-ب: کد قابلکپی در جزئیات سفارش */
+.prj-code--copy {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 2px var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text-secondary);
+  cursor: pointer;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+
+.prj-code--copy:hover {
+  color: var(--c-primary);
+  border-color: var(--c-primary);
+  background: var(--c-primary-bg, var(--c-surface));
+}
+
+.prj-code--copy:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.prj-code__hint {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: 5;
+  padding: 2px var(--sp-2);
+  border-radius: var(--r-sm);
+  background: var(--c-text);
+  color: var(--c-surface);
+  font-family: inherit;
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+
+/* فاز ۱۲٫۱۰-ب: نیازمندی‌های ویژه — عنوان بولد با زمینه متمایز */
+.prj-special-req {
+  margin-block: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-inline-start: 3px solid var(--c-primary);
+  border-radius: var(--r-sm);
+  background: var(--c-primary-bg, var(--c-surface-hover, var(--c-bg)));
+  overflow: hidden;
+}
+
+.prj-special-req__title {
+  display: block;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--c-surface-hover, var(--c-border));
+  font-weight: var(--fw-bold, var(--fw-semibold));
+  color: var(--c-text);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.prj-special-req__body {
+  margin: 0;
+  padding: var(--sp-3);
+  color: var(--c-text-secondary);
+  line-height: 1.8;
+}
+
+/* فاز ۱۲٫۱۰-ج: مودال مشخصات سفارش */
+.prj-specs-dialog__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--c-border);
+  flex-wrap: wrap;
+}
+
+.prj-specs-dialog__who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.prj-specs-dialog__username {
+  font-size: var(--fs-xs);
+  color: var(--c-text-secondary);
+}
+
+.prj-specs-dialog__order {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin-inline-start: auto;
+  text-align: end;
+  font-weight: var(--fw-semibold);
+}
+
+.prj-specs-dialog__section {
+  margin-top: var(--sp-4);
+}
+
+.prj-specs-dialog__section-title {
+  margin: 0 0 var(--sp-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold, var(--fw-semibold));
+  color: var(--c-text);
+}
+
+.prj-specs-dialog__section--special {
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-inline-start: 3px solid var(--c-primary);
+  border-radius: var(--r-sm);
+  background: var(--c-primary-bg, var(--c-surface-hover, var(--c-bg)));
+}
+
+.prj-specs-dialog__text {
+  margin: 0;
+  line-height: 1.8;
+  color: var(--c-text-secondary);
+  white-space: pre-wrap;
+}
+
+.prj-specs-dialog__empty {
+  margin: 0;
+  color: var(--c-text-secondary);
+  opacity: 0.7;
+  font-size: var(--fs-sm);
 }

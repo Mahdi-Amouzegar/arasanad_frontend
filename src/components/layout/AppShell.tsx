@@ -68,7 +68,18 @@ export function AppShell({
 
   return (
     <div className="shell">
-      <Sidebar groups={groups} activeHref={activeHref} open={open} onNavigate={close} />
+      <Sidebar
+        groups={groups}
+        activeHref={activeHref}
+        open={open}
+        onNavigate={close}
+        headerActions={
+          <>
+            <ActivityBell />
+            <NotificationCenter />
+          </>
+        }
+      />
 
       {open ? (
         <button
@@ -83,13 +94,7 @@ export function AppShell({
         <Topbar
           title={title}
           search={search}
-          actions={
-            <>
-              <ActivityBell />
-              <NotificationCenter />
-              {actions}
-            </>
-          }
+          actions={actions}
           expanded={open}
           onMenu={() => setOpen((value) => !value)}
         />
