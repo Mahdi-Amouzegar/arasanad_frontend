@@ -106,7 +106,6 @@ function MessageBubble({
                 <FileActions
                   key={file.id}
                   file={toFileItem(file)}
-                  detailsLabel={file.originalName}
                   onOpenDetails={() => onOpenFile(file)}
                 />
               ))}

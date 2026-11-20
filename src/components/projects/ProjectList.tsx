@@ -252,7 +252,7 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                 <th scope="col">مشخصات</th>
                 <th scope="col">تاریخ ثبت</th>
                 <th scope="col">تاریخ تحویل</th>
-                <th scope="col">مبلغ</th>
+                <th scope="col">تراکنشها</th>
                 <th scope="col">اقدام</th>
               </tr>
             </thead>
@@ -297,9 +297,9 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                     <td data-label="تاریخ تحویل">
                       {deliveryAt ? <RelativeTime value={deliveryAt} /> : '—'}
                     </td>
-                    <td data-label="مبلغ">
+                    <td data-label="تراکنشها">
                       <Button size="sm" variant="outline" onClick={() => setFinanceFor(project)}>
-                        مبلغ
+                        تراکنشها
                       </Button>
                     </td>
                     <td data-label="اقدام">

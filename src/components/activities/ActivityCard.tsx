@@ -82,7 +82,6 @@ function ActivityAttachments({ activityId }: { activityId: string }) {
         <div key={file.id} className="act-card__file-actions">
           <FileActions
             file={file}
-            detailsLabel={file.originalName}
             onOpenDetails={() => {
               setPreview(file);
               setOpen(true);

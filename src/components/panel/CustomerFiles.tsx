@@ -9,6 +9,7 @@
  *    توسط مسیر سرور `/files/:id/download` بررسی می‌گردد.
  */
 
+import { FileName } from '@/components/ui/FileName';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
@@ -148,7 +149,7 @@ export function CustomerFiles() {
                     <tr key={`${entry.scope}-${entry.file.id}-${entry.relationEntityId}`}>
                       <td data-label="فایل">
                         <span className="prj-code">{entry.file.fileCode}</span>
-                        <span className="prj-name file-name-ltr" dir="ltr">{entry.file.originalName}</span>
+                        <FileName name={entry.file.originalName} className="prj-name" />
                       </td>
                       <td data-label="دسته">{SCOPE_LABELS[entry.scope] ?? entry.scope}</td>
                       <td data-label="سفارش">
@@ -170,6 +171,7 @@ export function CustomerFiles() {
                           file={entry.file}
                           canDownload={entry.canDownload}
                           detailsLabel="دانلود"
+                          showPersonal={false}
                           onOpenDetails={() => setSelected(entry)}
                         />
                       </td>
@@ -187,6 +189,7 @@ export function CustomerFiles() {
         onClose={() => setSelected(null)}
         file={selected?.file ?? null}
         canDownload={selected?.canDownload ?? false}
+        showPersonal={false}
         lockedMessage={selected?.lockedMessage ?? undefined}
       />
     </div>

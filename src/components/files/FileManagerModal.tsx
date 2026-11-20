@@ -1,5 +1,6 @@
 'use client';
 
+import { FileName } from '@/components/ui/FileName';
 import {
   useCallback,
   useEffect,
@@ -764,7 +765,7 @@ function UploadTab({
                   <Icon name="fileText" size={20} />
                 </div>
                 <div className="fm-item__body">
-                  <div className="fm-item__name" dir="ltr">{item.file.name}</div>
+                  <FileName name={item.file.name} className="fm-item__name" />
                   <div className="fm-item__meta">
                     <span>{formatBytesFa(item.file.size)}</span>
                     {item.status === 'uploading' ? (
@@ -967,7 +968,7 @@ function SelectTab({
             <Icon name="fileText" size={20} />
           </div>
           <div className="fm-item__body">
-            <div className="fm-item__name" dir="ltr">{file.originalName}</div>
+            <FileName name={file.originalName} className="fm-item__name" />
             <div className="fm-item__meta">
               <span>{file.fileCode}</span>
               <span>•</span>

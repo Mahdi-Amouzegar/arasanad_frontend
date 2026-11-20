@@ -16,6 +16,7 @@
  *    پیوستهای انتخاب‌شده حفظ می‌گردند تا پس از اتصال از بین نروند.
  */
 
+import { shortFileName } from '@/lib/files/file-name';
 import { useCallback, useMemo, useState, type KeyboardEvent } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { Button } from '@/components/ui/Button';
@@ -114,7 +115,7 @@ export function ChatComposer() {
           {pendingFiles.map((file) => (
             <span className="chat-chip" key={`f-${file.id}`}>
               <Icon name="fileText" size={14} />
-              <span className="chat-chip__name" title={file.originalName}>{file.originalName}</span>
+              <span className="chat-chip__name" title={file.originalName}>{shortFileName(file.originalName)}</span>
               <button
                 type="button"
                 className="chat-chip__remove"

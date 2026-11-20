@@ -1,5 +1,6 @@
 'use client';
 
+import { FileName } from '@/components/ui/FileName';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -40,6 +41,7 @@ import { useAlert } from '@/components/ui/AlertProvider';
 import { FileManagerModal, localFileSignature, type SelectedFile, type SelectedLink } from '@/components/files/FileManagerModal';
 import { UploaderBadge } from '@/components/files/UploaderBadge';
 import { cx } from '@/lib/cx';
+import { RevisionPolicyDialog } from './RevisionPolicyDialog';
 import { errorText, formatHours } from './ui-utils';
 import { loadGuestDraft } from '@/lib/guest-order';
 import { loadForwardDraft } from '@/lib/chat/forward-draft';
@@ -69,6 +71,7 @@ export function ProjectNewForm() {
 
   // Phase 8: file attachment state
   const [fmOpen, setFmOpen] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState<SelectedFile[]>([]);
   const [attachedLinks, setAttachedLinks] = useState<SelectedLink[]>([]);
 
@@ -519,7 +522,7 @@ export function ProjectNewForm() {
                           <Icon name="fileText" size={20} />
                         </div>
                         <div className="fm-item__body">
-                          <div className="fm-item__name" dir="ltr">{file.originalName}</div>
+                          <FileName name={file.originalName} className="fm-item__name" />
                           <div className="fm-item__meta">
                             <span>{file.fileCode || 'جدید'}</span>
                             <UploaderBadge username={user?.username} avatarUrl={user?.avatarUrl} sizeBytes={file.sizeBytes} />
@@ -757,10 +760,14 @@ export function ProjectNewForm() {
           ) : null}
 
           <div className="prj-actions">
-            <Link className="btn btn--ghost btn--sm" href="/revision-policy/">
+            <Button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={() => setPolicyOpen(true)}
+            >
               <Icon name="shield" size={15} />
               سیاست اصلاح
-            </Link>
+            </Button>
             <Button type="submit" loading={submitting} disabled={catalogLoading}>
               ثبت سفارش
             </Button>
@@ -790,6 +797,8 @@ export function ProjectNewForm() {
           setAttachedLinks((prev) => [...prev, ...result.links]);
         }}
       />
+      {/* فاز ۱۲٫۱۲-هـ: سیاست اصلاح بدون ترک فرم سفارش تازه */}
+      <RevisionPolicyDialog open={policyOpen} onClose={() => setPolicyOpen(false)} />
     </>
   );
 }

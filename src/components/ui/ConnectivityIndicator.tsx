@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/lib/cx';
 import { useNetworkStatus } from '@/lib/connectivity/useConnectivity';
+import { probeConnection } from '@/lib/connectivity/index.mjs';
 
 export interface ConnectivityIndicatorProps {
   className?: string;
@@ -29,6 +30,7 @@ export function ConnectivityIndicator({
 }: ConnectivityIndicatorProps) {
   const status = useNetworkStatus();
   const [mounted, setMounted] = useState(false);
+  const [rechecking, setRechecking] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -55,6 +57,18 @@ export function ConnectivityIndicator({
       <span className="conn-indicator__spinner" aria-hidden="true" />
       <Icon name="wifiOff" size={14} aria-hidden="true" />
       شبکه قطع است
+      <button
+        type="button"
+        className="conn-indicator__retry"
+        disabled={rechecking}
+        onClick={() => {
+          setRechecking(true);
+          void probeConnection({ force: true }).finally(() => setRechecking(false));
+        }}
+      >
+        <Icon name="refresh" size={13} aria-hidden="true" />
+        {rechecking ? 'در حال بررسی…' : 'بررسی مجدد'}
+      </button>
     </span>
   );
 }

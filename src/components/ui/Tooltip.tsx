@@ -34,8 +34,27 @@ export interface TooltipProps {
 export function Tooltip({ label, children, pinnable = true }: TooltipProps) {
   const id = useId();
   const anchorRef = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLSpanElement>(null);
   const [position, setPosition] = useState<{ top: number; right: number } | null>(null);
   const [pinned, setPinned] = useState(false);
+
+  /**
+   * فاز ۱۲٫۱۲-د: تولتیپهایی که داخلdialogها باز می‌شوند نباید زیر لایه‌ی
+   * overlay بروند. با `popover=manual` وارد لایه‌ی بالای مرورگر می‌شوند و
+   * حتی رویdialogهای `showModal` قابل خواندناند.
+   */
+  useEffect(() => {
+    const el = tooltipRef.current as (HTMLSpanElement & {
+      showPopover?: () => void;
+      hidePopover?: () => void;
+      matches?: (selector: string) => boolean;
+    }) | null;
+    if (!el) return undefined;
+    if (typeof el.showPopover === 'function' && !el.matches?.(':popover-open')) el.showPopover();
+    return () => {
+      if (typeof el.hidePopover === 'function' && el.matches?.(':popover-open')) el.hidePopover();
+    };
+  }, [position]);
 
   const place = () => {
     const el = anchorRef.current;
@@ -101,9 +120,11 @@ export function Tooltip({ label, children, pinnable = true }: TooltipProps) {
       {position
         ? createPortal(
             <span
+              ref={tooltipRef}
               role="tooltip"
               id={id}
               className="tooltip"
+              popover="manual"
               style={{ top: position.top, right: position.right }}
             >
               {label}

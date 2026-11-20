@@ -1,5 +1,6 @@
 'use client';
 
+import { FileName } from '@/components/ui/FileName';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -130,7 +131,7 @@ export function DeliveryCard({
                   <Icon name="fileText" size={20} />
                 </div>
                 <div className="fm-item__body">
-                  <div className="fm-item__name" dir="ltr">{file.originalName}</div>
+                  <FileName name={file.originalName} className="fm-item__name" />
                   <div className="fm-item__meta">
                     <span>{file.fileCode}</span>
                     <span>•</span>

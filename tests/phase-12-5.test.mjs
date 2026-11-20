@@ -37,7 +37,7 @@ test('P125-01: /panel به کامپوننت واقعی داشبورد متصل �
   assert.ok(PANEL_API.includes("'/panel/dashboard'"), 'کلاینت API به مسیر درست متصل نیست');
 });
 
-test('P125-01: لینک ثبت عملیات سفارش در گروه سفارش‌ها قرار دارد', () => {
+test('P125-01: لینک سفارشگردانی در گروه سفارش‌ها قرار دارد', () => {
   assert.ok(NAV.includes("href: '/panel/projects/operations'"), 'لینک عملیات در CUSTOMER_NAV نیست');
   assert.ok(PANEL_PAGE.includes("'/panel/projects/operations': 'operations'"), 'مسیر عملیات در router نیست');
 });

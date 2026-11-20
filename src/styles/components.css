@@ -1188,6 +1188,16 @@
   white-space: nowrap;
 }
 
+/* فاز ۱۲٫۱۲-د: تولتیپ در لایه‌ی بالای مرورگر (بالاتر ازdialog و overlay). */
+.tooltip[popover] {
+  inset: auto;
+  margin: 0;
+  border: 0;
+  padding: 6px 10px;
+  background: var(--c-text);
+  color: var(--c-surface);
+}
+
 /* ─── موبایل: هشدار به Bottom Sheet ─── */
 
 @media (max-width: 768px) {

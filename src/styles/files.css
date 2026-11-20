@@ -711,6 +711,26 @@
   pointer-events: none;
 }
 
+/* فاز ۱۲٫۱۲-و: دکمه بررسی مجدد وضعیت شبکه در همان بنر قطعی. */
+.conn-indicator__retry {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 2px 10px;
+  border: 1px solid currentColor;
+  border-radius: var(--r-full);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.conn-indicator__retry:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 /* ───────────────────────────── Responsive ───────────────────────────── */
 
 @media (max-width: 640px) {
@@ -850,16 +870,36 @@
   color: var(--c-danger);
 }
 
-/* فاز ۱۲٫۱۰ — سه دکمه‌ی استاندارد اقدام فایل */
+/* فاز ۱۲٫۱۲-ج — نام فایل کوتاه و دکمه‌ها در سطر جداگانه */
+.file-name-short {
+  display: inline-block;
+  max-width: 16rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
 .file-actions {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-1);
+  max-width: 100%;
+}
+
+.file-actions__row {
   display: inline-flex;
   align-items: center;
   gap: var(--sp-2);
   flex-wrap: wrap;
+  max-width: 100%;
 }
 
-.file-actions .tooltip-anchor {
+.file-actions .tooltip-anchor,
+.file-actions__row .tooltip-anchor {
   display: inline-flex;
+  max-width: 100%;
 }
 
 /* فاز ۱۲٫۱۰-و: نشانگر پیشرفت در پنجره تأیید Peyk */

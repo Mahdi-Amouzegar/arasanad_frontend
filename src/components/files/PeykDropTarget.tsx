@@ -8,6 +8,7 @@
  * نتیجه‌ی تک تک فایل‌ها توسط همان کیت انجام می‌شود.
  */
 
+import { shortFileName } from '@/lib/files/file-name';
 import { useCallback, useEffect, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -139,14 +140,14 @@ export function PeykDropTarget({
               {queued.map((file) => (
                 <li key={`ok-${file.name}-${file.size}`}>
                   <Icon name="fileText" size={15} />
-                  <span dir="ltr" className="file-name-ltr">{file.name}</span>
+                  <span dir="ltr" className="file-name-ltr" title={file.name}>{shortFileName(file.name)}</span>
                   <small>{peykFormatBytes(file.size)}</small>
                 </li>
               ))}
               {rejected.map((item) => (
                 <li key={`bad-${item.name}-${item.size}`} className="peyk-confirm__item--bad">
                   <Icon name="xCircle" size={15} />
-                  <span dir="ltr" className="file-name-ltr">{item.name}</span>
+                  <span dir="ltr" className="file-name-ltr" title={item.name}>{shortFileName(item.name)}</span>
                   <small>{item.message}</small>
                 </li>
               ))}

@@ -12,8 +12,8 @@ const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
 
 test('P124-05: پروفایل کاربر تازه پیام انتظار بیلد نشان می‌دهد', () => {
   const view = read('src/app/profile/ProfileView.tsx');
-  assert.ok(view.includes('hasStaticProfile'), 'وضعیت وجود صفحه ایستا محاسبه ن‌میشود');
-  assert.ok(view.includes('isPublicProfileSlug(publicCode)'), 'اسنپشات زمان بیلد چک ن‌میشود');
+  assert.ok(view.includes('hasStaticProfile'), 'وضعیت وجود صفحه ایستا محاسبه ن‌می‌شود');
+  assert.ok(view.includes('isPublicProfileSlug(publicCode)'), 'اسنپشات زمان بیلد چک ن‌می‌شود');
   assert.ok(view.includes('لینک اختصاصی پنل'), 'پیام انتظار وجود ندارد');
   assert.ok(view.includes('name="clock"'), 'آیکون وضعیت وجود ندارد');
   assert.ok(view.includes('href="/panel/"'), 'لینک موقت پنل وجود ندارد');
@@ -22,6 +22,6 @@ test('P124-05: پروفایل کاربر تازه پیام انتظار بیلد
 
 test('P124-06: اسنپشات نام کاربری با فهرست API ادغام می‌شود', () => {
   const script = read('scripts/fetch-public-profiles.mjs');
-  assert.ok(script.includes('const merged = new Map()'), 'اسنپشات قبلی با پاسخ API ادغام ن‌میشود');
-  assert.ok(script.includes('Entry[]'), 'حفظ مسیر موجود تضمین ن‌میشود');
+  assert.ok(script.includes('const merged = new Map()'), 'اسنپشات قبلی با پاسخ API ادغام ن‌می‌شود');
+  assert.ok(script.includes('Entry[]'), 'حفظ مسیر موجود تضمین ن‌می‌شود');
 });

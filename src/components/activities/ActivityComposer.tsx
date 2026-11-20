@@ -9,6 +9,7 @@
  * رشته‌ی پاسخ را نگه می‌دارد.
  */
 
+import { shortFileName } from '@/lib/files/file-name';
 import { useCallback, useMemo, useState } from 'react';
 import { useAuth } from '@/lib/account';
 import { useAlert } from '@/components/ui/AlertProvider';
@@ -214,7 +215,7 @@ export function ActivityComposer({
           message:
             attachErrors.length > 0
               ? `کارت ثبت شد ولی الصاق ${attachErrors.join(' و ')} انجام نشد؛ دوباره تلاش کنید.`
-              : 'کارت تازه در ثبت عملیات سفارش قرار گرفت.',
+              : 'کارت تازه در سفارشگردانی قرار گرفت.',
         });
         await onCreated();
       } catch (caught) {
@@ -265,7 +266,7 @@ export function ActivityComposer({
             aria-label={`حذف ${file.originalName}`}
           >
             <Icon name="paperclip" size={13} />
-            <span dir="ltr" className="file-name-ltr">{file.originalName}</span>
+            <span dir="ltr" className="file-name-ltr" title={file.originalName}>{shortFileName(file.originalName)}</span>
             <Icon name="x" size={12} />
           </button>
         ))}

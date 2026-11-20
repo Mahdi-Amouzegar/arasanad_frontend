@@ -32,6 +32,11 @@ export function NotificationCenter() {
     signedIn,
   } = useNotifications();
   const { openChat } = useChat();
+  /**
+   * فاز ۱۲٫۱۲-د: پنل زنگوله فقط پیام‌های خوانده‌نشده را نگه می‌دارد تا
+   * فهرست بلند نشود؛ خواندهشدن بلافاصله ردیف را از پنل حذف می‌کند.
+   */
+  const visible = notifications.filter((item) => !item.readAt);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -125,10 +130,10 @@ export function NotificationCenter() {
           </header>
 
           <div className="notif-panel__list">
-            {loading && notifications.length === 0 ? (
+            {loading && visible.length === 0 ? (
               <div className="chat-skeleton" aria-hidden="true"><span /><span /></div>
             ) : null}
-            {!loading && notifications.length === 0 ? (
+            {!loading && visible.length === 0 ? (
               <div className="chat-empty">
                 <span className="chat-empty__icon"><Icon name="inbox" size={24} /></span>
                 <p className="chat-empty__title">اعلانی ندارید</p>
@@ -136,7 +141,7 @@ export function NotificationCenter() {
               </div>
             ) : null}
 
-            {notifications.map((item) => (
+            {visible.map((item) => (
               <a
                 key={item.id}
                 href={safeHref(item.href)}

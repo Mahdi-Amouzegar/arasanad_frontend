@@ -11,6 +11,7 @@
  *    تنها تجربه‌ی کاربر است، نه مرز امنیتی.
  */
 
+import { FileName } from '@/components/ui/FileName';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
@@ -420,7 +421,7 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
                             <div key={file.id} className="dlv-file">
                               <div>
                                 <Icon name="fileText" size={18} />
-                                <strong dir="ltr" className="file-name-ltr">{file.originalName}</strong>
+                                <FileName name={file.originalName} className="file-name-ltr" />
                                 <code>{file.fileCode}</code>
                               </div>
                               <Button

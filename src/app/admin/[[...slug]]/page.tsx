@@ -18,13 +18,23 @@ import {
 } from '@/components/admin/AdminPanels';
 import { ADMIN_GROUPS, ADMIN_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
 
-export const metadata: Metadata = {
-  title: 'پنل مدیریت',
-  description: 'پنل مدیریت آراسند — صف کاری سفارش‌ها، تعیین نرخ و گردش وضعیت‌ها.',
-  robots: { index: false, follow: false },
-};
 
 /** تمام مسیرهای `ADMIN_NAV` با پیشوند `/admin` در بیلد استاتیک تولید می‌شوند. */
+/** فاز ۱۲٫۱۲-د: نام صفحه جاری در عنوان نوار مرورگر دیده می‌شود. */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug?: string[] }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const info = infoFor(ADMIN_PAGES, hrefFromSlug('/admin', slug));
+  return {
+    title: { absolute: `آراسند | ${info.title}` },
+    description: 'پنل مدیریت آراسند — صف کاری سفارش‌ها، تعیین نرخ و گردش وضعیت‌ها.',
+    robots: { index: false, follow: false },
+  };
+}
+
 export function generateStaticParams() {
   return slugsFor(ADMIN_GROUPS, '/admin', ['projects/detail', 'projects/operations', 'projects/delivery', 'orders']);
 }

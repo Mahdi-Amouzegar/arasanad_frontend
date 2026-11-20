@@ -1,5 +1,6 @@
 'use client';
 
+import { FileName } from '@/components/ui/FileName';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -64,6 +65,7 @@ export function FileDownloadModal({
         fileId: file.id,
         token,
         fileName: file.originalName,
+        mimeType: file.mimeType,
         mode,
         onSuccess: onDownloaded,
       });
@@ -114,7 +116,7 @@ export function FileDownloadModal({
                 <Icon name="fileText" size={24} />
               </div>
               <div className="file-card__info">
-                <div className="file-card__name" dir="ltr">{file.originalName}</div>
+                <FileName name={file.originalName} className="file-card__name" />
                 <div className="file-card__code">{file.fileCode}</div>
               </div>
             </div>

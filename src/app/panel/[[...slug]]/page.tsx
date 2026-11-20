@@ -39,7 +39,12 @@ export async function generateMetadata({
       robots: { index: true, follow: true },
     };
   }
-  return PANEL_METADATA;
+  // فاز ۱۲٫۱۲-د: عنوان نوار مرورگر همان صفحه‌ای است که کاربر در آن است.
+  const info = infoFor(CUSTOMER_PAGES, hrefFromSlug('/panel', slug));
+  return {
+    ...PANEL_METADATA,
+    title: { absolute: `آراسند | ${info.title}` },
+  };
 }
 
 /** تمام مسیرهای `CUSTOMER_NAV` در بیلد استاتیک تولید می‌شود تا لینک مرده نماند. */

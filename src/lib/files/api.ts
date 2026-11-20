@@ -100,6 +100,12 @@ export function createFilesApi(request: AuthedRequest) {
       return data.file;
     },
 
+    /** فاز ۱۲٫۱۲: آیا فایل از قبل در فایل‌های شخصی کاربر است؟ */
+    async isPersonal(id: string): Promise<boolean> {
+      const data = await request<{ personal: boolean }>(`/files/${id}/personal`);
+      return data.personal === true;
+    },
+
     async deleteFile(id: string): Promise<void> {
       await request<{ deleted: boolean }>(`/files/${id}`, { method: 'DELETE' });
     },

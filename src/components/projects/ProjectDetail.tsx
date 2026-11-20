@@ -1,5 +1,6 @@
 'use client';
 
+import { FileName } from '@/components/ui/FileName';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
@@ -362,7 +363,7 @@ export function ProjectDetail() {
   const { project, history, notes } = detail;
   const isAdmin = user?.role === 'admin';
   const isOwner = Boolean(user && (!project.customerId || project.customerId === user.id));
-  // فاز ۱۲٫۱۰-ب: «ثبت عملیات سفارش» از سلول اقدام به هدر کارت منتقل می‌شود؛
+  // فاز ۱۲٫۱۰-ب: «سفارشگردانی» از سلول اقدام به هدر کارت منتقل می‌شود؛
   // «جزئیات سفارش» چون خود صفحه‌ی جزئیات است، حذف می‌شود.
   const headerActions = (Array.isArray(project.availableActions)
     ? project.availableActions
@@ -412,7 +413,7 @@ export function ProjectDetail() {
           }
           actions={
             <div className="row" style={{ gap: 'var(--sp-2)' }}>
-              {/* فاز ۱۲٫۱۰-ب: «ثبت عملیات سفارش» قبل از گفتگو، در هدر کارت. */}
+              {/* فاز ۱۲٫۱۰-ب: «سفارشگردانی» قبل از گفتگو، در هدر کارت. */}
               {operationsAction?.href?.startsWith('/') && !operationsAction.href.startsWith('//') ? (
                 <Link
                   className="btn btn--primary btn--sm"
@@ -596,7 +597,7 @@ export function ProjectDetail() {
                     <Icon name="fileText" size={20} />
                   </div>
                   <div className="fm-item__body">
-                    <div className="fm-item__name" dir="ltr">{file.originalName}</div>
+                    <FileName name={file.originalName} className="fm-item__name" />
                     <div className="fm-item__meta">
                       <span>{file.fileCode}</span>
                       <span>•</span>
@@ -715,7 +716,7 @@ export function ProjectDetail() {
                               <Icon name="fileText" size={20} />
                             </div>
                             <div className="fm-item__body">
-                              <div className="fm-item__name" dir="ltr">{file.originalName}</div>
+                              <FileName name={file.originalName} className="fm-item__name" />
                               <div className="fm-item__meta">
                                 <span>{formatBytesFa(file.sizeBytes)}</span>
                               </div>
@@ -786,12 +787,6 @@ export function ProjectDetail() {
             </div>
           )}
 
-          {!isAdmin && !projectSettled ? (
-            <p className="prj-note">
-              دکمه‌ی «دریافت فایل نهایی» برای مدیر همیشه فعال است و برای مشتری
-              پس از تأیید تسویه نهایی فعال می‌شود.
-            </p>
-          ) : null}
         </CardBody>
       </Card>
 

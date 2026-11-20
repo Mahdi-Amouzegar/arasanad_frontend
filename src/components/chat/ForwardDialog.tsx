@@ -24,7 +24,12 @@ import { useChat } from './ChatProvider';
 
 type Mode = 'contact' | 'activity' | 'order';
 
-const INACTIVE_STATUSES = new Set(['completed', 'cancelled', 'cancel_requested']);
+/**
+ * فاز ۱۲٫۱۲-ب: فقط سفارش لغوشده حذف می‌شود. سفارشی که مشتری ثبت اولیه کرده
+ * ولی مدیر هنوز تأیید نکرده (`pending_review`) یا درخواست لغوی آن ثبت شده
+ * (`cancel_requested`) تا زمان لغوی نهایی قابل انتخاب است.
+ */
+const INACTIVE_STATUSES = new Set(['cancelled']);
 
 function messageOf(error: unknown): string {
   if (error && typeof error === 'object' && 'message' in error) {
@@ -95,10 +100,11 @@ export function ForwardDialog() {
     if (!open || mode !== 'activity') return;
     let alive = true;
     setProjectsLoading(true);
-    void projectsApi.listProjects()
+    void projectsApi.listProjects({ limit: 100 })
       .then((rows) => {
         if (!alive) return;
         setProjects(rows.filter((row) => !INACTIVE_STATUSES.has(row.status)
+          && (row.status !== 'draft' || row.submittedAt)
           && (user?.role === 'admin' || row.customerId === user?.id)));
       })
       .catch((caught) => {

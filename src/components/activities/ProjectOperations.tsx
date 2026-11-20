@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * فاز ۹٫۵ — صفحه‌ی کامل «ثبت عملیات سفارش» (نه دراور، نه پنجره).
+ * فاز ۹٫۵ — صفحه‌ی کامل «سفارشگردانی» (نه دراور، نه پنجره).
  *
  * ⚠️ خروجی استاتیک: شناسه‌ی سفارش فقط از `?id=...` خوانده می‌شود.
  * ⚠️ ترتیب **جدیدترین در بالا** بر اساس `seq` سروری (§9.5.1).
@@ -93,7 +93,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
           }
         }
       } catch (caught) {
-        setError(errorText(caught, 'ثبت عملیات سفارش دریافت نشد'));
+        setError(errorText(caught, 'سفارشگردانی دریافت نشد'));
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -153,7 +153,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
       <header className="act-page__head">
         <div>
           <span className="act-page__code">{formatProjectCodeSafe(project?.code ?? '')}</span>
-          <h2 className="act-page__title">{project?.name ?? 'ثبت عملیات سفارش'}</h2>
+          <h2 className="act-page__title">{project?.name ?? 'سفارشگردانی'}</h2>
           <p className="act-page__hint">
             سابقه‌ی فقط الحاقی عملیات‌ها، جدیدترین در بالا. اصلاح فقط با ثبت ردیف تازه انجام می‌شود.
           </p>

@@ -183,11 +183,10 @@ test('P126-01: منوهای مهمان به صفحات واقعی ختم می‌
   }
 });
 
-test('P11-07: لینک «سیاست اصلاح» در فرم ثبت سفارش مشتری موجود است', () => {
+test('P11-07: سیاست اصلاح در همان فرم ثبت سفارش بهصورتdialog باز می‌شود (فاز ۱۲٫۱۲)', () => {
   const newForm = read('src/components/projects/ProjectNewForm.tsx');
-  assert.ok(
-    newForm.includes('href="/revision-policy/"'),
-    'لینک سیاست اصلاح در فرم مشتری نیست',
-  );
-  assert.ok(newForm.includes('سیاست اصلاح'), 'عنوان لینک سیاست اصلاح نیست');
+  assert.ok(newForm.includes('RevisionPolicyDialog'), 'دیالوگ سیاست اصلاح در فرم مشتری نیست');
+  assert.ok(newForm.includes('setPolicyOpen(true)'), 'دکمه باز کردن دیالوگ وجود ندارد');
+  assert.ok(!newForm.includes('href="/revision-policy/"'), 'دکمه هنوز به صفحه دیگری هدایت می‌کند');
+  assert.ok(newForm.includes('سیاست اصلاح'), 'عنوان دکمه سیاست اصلاح نیست');
 });
