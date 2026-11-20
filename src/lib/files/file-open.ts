@@ -68,7 +68,20 @@ function showPreview(
   button.textContent = 'ذخیره فایل';
   button.style.cssText = 'cursor:pointer;border:1px solid #4b6bd6;background:#2457c5;color:#fff;border-radius:6px;padding:5px 12px;';
   button.onclick = () => saveAs(url, fileName);
-  bar.append(title, button);
+  const zoomLabel = doc.createElement('span');
+  zoomLabel.textContent = 'زوم';
+  zoomLabel.style.cssText = 'font-size:12px;color:#c8d2e8;';
+  const zoomRange = doc.createElement('input');
+  zoomRange.type = 'range';
+  zoomRange.id = 'zoom-range';
+  zoomRange.min = '100';
+  zoomRange.max = '600';
+  zoomRange.step = '1';
+  zoomRange.value = '100';
+  zoomRange.dir = 'ltr';
+  zoomRange.title = 'زوم تصویر را با کشیدن تنظیم کنید';
+  zoomRange.style.cssText = 'width:180px;cursor:pointer;accent-color:#4b6bd6;';
+  bar.append(title, zoomLabel, zoomRange, button);
 
   const imagePreview = Boolean(mimeType?.startsWith('image/'));
   const viewer = doc.createElement(imagePreview ? 'img' : 'embed');
@@ -79,7 +92,8 @@ function showPreview(
     : 'display:block;width:100vw;height:calc(100vh - 48px);border:0;object-fit:contain;';
   doc.body.append(bar, viewer);
 
-  // فاز ۱۲٫۱۳-ب: زوم تصویر با چرخ ماوس، پینچ دوانگشتی، کشیدن و دوکلیک.
+  // فاز ۱۲٫۱۳-ب / ۱۲٫۱۴-ب: زوم تصویر با کلیک (Ctrl+کلیک برای کاهش)،
+  // چرخ ماوس، پینچ دوانگشتی، کلیدهای Ctrl+/- و نوار کشیدنی.
   if (imagePreview) {
     viewer.id = 'preview-image';
     const style = doc.createElement('style');
@@ -89,12 +103,16 @@ function showPreview(
     script.textContent = `
 (function () {
   var img = document.getElementById('preview-image');
+  var range = document.getElementById('zoom-range');
   if (!img) return;
-  var scale = 1, tx = 0, ty = 0, dragging = false, lastX = 0, lastY = 0;
+  var steps = [1, 1.5, 2, 2.5, 3, 4, 5, 6];
+  var scale = 1, tx = 0, ty = 0;
+  var dragging = false, moved = false, lastX = 0, lastY = 0;
   var touches = {}, startDist = 0, startScale = 1;
   function apply() {
     img.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
     if (img.classList) img.classList.toggle('is-zoomed', scale > 1);
+    if (range) range.value = String(Math.round(scale * 100));
   }
   function zoomAt(next, cx, cy) {
     next = Math.min(6, Math.max(1, next));
@@ -106,24 +124,49 @@ function showPreview(
     if (scale === 1) { tx = 0; ty = 0; }
     apply();
   }
+  function step(direction, cx, cy) {
+    var index = 0;
+    for (var i = 0; i < steps.length; i++) if (steps[i] <= scale + 0.001) index = i;
+    zoomAt(steps[Math.min(steps.length - 1, Math.max(0, index + direction))], cx, cy);
+  }
   img.addEventListener('wheel', function (e) {
     e.preventDefault();
     zoomAt(scale * Math.exp(-e.deltaY * 0.0015), e.clientX, e.clientY);
   }, { passive: false });
-  img.addEventListener('dblclick', function (e) { zoomAt(scale > 1 ? 1 : 2.5, e.clientX, e.clientY); });
+  img.addEventListener('click', function (e) {
+    if (moved) return;
+    step(e.ctrlKey || e.metaKey ? -1 : 1, e.clientX, e.clientY);
+  });
   img.addEventListener('mousedown', function (e) {
+    moved = false;
     if (scale <= 1) return;
     dragging = true; lastX = e.clientX; lastY = e.clientY;
     if (img.classList) img.classList.add('is-dragging');
   });
   window.addEventListener('mousemove', function (e) {
     if (!dragging) return;
-    tx += e.clientX - lastX; ty += e.clientY - lastY;
+    var dx = e.clientX - lastX, dy = e.clientY - lastY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+    tx += dx; ty += dy;
     lastX = e.clientX; lastY = e.clientY; apply();
   });
   window.addEventListener('mouseup', function () {
     dragging = false;
     if (img.classList) img.classList.remove('is-dragging');
+  });
+  if (range) {
+    range.addEventListener('input', function () {
+      var rect = img.getBoundingClientRect();
+      zoomAt(Number(range.value) / 100, rect.left + rect.width / 2, rect.top + rect.height / 2);
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (!e.ctrlKey && !e.metaKey) return;
+    if (e.key === '+' || e.key === '=') {
+      e.preventDefault(); step(1, window.innerWidth / 2, window.innerHeight / 2);
+    } else if (e.key === '-' || e.key === '_') {
+      e.preventDefault(); step(-1, window.innerWidth / 2, window.innerHeight / 2);
+    }
   });
   function distance() {
     var keys = Object.keys(touches);

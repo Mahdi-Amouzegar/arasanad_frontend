@@ -977,3 +977,10 @@
   color: var(--c-text);
   box-shadow: var(--sh-lg);
 }
+
+/* فاز ۱۲٫۱۴-د: برجسته‌سازی کارت هدف هنگام ورود از فلگ بازبینی */
+.act-card--focus {
+  outline: 2px solid var(--c-primary, #4b6bd6);
+  outline-offset: 3px;
+  scroll-margin-block: 90px;
+}

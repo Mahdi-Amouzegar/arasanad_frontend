@@ -121,7 +121,7 @@ export function ActivityCard({ activity, role, onReply }: ActivityCardProps) {
   const isDispute = activity.eventType === 'activity.dispute';
 
   return (
-    <article className={`act-card act-card--${activity.actorKind}`}>
+    <article id={`activity-${activity.id}`} className={`act-card act-card--${activity.actorKind}`}>
       <span className="act-card__corner" aria-hidden="true">
         <Icon name={actor.icon as IconName} size={20} />
       </span>

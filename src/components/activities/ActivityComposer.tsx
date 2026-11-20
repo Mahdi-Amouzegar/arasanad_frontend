@@ -45,6 +45,8 @@ interface ActivityComposerProps {
   replyTo?: ActivityItem | null;
   onClearReply?: () => void;
   onCreated: () => void | Promise<void>;
+  /** فاز ۱۲٫۱۴-د: تا زمان پاسخ مدیر، بازبینی جدیدی پذیرفته نمی‌شود. */
+  hasOpenDispute?: boolean;
 }
 
 export function ActivityComposer({
@@ -53,6 +55,7 @@ export function ActivityComposer({
   replyTo = null,
   onClearReply,
   onCreated,
+  hasOpenDispute = false,
 }: ActivityComposerProps) {
   const { authedRequest, token } = useAuth();
   const { showToast } = useAlert();
@@ -162,6 +165,10 @@ export function ActivityComposer({
       }
       if (kind === 'dispute_reply' && !replyTo) {
         setError('نخست کارت بازبینیی را برای پاسخ انتخاب کنید.');
+        return;
+      }
+      if (kind === 'dispute' && hasOpenDispute) {
+        setError('بازبینی باز دیگری وجود دارد؛ تا پاسخ مدیر نمی‌توان بازبینی تازه ثبت کرد.');
         return;
       }
       if (files.length > ACTIVITY_MAX_ATTACHMENTS || links.length > ACTIVITY_MAX_ATTACHMENTS) {
@@ -323,7 +330,8 @@ export function ActivityComposer({
           <Button
             variant="outline"
             size="sm"
-            disabled={busy}
+            disabled={busy || hasOpenDispute}
+            title={hasOpenDispute ? 'تا پاسخ بازبینی باز، ثبت بازبینی تازه ممکن نیست' : undefined}
             onClick={() => void submit('dispute')}
           >
             ثبت بازبینی

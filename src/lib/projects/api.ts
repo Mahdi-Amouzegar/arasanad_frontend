@@ -254,7 +254,7 @@ export interface ProjectsApi {
   getHistory(id: string): Promise<ProjectHistoryItem[]>;
   addNote(id: string, text: string): Promise<ProjectNote>;
   createProject(body: CreateProjectBody): Promise<Project>;
-  submitQuote(id: string, quotedPricePerPage: number, reason: string): Promise<Project>;
+  submitQuote(id: string, quotedPricePerPage: number, reason: string, depositAmount?: number): Promise<Project>;
   acceptQuote(id: string): Promise<Project>;
   requestQuoteReview(id: string): Promise<Project>;
   cancelProject(id: string, reason: string): Promise<Project>;
@@ -309,10 +309,10 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
       return data.project;
     },
 
-    async submitQuote(id, quotedPricePerPage, reason) {
+    async submitQuote(id, quotedPricePerPage, reason, depositAmount) {
       const data = await request<{ project: Project }>(projectPath(id, '/quote'), {
         method: 'POST',
-        body: { quotedPricePerPage, reason },
+        body: { quotedPricePerPage, reason, depositAmount },
       });
       return data.project;
     },

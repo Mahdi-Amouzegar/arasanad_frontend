@@ -93,6 +93,7 @@ export function ProjectDetail() {
 
   const [note, setNote] = useState('');
   const [quoteRate, setQuoteRate] = useState('');
+  const [quoteDeposit, setQuoteDeposit] = useState('');
   const [reason, setReason] = useState('');
   const [nextStatus, setNextStatus] = useState('');
 
@@ -144,7 +145,8 @@ export function ProjectDetail() {
       const data = await api.getProject(id);
       setDetail(data);
       setError(null);
-      setQuoteRate(String(data.project.basePricePerPage));
+      setQuoteRate(String(data.project.quotedPricePerPage ?? data.project.basePricePerPage));
+      setQuoteDeposit(String(data.project.finance?.depositTarget ?? data.project.depositAmount));
       setNextStatus('');
       await loadFiles();
     } catch (caught) {
@@ -212,10 +214,15 @@ export function ProjectDetail() {
       setActionError('برای افزایش نرخ، دلیل الزامی است');
       return;
     }
+    const deposit = Number(quoteDeposit);
+    if (!Number.isInteger(deposit) || deposit < 1) {
+      setActionError('مبلغ بیعانه باید عددی صحیح و مثبت باشد');
+      return;
+    }
     void run(
       'تعیین نرخ',
-      () => api.submitQuote(id, rate, reason.trim()),
-      'نرخ نهایی ثبت شد',
+      () => api.submitQuote(id, rate, reason.trim(), deposit),
+      'نرخ و مبلغ بیعانه ثبت شد',
     );
   }
 
@@ -458,6 +465,7 @@ export function ProjectDetail() {
                   projectName={project.name}
                   openDispute={project.openDispute}
                   reply={project.disputeReply}
+                  activityId={item.activityId ?? undefined}
                   role={role}
                   label={item.label}
                   variant="name"
@@ -854,21 +862,37 @@ export function ProjectDetail() {
 
           {isAdmin && !isCancelled ? (
             <div className="prj-stack">
-              <form className="prj-actions" onSubmit={submitQuote}>
-                <FormField label="نرخ هر صفحه (تومان)" htmlFor="prj-quote-rate">
-                  <Input
-                    id="prj-quote-rate"
-                    type="number"
-                    min={1}
-                    inputMode="numeric"
-                    value={quoteRate}
-                    onChange={(event) => setQuoteRate(event.target.value)}
-                  />
-                </FormField>
-                <Button type="submit" variant="primary" loading={busy}>
-                  ثبت نرخ نهایی
-                </Button>
-              </form>
+              {project.status === 'awaiting_deposit' ? (
+                <p className="prj-note" role="status">
+                  نرخ و مبلغ بیعانه تعیین شد؛ اکنون منتظر اعلام پرداخت توسط سفارش‌دهنده است.
+                </p>
+              ) : (
+                <form className="prj-actions" onSubmit={submitQuote}>
+                  <FormField label="نرخ هر صفحه (تومان)" htmlFor="prj-quote-rate">
+                    <Input
+                      id="prj-quote-rate"
+                      type="number"
+                      min={1}
+                      inputMode="numeric"
+                      value={quoteRate}
+                      onChange={(event) => setQuoteRate(event.target.value)}
+                    />
+                  </FormField>
+                  <FormField label="مبلغ بیعانه (تومان)" htmlFor="prj-quote-deposit">
+                    <Input
+                      id="prj-quote-deposit"
+                      type="number"
+                      min={1}
+                      inputMode="numeric"
+                      value={quoteDeposit}
+                      onChange={(event) => setQuoteDeposit(event.target.value)}
+                    />
+                  </FormField>
+                  <Button type="submit" variant="primary" loading={busy}>
+                    ثبت نرخ نهایی
+                  </Button>
+                </form>
+              )}
 
               <form className="prj-actions" onSubmit={submitStatus}>
                 <FormField label="تغییر وضعیت" htmlFor="prj-next-status">

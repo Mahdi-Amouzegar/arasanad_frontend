@@ -54,7 +54,7 @@ export interface TextValidation {
   reason: string | null;
 }
 export declare function validateActivityText(text: unknown): TextValidation;
-export declare function operationsHref(role: 'admin' | 'customer', projectId: string): string;
+export declare function operationsHref(role: 'admin' | 'customer', projectId: string, activityId?: string | null): string;
 export declare function safeActivityHref(href: unknown): string;
 
 export interface AttachmentCounts {

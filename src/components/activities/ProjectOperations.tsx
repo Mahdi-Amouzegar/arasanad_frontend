@@ -33,6 +33,12 @@ function readIdFromLocation(): string {
   return new URLSearchParams(window.location.search).get('id')?.trim() ?? '';
 }
 
+/** فاز ۱۲٫۱۴-د: هدایت مستقیم به کارت بازبینی/پاسخ همان سفارش. */
+function readActivityFromLocation(): string {
+  if (typeof window === 'undefined') return '';
+  return new URLSearchParams(window.location.search).get('activity')?.trim() ?? '';
+}
+
 export function ProjectOperations({ admin = false }: { admin?: boolean }) {
   const { user, loading: authLoading, authedRequest } = useAuth();
   const { showToast } = useAlert();
@@ -41,6 +47,8 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
 
   const role: 'admin' | 'customer' = admin || user?.role === 'admin' ? 'admin' : 'customer';
   const [id, setId] = useState('');
+  const [focusActivity, setFocusActivity] = useState('');
+  const [openDispute, setOpenDispute] = useState<string | null>(null);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [project, setProject] = useState<ActivityProjectSummary | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -51,7 +59,10 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
   const [reloadKey, setReloadKey] = useState(0);
   const markedRef = useRef<Set<string>>(new Set());
 
-  useEffect(() => setId(readIdFromLocation()), []);
+  useEffect(() => {
+    setId(readIdFromLocation());
+    setFocusActivity(readActivityFromLocation());
+  }, []);
 
   const load = useCallback(
     async (offset: number, more: boolean) => {
@@ -61,6 +72,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
       try {
         const page = await api.list(id, ACTIVITY_PAGE_SIZE, offset);
         setProject(page.project);
+        setOpenDispute(page.openDispute);
         setActivities((prev) => newestFirst(mergeActivities(more ? prev : [], page.activities)));
         setHasMore(page.hasMore);
         setError(null);
@@ -110,6 +122,16 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
     }
     void load(0, false);
   }, [id, authLoading, user, reloadKey, load]);
+
+  useEffect(() => {
+    if (!focusActivity || loading || activities.length === 0) return;
+    const target = document.getElementById(`activity-${focusActivity}`);
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    target.classList.add('act-card--focus');
+    const timer = window.setTimeout(() => target.classList.remove('act-card--focus'), 4000);
+    return () => window.clearTimeout(timer);
+  }, [focusActivity, loading, activities]);
 
   const reload = useCallback(() => {
     markedRef.current.delete(id);
@@ -186,6 +208,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
         replyTo={replyTo}
         onClearReply={() => setReplyTo(null)}
         onCreated={onCreated}
+        hasOpenDispute={Boolean(openDispute)}
       />
 
       {error ? (

@@ -138,10 +138,11 @@ export function validateActivityText(text) {
   return { ok: true, value, reason: null };
 }
 
-/** Static-export safe href: the id always travels in the query string. */
-export function operationsHref(role, projectId) {
+/** Static-export safe href: project id and optional card id travel in query. */
+export function operationsHref(role, projectId, activityId) {
   const base = role === 'admin' ? '/admin/projects/operations/' : '/panel/projects/operations/';
-  return `${base}?id=${encodeURIComponent(String(projectId ?? ''))}`;
+  const href = `${base}?id=${encodeURIComponent(String(projectId ?? ''))}`;
+  return activityId ? `${href}&activity=${encodeURIComponent(String(activityId))}` : href;
 }
 
 /** Only relative in-app paths are allowed in the bell submenu. */

@@ -65,8 +65,11 @@ export function ProjectActionDialog({
   const intent = action.intent ?? '';
   const projectsApi = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
   const [amount, setAmount] = useState(intent === 'set_quote'
-    ? String(project.quotedPricePerPage ?? project.basePricePerPage ?? action.amount ?? '')
+    ? String(project.quotedPricePerPage ?? project.basePricePerPage ?? '')
     : String(action.amount ?? ''));
+  const [depositAmount, setDepositAmount] = useState(String(
+    action.amount ?? project.finance?.depositTarget ?? project.depositAmount ?? '',
+  ));
   const [note, setNote] = useState('');
   const [fileIds, setFileIds] = useState<string[]>([]);
   const [fmOpen, setFmOpen] = useState(false);
@@ -94,11 +97,16 @@ export function ProjectActionDialog({
         setError('توضیح تعیین نرخ الزامی است');
         return;
       }
+      const checkedDeposit = validateAmount(depositAmount);
+      if (!checkedDeposit.ok || !Number.isInteger(checkedDeposit.value)) {
+        setError('مبلغ بیعانه باید عددی صحیح و مثبت باشد');
+        return;
+      }
       setBusy(true);
       setError(null);
       try {
-        await projectsApi.submitQuote(project.id, checkedRate.value, note.trim());
-        showToast({ type: 'success', title, message: 'نرخ و بیعانه ثبت شد؛ سفارش در انتظار پرداخت بیعانه است.' });
+        await projectsApi.submitQuote(project.id, checkedRate.value, note.trim(), checkedDeposit.value);
+        showToast({ type: 'success', title, message: 'نرخ و مبلغ بیعانه ثبت شد؛ سفارش در انتظار پرداخت بیعانه است.' });
         onClose();
         await onDone();
         router.push(`/${role === 'admin' ? 'admin' : 'panel'}/projects/detail/?id=${encodeURIComponent(project.id)}`);
@@ -205,6 +213,24 @@ export function ProjectActionDialog({
             disabled={busy}
             required
           />
+          {intent === 'set_quote' ? (
+            <>
+              <label className="pad-dialog__label" htmlFor="pad-deposit">
+                مبلغ بیعانه (تومان) — مستقل از نرخ هر صفحه
+              </label>
+              <Input
+                id="pad-deposit"
+                type="number"
+                min={1}
+                step={1}
+                inputMode="numeric"
+                value={depositAmount}
+                onChange={(event) => setDepositAmount(event.target.value)}
+                disabled={busy}
+                required
+              />
+            </>
+          ) : null}
           {needsNote(intent) ? (
             <>
               <label className="pad-dialog__label" htmlFor="pad-note">توضیح</label>
@@ -244,7 +270,7 @@ export function ProjectActionDialog({
           </div>
         </form>
         <Link className="pad-dialog__link" href={operationsHref(role, project.id)}>
-          مشاهده سابقه عملیات
+          مشاهده سفارش‌گردانی
         </Link>
       </div>
       <FileManagerModal

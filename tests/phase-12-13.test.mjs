@@ -18,7 +18,7 @@ test('P1213-01: گالری با back اندروید فقط تصویر را می�
 
 test('P1213-02: پیش­نمایش تصویر زوم چرخ/پینچ/دوکلیک دارد', () => {
   const src = read('src/lib/files/file-open.ts');
-  for (const token of ["addEventListener('wheel'", "addEventListener('touchstart'", "addEventListener('dblclick'"]) {
+  for (const token of ["addEventListener('wheel'", "addEventListener('touchstart'", "addEventListener('click'"]) {
     assert.ok(src.includes(token), token);
   }
 });

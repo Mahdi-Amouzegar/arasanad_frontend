@@ -34,6 +34,8 @@ export interface DisputeFlagProps {
   openDispute?: ProjectOpenDispute | null;
   /** فاز ۱۲٫۱۳-و: پاسخ ثبت‌شده تا زمان دیده‌شدن توسط سفارش‌دهنده. */
   reply?: ProjectDisputeReply | null;
+  /** شناسه کارت بازبینی/پاسخ، برای هدایت مستقیم به همان کارت. */
+  activityId?: string | null;
   role: 'admin' | 'customer';
   /** بازخوانی فهرست/جزئیات پس از پاسخ مدیر تا فلگ ناپدید شود. */
   onResolved?: () => void;
@@ -43,11 +45,55 @@ export interface DisputeFlagProps {
   variant?: 'name' | 'action';
 }
 
+type FlagIconName = 'alert' | 'checkDouble';
+
+interface BaseFlagProps {
+  variant: 'name' | 'action';
+  icon: FlagIconName;
+  label: string;
+  title: string;
+  extraClass?: string;
+}
+
+/** Shared base: every dispute flag uses the same markup, icon and cursor. */
+function FlagLink({
+  href, variant, icon, label, title, extraClass = '',
+}: BaseFlagProps & { href: string }) {
+  return (
+    <Link
+      className={`dsp-flag dsp-flag--${variant} dsp-flag--clickable ${extraClass}`.trim()}
+      href={href}
+      title={title}
+    >
+      <Icon name={icon} size={14} />
+      <span>{label}</span>
+    </Link>
+  );
+}
+
+function FlagButton({
+  onClick, ariaLabel, variant, icon, label, title, extraClass = '',
+}: BaseFlagProps & { onClick: () => void; ariaLabel: string }) {
+  return (
+    <button
+      type="button"
+      className={`dsp-flag dsp-flag--${variant} dsp-flag--clickable ${extraClass}`.trim()}
+      onClick={onClick}
+      title={title}
+      aria-label={ariaLabel}
+    >
+      <Icon name={icon} size={14} />
+      <span>{label}</span>
+    </button>
+  );
+}
+
 export function DisputeFlag({
   projectId,
   projectName = '',
   openDispute,
   reply,
+  activityId,
   role,
   onResolved,
   label,
@@ -74,8 +120,11 @@ export function DisputeFlag({
   const hasReply = !hasOpen && Boolean(reply?.activityId);
   if (!hasOpen && !hasReply) return null;
 
-  const caption = label ?? (role === 'admin' ? 'بازبینی ثبت شده — پاسخ دهید' : 'بازبینی ثبت شده');
-  const href = operationsHref('customer', projectId);
+  const caption = label ?? (hasReply
+    ? 'پاسخ بازبینی'
+    : role === 'admin' ? 'بازبینی ثبت شده — پاسخ دهید' : 'بازبینی ثبت شده');
+  const targetId = activityId ?? (hasReply ? reply?.activityId : openDispute?.activityId) ?? null;
+  const href = operationsHref(role, projectId, targetId);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -112,35 +161,32 @@ export function DisputeFlag({
   return (
     <>
       {hasReply ? (
-        <Link
-          className={`dsp-flag dsp-flag--${variant} dsp-flag--reply dsp-flag--clickable`}
+        <FlagLink
           href={href}
+          variant={variant}
+          icon="checkDouble"
+          label={caption}
           title="پاسخ بازبینی را در سفارش‌گردانی بخوانید"
-        >
-          <Icon name="checkDouble" size={14} />
-          <span>{caption}</span>
-        </Link>
+          extraClass="dsp-flag--reply"
+        />
       ) : (
         role === 'admin' ? (
-        <button
-          type="button"
-          className={`dsp-flag dsp-flag--${variant} dsp-flag--clickable`}
-          onClick={() => setOpen(true)}
-          title="برای پاسخ متنی به بازبینی کلیک کنید"
-          aria-label={`پاسخ بازبینی ${projectName}`.trim()}
-        >
-          <Icon name="alert" size={14} />
-          <span>{caption}</span>
-        </button>
-      ) : (
-        <Link
-          className={`dsp-flag dsp-flag--${variant}`}
-          href={href}
-          title="مشاهده بازبینی در سابقه عملیات"
-        >
-          <Icon name="alert" size={14} />
-          <span>{caption}</span>
-        </Link>
+          <FlagButton
+            variant={variant}
+            icon="alert"
+            label={caption}
+            title="برای پاسخ متنی به بازبینی کلیک کنید"
+            ariaLabel={`پاسخ بازبینی ${projectName}`.trim()}
+            onClick={() => setOpen(true)}
+          />
+        ) : (
+          <FlagLink
+            href={href}
+            variant={variant}
+            icon="alert"
+            label={caption}
+            title="مشاهده بازبینی در سابقه سفارش‌گردانی"
+          />
         )
       )}
       {open && hasOpen ? (
@@ -190,8 +236,8 @@ export function DisputeFlag({
                 </Button>
               </div>
             </form>
-            <Link className="dsp-dialog__link" href={operationsHref('admin', projectId)}>
-              مشاهده سابقه عملیات
+            <Link className="dsp-dialog__link" href={operationsHref(role, projectId, openDispute?.activityId)}>
+              مشاهده سفارش­گردانی
             </Link>
           </div>
         </div>

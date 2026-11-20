@@ -56,6 +56,8 @@ export interface ActivityPage {
   activities: ActivityItem[];
   hasMore: boolean;
   unseenTotal: number;
+  /** فاز ۱۲٫۱۴-د: شناسه کارت بازبینی باز، برای غیرفعالسازی دکمه ثبت تازه. */
+  openDispute: string | null;
   project: ActivityProjectSummary;
   serverTime: string;
 }
@@ -104,6 +106,7 @@ export function createActivitiesApi(request: AuthedRequest): ActivitiesApi {
         activities: Array.isArray(data.activities) ? data.activities : [],
         hasMore: Boolean(data.hasMore),
         unseenTotal: Number(data.unseenTotal ?? 0) || 0,
+        openDispute: data.openDispute ?? null,
         project: data.project,
         serverTime: data.serverTime,
       };

@@ -95,6 +95,7 @@ function ProjectActionsCell({
             projectName={project.name}
             openDispute={project.openDispute}
             reply={project.disputeReply}
+            activityId={action.activityId ?? undefined}
             role={role}
             label={action.label}
             variant="action"
