@@ -1,5 +1,6 @@
 'use client';
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { FileName } from '@/components/ui/FileName';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -117,7 +118,7 @@ export function FileDownloadModal({
               </div>
               <div className="file-card__info">
                 <FileName name={file.originalName} className="file-card__name" />
-                <div className="file-card__code">{file.fileCode}</div>
+                <CopyableCode value={file.fileCode} className="file-card__code" label="کد فایل" />
               </div>
             </div>
 

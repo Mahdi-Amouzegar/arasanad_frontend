@@ -1,5 +1,6 @@
 'use client';
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { FileName } from '@/components/ui/FileName';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/Button';
@@ -17,7 +18,7 @@ export interface DeliveryCardProps {
   delivery: DeliveryFile;
   /** آیا کاربر مدیر است؟ مدیر همیشه می‌تواند دانلود کند. */
   isAdmin: boolean;
-  /** آیا تسویه نهایی این تحویل تأیید شده؟ مشتری فقط در این حالت دانلود می‌کند. */
+  /** آیا تسویه نهایی این تحویل تأیید شده؟ سفارش‌دهنده فقط در این حالت دانلود می‌کند. */
   settlementConfirmed: boolean;
   /** مدیر وضعیت پرداخت/تسویه را تغییر می‌دهد. */
   onPaymentStatusChange?: (status: 'pending' | 'paid') => Promise<void> | void;
@@ -41,7 +42,7 @@ export function DeliveryCard({
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [busyPayment, setBusyPayment] = useState(false);
 
-  // ⚠️ «دریافت فایل نهایی» همیشه برای مدیر فعال است؛ برای مشتری فقط پس از
+  // ⚠️ «دریافت فایل نهایی» همیشه برای مدیر فعال است؛ برای سفارش‌دهنده فقط پس از
   //    تأیید تسویه نهایی. سرور هم همین قاعده را دوباره بررسی می‌کند.
   const canDownload = isAdmin || settlementConfirmed;
   const lockedMessage = !canDownload
@@ -133,7 +134,7 @@ export function DeliveryCard({
                 <div className="fm-item__body">
                   <FileName name={file.originalName} className="fm-item__name" />
                   <div className="fm-item__meta">
-                    <span>{file.fileCode}</span>
+                    <CopyableCode value={file.fileCode} label="کد فایل" />
                     <span>•</span>
                     <span>{formatNumberFa(file.downloadCount)} دانلود</span>
                     <UploaderBadge username={file.uploaderUsername} avatarUrl={file.uploaderAvatarUrl} sizeBytes={file.sizeBytes} />

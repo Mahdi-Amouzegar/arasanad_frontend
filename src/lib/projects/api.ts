@@ -79,16 +79,24 @@ export interface ProjectAction {
   /** مبلغ پیشپر مودال مالی. */
   amount?: number;
   paymentRequestId?: string | null;
-  /** شناسه کارت اعتراض باز، برای replyToActivityId. */
+  /** شناسه کارت بازبینی باز، برای replyToActivityId. */
   activityId?: string | null;
   phase?: number;
   primary?: boolean;
 }
 
-/** فاز ۱۰ (بند ۲ مالک): اعتراض باز هیچ اثری بر وضعیت سفارش ندارد. */
+/** فاز ۱۰ (بند ۲ مالک): بازبینی باز هیچ اثری بر وضعیت سفارش ندارد. */
 export interface ProjectOpenDispute {
   activityId: string;
   openedAt: string | null;
+  /** متن بازبینی ثبت‌شده توسط سفارش‌دهنده، برای نمایش در دیالوگ پاسخ. */
+  text?: string | null;
+}
+
+/** فاز ۱۲٫۱۳-و: پاسخ بازبینی تا زمان دیده‌شدن توسط سفارش‌دهنده. */
+export interface ProjectDisputeReply {
+  activityId: string;
+  repliedAt: string | null;
 }
 
 export interface ProjectFinanceSummary {
@@ -145,8 +153,9 @@ export interface Project {
   finalTotal: number;
   /** فاز ۹٫۵: اقدامات مجاز همین نقش در همین وضعیت. */
   availableActions?: ProjectAction[];
-  /** فاز ۱۰: فلگ اعتراض باز؛ null یعنی پاسخ داده شده یا اعتراضی نیست. */
+  /** فاز ۱۰: فلگ بازبینی باز؛ null یعنی پاسخ داده شده یا بازبینیی نیست. */
   openDispute?: ProjectOpenDispute | null;
+  disputeReply?: ProjectDisputeReply | null;
   /** فاز ۱۰: خلاصه مالی سرورمحور همان سفارش. */
   finance?: ProjectFinanceSummary | null;
 }

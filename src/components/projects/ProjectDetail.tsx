@@ -363,7 +363,7 @@ export function ProjectDetail() {
   const { project, history, notes } = detail;
   const isAdmin = user?.role === 'admin';
   const isOwner = Boolean(user && (!project.customerId || project.customerId === user.id));
-  // فاز ۱۲٫۱۰-ب: «سفارشگردانی» از سلول اقدام به هدر کارت منتقل می‌شود؛
+  // فاز ۱۲٫۱۰-ب: «سفارش‌گردانی» از سلول اقدام به هدر کارت منتقل می‌شود؛
   // «جزئیات سفارش» چون خود صفحه‌ی جزئیات است، حذف می‌شود.
   const headerActions = (Array.isArray(project.availableActions)
     ? project.availableActions
@@ -401,11 +401,12 @@ export function ProjectDetail() {
             <span className="prj-headline">
               <CopyableCode value={formatProjectCodeSafe(project.code)} />
               <span>{project.name}</span>
-              {/* فاز ۱۰ (D-355): اعتراض فقط یک نشانگر است، وضعیت را عوض نمی‌کند. */}
+              {/* فاز ۱۰ (D-355): بازبینی فقط یک نشانگر است، وضعیت را عوض نمی‌کند. */}
               <DisputeFlag
                 projectId={project.id}
                 projectName={project.name}
                 openDispute={project.openDispute}
+            reply={project.disputeReply}
                 role={role}
                 onResolved={() => void load()}
               />
@@ -413,7 +414,7 @@ export function ProjectDetail() {
           }
           actions={
             <div className="row" style={{ gap: 'var(--sp-2)' }}>
-              {/* فاز ۱۲٫۱۰-ب: «سفارشگردانی» قبل از گفتگو، در هدر کارت. */}
+              {/* فاز ۱۲٫۱۰-ب: «سفارش‌گردانی» قبل از گفتگو، در هدر کارت. */}
               {operationsAction?.href?.startsWith('/') && !operationsAction.href.startsWith('//') ? (
                 <Link
                   className="btn btn--primary btn--sm"
@@ -425,7 +426,7 @@ export function ProjectDetail() {
                 </Link>
               ) : null}
               {/* فاز ۹، بند ۳: مخاطب از روی سفارش توسط سرور تعیین می‌شود؛
-                  مشتری → مدیر، مدیر → مشتری صاحب سفارش. جستجو لازم نیست. */}
+                  سفارش‌دهنده → مدیر، مدیر → سفارش‌دهنده صاحب سفارش. جستجو لازم نیست. */}
               {signedIn ? (
                 <button
                   type="button"
@@ -443,7 +444,7 @@ export function ProjectDetail() {
           }
         />
         <CardBody>
-          {/* فاز ۱۲٫۹-س: نشانگر اعتراض در ردیف نشانها، با تاکید قرمز. */}
+          {/* فاز ۱۲٫۹-س: نشانگر بازبینی در ردیف نشانها، با تاکید قرمز. */}
           <div className="prj-badges">
             <ProjectStatusBadge status={project.status as ProjectStatus} />
             <FinancialStatusBadge status={financialStatusOf(project)} />
@@ -456,6 +457,7 @@ export function ProjectDetail() {
                   projectId={project.id}
                   projectName={project.name}
                   openDispute={project.openDispute}
+                  reply={project.disputeReply}
                   role={role}
                   label={item.label}
                   variant="name"
@@ -524,7 +526,7 @@ export function ProjectDetail() {
             </div>
           ) : null}
           {isAdmin && project.customerDisplayName ? (
-            <p className="prj-note">مشتری: {project.customerDisplayName}</p>
+            <p className="prj-note">سفارش‌دهنده: {project.customerDisplayName}</p>
           ) : null}
         </CardBody>
       </Card>
@@ -599,7 +601,7 @@ export function ProjectDetail() {
                   <div className="fm-item__body">
                     <FileName name={file.originalName} className="fm-item__name" />
                     <div className="fm-item__meta">
-                      <span>{file.fileCode}</span>
+                      <CopyableCode value={file.fileCode} label="کد فایل" />
                       <span>•</span>
                       <span>{formatBytesFa(file.sizeBytes)}</span>
                       <span>•</span>
@@ -933,7 +935,7 @@ export function ProjectDetail() {
               {notes.map((item) => (
                 <li key={item.id}>
                   <span className="prj-timeline__meta">
-                    {item.authorRole === 'admin' ? 'مدیر' : 'مشتری'} ·{' '}
+                    {item.authorRole === 'admin' ? 'مدیر' : 'سفارش‌دهنده'} ·{' '}
                     <RelativeTime value={item.createdAt} />
                   </span>
                   <p>{item.text}</p>
@@ -957,7 +959,7 @@ export function ProjectDetail() {
                     {item.fromStatus ? `${statusText(item.fromStatus)} → ` : ''}
                     {statusText(item.toStatus)}
                     {item.toStatus === 'cancelled' && item.changedByRole
-                      ? ` توسط ${item.changedByRole === 'admin' ? 'مدیر' : 'مشتری'}`
+                      ? ` توسط ${item.changedByRole === 'admin' ? 'مدیر' : 'سفارش‌دهنده'}`
                       : ''}
                     {' · '}<RelativeTime value={item.createdAt} />
                   </span>
@@ -971,7 +973,7 @@ export function ProjectDetail() {
 
       {/* فاز ۱۲٫۹: توضیح مسیر Outbox/اعلان از جزئیات سفارش حذف شد. */}
 
-      {/* فاز ۱۲٫۵-ج-۱: امتیاز مشتری — فقط در سفارش تکمیل‌شده ظاهر می‌شود */}
+      {/* فاز ۱۲٫۵-ج-۱: امتیاز سفارش‌دهنده — فقط در سفارش تکمیل‌شده ظاهر می‌شود */}
       <ProjectRating projectId={id} />
 
       <FileManagerModal

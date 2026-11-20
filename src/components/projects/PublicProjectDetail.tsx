@@ -1,5 +1,6 @@
 'use client';
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getPublicProject, type PublicProject } from '@/lib/projects/api';
@@ -15,7 +16,7 @@ import { errorText, formatHours, formatProjectCodeSafe } from './ui-utils';
  * فاز ۱۲٫۶-ت — جزئیات عمومی سفارش.
  *
  * ⚠️ تنها همان فیلدهای مجاز `publicProjectFields` خوانده و رندر می‌شوند.
- *    فایل‌ها، لینکها، یادداشت‌ها، مبالغ، شناسه/نام مشتری و نیازمندی‌های ویژه
+ *    فایل‌ها، لینکها، یادداشت‌ها، مبالغ، شناسه/نام سفارش‌دهنده و نیازمندی‌های ویژه
  *    از طریق API خصوصی قابل دسترساند و هرگز وارد این کامپوننت نمی‌شوند.
  */
 export function PublicProjectDetail() {
@@ -78,7 +79,7 @@ export function PublicProjectDetail() {
   return (
     <article className="calc-card">
       <div className="prj-card__head">
-        <span className="prj-code">{formatProjectCodeSafe(project.code)}</span>
+        <CopyableCode value={formatProjectCodeSafe(project.code)} label="کد سفارش" />
         <ProjectStatusBadge status={project.status as ProjectStatus} />
       </div>
       <h2 className="section-head__title">{project.name}</h2>
@@ -105,7 +106,7 @@ export function PublicProjectDetail() {
 
       <p className="prj-note">
         نمای عمومی فقط اطلاعات قابل انتشار سفارش را نشان می‌دهد. فایل‌ها، مبالغ،
-        یادداشت‌ها و مشخصات مشتری در پنل خصوصی نگهداری می‌شوند.
+        یادداشت‌ها و مشخصات سفارش‌دهنده در پنل خصوصی نگهداری می‌شوند.
       </p>
 
       <div className="prj-action-cell">

@@ -87,8 +87,8 @@ test('P122-10: دکمه جزئیات وارد صفحه کامل سفارش در 
     assert.ok(!read(path).includes('`/projects/detail/?id='), `${path} هنوز به جزئیات عمومی می‌رود`);
   }
   const panel = read('src/app/panel/[[...slug]]/page.tsx');
-  assert.ok(panel.includes("'/panel/projects/detail': 'detail'"), 'مسیر جزئیات مشتری ثبت نشد');
-  assert.ok(panel.includes('<ProjectDetail />'), 'جزئیات مشتری کامپوننت کامل را نمی‌سازد');
+  assert.ok(panel.includes("'/panel/projects/detail': 'detail'"), 'مسیر جزئیات سفارش‌دهنده ثبت نشد');
+  assert.ok(panel.includes('<ProjectDetail />'), 'جزئیات سفارش‌دهنده کامپوننت کامل را نمی‌سازد');
   const admin = read('src/app/admin/[[...slug]]/page.tsx');
   assert.ok(admin.includes("href === '/admin/projects/detail'"), 'مسیر جزئیات مدیر ثبت نشد');
   assert.ok(admin.includes('<ProjectDetail />'), 'جزئیات مدیر کامپوننت کامل را نمی‌سازد');
@@ -101,7 +101,7 @@ test('P122-11: نتایج تست فاز ۱۲٫۱ و فیلتر نوع سفارش
   assert.ok(flow.includes('void begin()'), 'ورود تلگرام تک‌کلیکی نیست');
   const guest = read('src/lib/guest-order.ts');
   assert.ok(guest.includes("role === 'admin' ? '/admin/'"), 'مدیر به داشبورد هدایت نمی‌شود');
-  assert.ok(guest.includes("'/panel/'"), 'مشتری به پنل هدایت نمی‌شود');
+  assert.ok(guest.includes("'/panel/'"), 'سفارش‌دهنده به پنل هدایت نمی‌شود');
 
   const orders = read('src/components/projects/OrdersWorkspace.tsx');
   assert.ok(orders.includes('useState<string[]>([])'), 'استان فیلترها وجود ندارد');

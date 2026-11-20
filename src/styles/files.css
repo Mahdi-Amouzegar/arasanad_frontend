@@ -870,6 +870,21 @@
   color: var(--c-danger);
 }
 
+/* فاز ۱۲٫۱۳-ج — کد فایل و نام فایل در یک ستون */
+.fm-file-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.fm-file-cell .tooltip-anchor,
+.fm-file-cell .file-name-short {
+  display: block;
+  max-width: 100%;
+}
+
 /* فاز ۱۲٫۱۲-ج — نام فایل کوتاه و دکمه‌ها در سطر جداگانه */
 .file-name-short {
   display: inline-block;

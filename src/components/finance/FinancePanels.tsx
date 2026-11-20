@@ -1,4 +1,5 @@
 'use client';
+import { CopyableCode } from '@/components/projects/CopyableCode';
 
 /**
  * فاز ۱۰ (زیرفاز ۱۰-س / ۱۰-ض) — پنلهای واقعی مالی.
@@ -49,7 +50,7 @@ function ErrorBar({ message, retry }: { message: string; retry: () => void }) {
   );
 }
 
-/* ───────────────────────── کیف پول مشتری ───────────────────────── */
+/* ───────────────────────── کیف پول سفارش‌دهنده ───────────────────────── */
 
 export function WalletPanel() {
   const api = useFinanceApi();
@@ -143,10 +144,10 @@ export function WalletPanel() {
       </Card>
 
       <Card>
-        <CardHeader title="تراکنشها" />
+        <CardHeader title="تراکنش‌ها" />
         <CardBody>
           {transactions.length === 0 ? (
-            <EmptyState icon={<Icon name="receipt" size={26} />} title="تراکنشی ثبت نشده است" description="پس از نخستین پرداخت یا برگشت وجه، تراکنشها اینجا دیده می‌شوند." />
+            <EmptyState icon={<Icon name="receipt" size={26} />} title="تراکنشی ثبت نشده است" description="پس از نخستین پرداخت یا برگشت وجه، تراکنش‌ها اینجا دیده می‌شوند." />
           ) : (
             <div className="prj-table-wrap">
               <table className="prj-table">
@@ -281,7 +282,7 @@ export function AdminPaymentsPanel() {
               </table>
             </div>
           )}
-          <p className="prj-note">مبلغ تأییدی مدیر مبنای محاسبه است؛ رسید پیوست‌شده توسط مشتری در سرور بررسی می‌شود.</p>
+          <p className="prj-note">مبلغ تأییدی مدیر مبنای محاسبه است؛ رسید پیوست‌شده توسط سفارش‌دهنده در سرور بررسی می‌شود.</p>
         </CardBody>
       </Card>
     </div>
@@ -339,7 +340,7 @@ function RefundsCard() {
       <CardBody>
         {error ? <ErrorBar message={error} retry={reload} /> : null}
         {pending.length === 0 ? (
-          <EmptyState icon={<Icon name="bank" size={26} />} title="درخواست برگشتی در انتظار نیست" description="پس از درخواست مشتری، وجه رزروشده اینجا دیده می‌شود." />
+          <EmptyState icon={<Icon name="bank" size={26} />} title="درخواست برگشتی در انتظار نیست" description="پس از درخواست سفارش‌دهنده، وجه رزروشده اینجا دیده می‌شود." />
         ) : (
           <div className="prj-table-wrap">
             <table className="prj-table">
@@ -418,7 +419,7 @@ function ReconciliationCard() {
                   <tbody>
                     {view.projects.map((row) => (
                       <tr key={row.projectId}>
-                        <td>{row.code}</td>
+                        <td><CopyableCode value={row.code} label="کد سفارش" /></td>
                         <td><Money value={Number(row.escrowBalance)} /></td>
                         <td><Money value={Number(row.settledAmount)} /></td>
                         <td>{row.status}</td>

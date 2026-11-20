@@ -572,6 +572,16 @@
   justify-content: flex-end;
 }
 
+.chat-seen {
+  display: inline-flex;
+  align-items: center;
+  color: var(--c-text-muted);
+}
+
+.chat-seen--yes {
+  color: var(--c-success);
+}
+
 .chat-attachments {
   display: flex;
   flex-direction: column;

@@ -5,6 +5,7 @@ import { PanelPlaceholder } from '@/components/layout/PanelPlaceholder';
 import { ProjectList } from '@/components/projects/ProjectList';
 import { ProjectDetail } from '@/components/projects/ProjectDetail';
 import { AdminRatingsPanel } from '@/components/admin/AdminRatingsPanel';
+import { AdminFiles } from '@/components/admin/AdminFiles';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { AdminPaymentsPanel, AdminWalletsPanel, AdminRefundsPanel, AdminReconciliationPanel } from '@/components/finance/FinancePanels';
 import { DeliveryWorkspace } from '@/components/delivery/DeliveryWorkspace';
@@ -63,6 +64,9 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
   // فاز ۱۲: فهرست و جزئیات کاربران (بدون تغییر موجودی مستقیم).
   if (href === '/admin/users') {
     return shell(info.title, null, <AdminUsers />);
+  }
+  if (href === '/admin/files') {
+    return shell(info.title, null, <AdminFiles />);
   }
 
   // فاز ۱۲: تنظیمات سایت (جدای از سیاست اصلاح فاز ۱۱).

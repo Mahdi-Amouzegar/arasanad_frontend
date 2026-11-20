@@ -25,7 +25,7 @@ export const ACTIVITY_FILE_ROLE = 'activity_attachment';
 export const ACTOR_META = {
   system: { label: 'سامانه', icon: 'activity', automatic: true },
   admin: { label: 'مدیر', icon: 'shield', automatic: false },
-  customer: { label: 'مشتری', icon: 'user', automatic: false },
+  customer: { label: 'سفارش‌دهنده', icon: 'user', automatic: false },
   typist: { label: 'تایپیست', icon: 'pencil', automatic: false },
 };
 
@@ -37,8 +37,8 @@ const EVENT_META = {
   'quote.accepted': { label: 'پذیرش نرخ', icon: 'checkCircle' },
   'quote.review_requested': { label: 'بازبینی نرخ', icon: 'refresh' },
   'activity.note': { label: 'یادداشت عملیاتی', icon: 'penLine' },
-  'activity.dispute': { label: 'اعتراض / بازبینی', icon: 'alert' },
-  'activity.dispute_reply': { label: 'رسیدگی به اعتراض', icon: 'checkDouble' },
+  'activity.dispute': { label: 'ثبت بازبینی', icon: 'alert' },
+  'activity.dispute_reply': { label: 'پاسخ بازبینی', icon: 'checkDouble' },
   'payment.declared': { label: 'اعلام واریز', icon: 'card' },
   'payment.approved': { label: 'تأیید واریز', icon: 'checkCircle' },
   'deposit.remaining': { label: 'مانده بیعانه', icon: 'wallet' },
@@ -51,8 +51,8 @@ const EVENT_META = {
   'overpayment.refunded': { label: 'برگشت مازاد', icon: 'coins' },
   'refund.reserved': { label: 'قفل وجه', icon: 'shield' },
   'refund.paid': { label: 'واریز برگشتی', icon: 'bank' },
-  'dispute.opened': { label: 'اعتراض', icon: 'alert' },
-  'dispute.answered': { label: 'پاسخ اعتراض', icon: 'checkDouble' },
+  'dispute.opened': { label: 'بازبینی', icon: 'alert' },
+  'dispute.answered': { label: 'پاسخ بازبینی', icon: 'checkDouble' },
   'delivery.unlocked': { label: 'باز شدن تحویل', icon: 'download' },
   'project.completed': { label: 'تکمیل سفارش', icon: 'checkCircle' },
   'project.status': { label: 'تغییر وضعیت', icon: 'refresh' },

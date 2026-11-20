@@ -12,6 +12,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { RelativeTime } from '@/components/ui/JalaliDate';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { formatDateFull } from '@/lib/datetime';
 import { FileActions } from '@/components/files/FileActions';
 import { FileDownloadModal } from '@/components/files/FileDownloadModal';
 import type { FileItem } from '@/lib/files/api';
@@ -134,6 +136,13 @@ function MessageBubble({
           <span>{mine ? 'شما' : message.senderName}</span>
           <span aria-hidden="true">·</span>
           <RelativeTime value={message.createdAt} />
+          {mine ? (
+            <Tooltip label={message.readAt ? `دیده‌شده — ${formatDateFull(message.readAt)}` : 'دیده نشده'} pinnable>
+              <span className={`chat-seen ${message.readAt ? 'chat-seen--yes' : ''}`}>
+                <Icon name={message.readAt ? 'checkDouble' : 'check'} size={14} />
+              </span>
+            </Tooltip>
+          ) : null}
         </span>
       </div>
     </div>

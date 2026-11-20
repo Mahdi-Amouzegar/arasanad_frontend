@@ -3,13 +3,14 @@
 /**
  * فاز ۱۲٫۱ (ح/ط) — جدول جامع سفارشات.
  *
- * ⚠️ یک کامپوننت واحد برای پنل مدیر و پنل مشتری: بکند براساس نقش، یا تمام
+ * ⚠️ یک کامپوننت واحد برای پنل مدیر و پنل سفارش‌دهنده: بکند براساس نقش، یا تمام
  *    سفارش‌ها را برمی‌گرداند یا فقط سفارش‌های همان کاربر. فرانت هیچ تصمیم
  *    دسترسیش نمی‌گیرد.
  * ⚠️ تمام اعداد مالی از `/projects/:id/finance` خوانده می‌شوند؛ هیچ مبلغی
  *    محاسبه یا حدس زده نمی‌شود.
  */
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
@@ -71,7 +72,7 @@ function CustomerCell({
     return () => document.removeEventListener('mousedown', onPointer);
   }, [menuOpen]);
 
-  const name = project.customerDisplayName || 'مشتری';
+  const name = project.customerDisplayName || 'سفارش‌دهنده';
   const href = admin && project.customerId
     ? `/admin/users/?q=${encodeURIComponent(name)}`
     : '/profile/';
@@ -86,7 +87,7 @@ function CustomerCell({
           <button
             type="button"
             className="ord-customer__more"
-            aria-label="گزینه‌های مشتری"
+            aria-label="گزینه‌های سفارش‌دهنده"
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((value) => !value)}
           >
@@ -95,7 +96,7 @@ function CustomerCell({
           {menuOpen ? (
             <div className="ord-customer__menu" role="menu">
               <Link href={href} role="menuitem" onClick={() => setMenuOpen(false)}>
-                <Icon name="user" size={14} /> پروفایل مشتری
+                <Icon name="user" size={14} /> پروفایل سفارش‌دهنده
               </Link>
               <button
                 type="button"
@@ -272,7 +273,7 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
     if (admin) {
       list.push({
         key: 'customer',
-        header: 'نام مشتری',
+        header: 'نام سفارش‌دهنده',
         render: (row) => <CustomerCell project={row} admin />,
         sortValue: (row) => row.customerDisplayName ?? '',
       });
@@ -283,7 +284,7 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
         header: 'نام سفارش',
         render: (row) => (
           <div className="ord-name">
-            <span className="prj-code">{row.code}</span>
+            <CopyableCode value={row.code} label="کد سفارش" />
             <Link href={`${admin ? '/admin/projects/detail/' : '/panel/projects/detail/'}?id=${encodeURIComponent(row.id)}`}>
               {row.name}
             </Link>

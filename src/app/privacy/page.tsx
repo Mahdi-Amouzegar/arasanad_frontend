@@ -4,7 +4,7 @@ import { SectionHeading } from '@/components/public/SectionHeading';
 
 export const metadata: Metadata = {
   title: 'حریم خصوصی',
-  description: 'سیاست آراسند در نگهداری و حفاظت از اطلاعات مشتریان.',
+  description: 'سیاست آراسند در نگهداری و حفاظت از اطلاعات سفارش‌دهندهان.',
   alternates: { canonical: '/privacy/' },
 };
 
@@ -43,7 +43,7 @@ export default function PrivacyPage() {
 
           <h2>۴. دسترسی به فایل‌ها</h2>
           <ul>
-            <li>هر مشتری فقط فایل‌های سفارش‌های خودش را می‌بیند.</li>
+            <li>هر سفارش‌دهنده فقط فایل‌های سفارش‌های خودش را می‌بیند.</li>
             <li>مدیر برای انجام سفارش به فایل‌ها دسترسی دارد.</li>
             <li>هیچ شخص دیگری به فایل‌های شما دسترسی ندارد.</li>
           </ul>

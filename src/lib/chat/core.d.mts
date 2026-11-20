@@ -48,6 +48,8 @@ export interface ChatMessage {
   body: string | null;
   seq: number;
   createdAt: string;
+  /** فاز ۱۲٫۱۳-د: زمان دیده‌شدن پیام توسط طرف مقابل. */
+  readAt?: string | null;
   metadata: Record<string, unknown>;
   files: ChatFile[];
   links: ChatLink[];

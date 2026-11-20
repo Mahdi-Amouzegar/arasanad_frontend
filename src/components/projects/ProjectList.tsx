@@ -1,5 +1,6 @@
 'use client';
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
@@ -12,6 +13,7 @@ import { Input, Select } from '@/components/ui/Field';
 import { RelativeTime } from '@/components/ui/JalaliDate';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Avatar } from '@/components/ui/Avatar';
 import { formatNumberFa } from '@/lib/datetime';
 import { DisputeFlag } from '@/components/activities/DisputeFlag';
 import { ProjectActionDialog } from './ProjectActionDialog';
@@ -80,24 +82,25 @@ function ProjectActionsCell({
             {action.label}
           </button>
         ))}
-        {flags.map((action) => (
-          <DisputeFlag
-            key={action.id}
-            projectId={project.id}
-            projectName={project.name}
-            openDispute={project.openDispute}
-            role={role}
-            label={action.label}
-            variant="action"
-            onResolved={onDone}
-          />
-        ))}
         {future.map((action) => (
           <span key={action.id} className="prj-action-future" title={action.hint ?? undefined}>
             {action.label} <small>(فاز {action.phase ?? 10})</small>
           </span>
         ))}
         {status ? <span className="prj-action-status">{status.label}</span> : null}
+        {flags.map((action) => (
+          <DisputeFlag
+            key={action.id}
+            projectId={project.id}
+            projectName={project.name}
+            openDispute={project.openDispute}
+            reply={project.disputeReply}
+            role={role}
+            label={action.label}
+            variant="action"
+            onResolved={onDone}
+          />
+        ))}
       </div>
       {active ? (
         <ProjectActionDialog
@@ -248,11 +251,12 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
             <thead>
               <tr>
                 <th scope="col">نام سفارش</th>
+                {admin ? <th scope="col">سفارش‌دهنده</th> : null}
                 <th scope="col">نوع سفارش</th>
                 <th scope="col">مشخصات</th>
                 <th scope="col">تاریخ ثبت</th>
                 <th scope="col">تاریخ تحویل</th>
-                <th scope="col">تراکنشها</th>
+                <th scope="col">تراکنش‌ها</th>
                 <th scope="col">اقدام</th>
               </tr>
             </thead>
@@ -263,15 +267,32 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                 return (
                   <tr key={project.id}>
                     <td data-label="نام سفارش">
-                      {/* فاز ۱۲٫۹-ی: کد و نام، یک دکمه‌ی واحداند؛ فلگ اعتراض
+                      {/* فاز ۱۲٫۹-ی: کد و نام، یک دکمه‌ی واحداند؛ فلگ بازبینی
                           بیرون از دکمه می‌ماند تا کلیک مستقل خود را حفظ کند. */}
                       <div className="prj-name-wrap">
                       <Link className="prj-name-cell prj-name-cell--button" href={detailHref}>
-                        <span className="prj-code">{formatProjectCodeSafe(project.code)}</span>
+                        <CopyableCode value={formatProjectCodeSafe(project.code)} label="کد سفارش" />
                         <span className="prj-name">{project.name}</span>
                       </Link>
                       </div>
                     </td>
+                    {admin ? (
+                      <td data-label="سفارش‌دهنده">
+                        <div className="ord-customer">
+                          <Avatar
+                            src={project.customerAvatarUrl ?? project.customerAvatarFileId ?? null}
+                            name={project.customerDisplayName ?? project.customerUsername ?? '—'}
+                            size="sm"
+                          />
+                          <span className="ord-customer__name">
+                            {project.customerDisplayName ?? project.customerUsername ?? '—'}
+                          </span>
+                          {project.customerUsername ? (
+                            <span className="ord-customer__username">@{project.customerUsername}</span>
+                          ) : null}
+                        </div>
+                      </td>
+                    ) : null}
                     <td data-label="نوع سفارش">{project.serviceName}</td>
                     <td data-label="مشخصات">
                       {/* فاز ۱۲٫۱۰-ج: کلیک روی «مشخصات» مودال توضیحات و
@@ -297,9 +318,9 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                     <td data-label="تاریخ تحویل">
                       {deliveryAt ? <RelativeTime value={deliveryAt} /> : '—'}
                     </td>
-                    <td data-label="تراکنشها">
+                    <td data-label="تراکنش‌ها">
                       <Button size="sm" variant="outline" onClick={() => setFinanceFor(project)}>
-                        تراکنشها
+                        تراکنش‌ها
                       </Button>
                     </td>
                     <td data-label="اقدام">

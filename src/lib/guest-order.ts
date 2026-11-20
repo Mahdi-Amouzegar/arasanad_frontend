@@ -68,7 +68,7 @@ export function loadGuestDraft(id: string): GuestOrderDraft | null {
   }
 }
 
-/** مسیر ورودی که پس از ورود دوباره به همان پیش‌نویس برمیگردد. */
+/** مسیر ورودی که پس از ورود دوباره به همان پیش‌نویس برمی‌گردد. */
 export function guestDraftLoginHref(id: string): string {
   const next = `/start/?draft=${encodeURIComponent(id)}`;
   return `/login/?${new URLSearchParams({ next }).toString()}`;
@@ -78,7 +78,7 @@ export function guestDraftLoginHref(id: string): string {
  * مقصد امن پس از ورود — فقط مسیرهای محلی و غیر ورودی.
  *
  * فاز ۱۲٫۱-و: وقتی مقصد صریحی (مثلاً پیش‌نویس سفارش) وجود ندارد، مدیر به
- * داشبورد مدیریت و مشتری به داشبورد پنل فرستاده می‌شود؛ صفحهٔ پروفایل
+ * داشبورد مدیریت و سفارش‌دهنده به داشبورد پنل فرستاده می‌شود؛ صفحهٔ پروفایل
  * دیگر مقصد پیش‌فرض نیست (بازخورد UAT: مدیر پس از ورود پروفایل می‌دید).
  */
 export function postLoginTarget(candidate: string | null, role?: 'admin' | 'customer'): string {

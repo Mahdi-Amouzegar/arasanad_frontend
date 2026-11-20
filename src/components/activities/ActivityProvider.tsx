@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * فاز ۹٫۵ / ۱۰ — وضعیت سراسری «سفارشگردانی» + پایش کممصرف (O-99).
+ * فاز ۹٫۵ / ۱۰ — وضعیت سراسری «سفارش‌گردانی» + پایش کممصرف (O-99).
  *
  * - `setTimeout` زنجیره‌ای (نه `setInterval`)؛ هنگام اجرای درخواست تایمر بعدی ساخته نمی‌شود
  * - تنها **یک تب** (رهبر) پایش می‌کند؛ بقیه تبها نتیجه را از BroadcastChannel می‌گیرند
@@ -111,7 +111,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
           showToast({
             type: 'info',
             title: newest.title || 'عملیات تازه روی سفارش',
-            message: `سفارش ${newest.code ?? ''} — ${fresh.length} عملیات تازه در سفارشگردانی`,
+            message: `سفارش ${newest.code ?? ''} — ${fresh.length} عملیات تازه در سفارش‌گردانی`,
           });
         }
       } else if (!notify) {

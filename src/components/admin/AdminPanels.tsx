@@ -236,7 +236,7 @@ export function AdminUsers() {
                   {users.map((user) => (
                     <tr key={user.id}>
                       <td><strong>@{user.username}</strong><div className="prj-muted">{user.displayName}</div></td>
-                      <td>{user.role === 'admin' ? 'مدیر' : 'مشتری'}</td>
+                      <td>{user.role === 'admin' ? 'مدیر' : 'سفارش‌دهنده'}</td>
                       <td>{user.status === 'active' ? 'فعال' : user.status}</td>
                       <td><JalaliDate value={user.createdAt} variant="short" /></td>
                       <td><Button size="sm" variant="outline" onClick={() => void openUser(user.id)}>مشاهده</Button></td>
@@ -453,7 +453,7 @@ export function AdminMessages() {
         <CardHeader title="گفتگوهای اخیر" actions={<Link href="/admin/messages/" className="btn btn--ghost btn--sm"><Icon name="refresh" size={16} /></Link>} />
         <CardBody>
           {loading ? <Skeleton height={96} /> : rows.length === 0 ? (
-            <EmptyState icon={<Icon name="message" size={26} />} title="گفتگویی وجود ندارد" description="پس از نخستین پیام مشتری، گفتگو‌ها اینجا دیده می‌شوند." />
+            <EmptyState icon={<Icon name="message" size={26} />} title="گفتگویی وجود ندارد" description="پس از نخستین پیام سفارش‌دهنده، گفتگو‌ها اینجا دیده می‌شوند." />
           ) : (
             <div className="prj-table-wrap">
               <table className="prj-table">

@@ -252,7 +252,7 @@ export default function HomePage() {
       {/* ─── نظرات: آیکن ستاره + یادداشت حریم خصوصی ─── */}
       <section className="section">
         <SectionHeading
-          eyebrow="نظر مشتریان"
+          eyebrow="نظر سفارش‌دهندهان"
           title="چند نظر از کسانی که سندشان را سپردند"
           description={TESTIMONIAL_NOTE}
         />

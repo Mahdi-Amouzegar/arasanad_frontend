@@ -135,7 +135,7 @@ test('U-03-F5: درخواست تنظیمات سایت یک‌بار و زود آ
 test('U-03-F6: مقصد ورود براساس نقش و داشبورد مدیر کامل است', () => {
   const guest = read('src/lib/guest-order.ts');
   assert.ok(guest.includes("role === 'admin' ? '/admin/'"), 'مدیر به داشبورد هدایت نمی‌شود');
-  assert.ok(guest.includes("'/panel/'"), 'مشتری به پنل هدایت نمی‌شود');
+  assert.ok(guest.includes("'/panel/'"), 'سفارش‌دهنده به پنل هدایت نمی‌شود');
   const flow = read('src/app/login/LoginFlow.tsx');
   assert.ok(flow.includes('roleRef.current'), 'نقش به مسیر ورود منتقل نمی‌شود');
   const admin = read('src/components/admin/AdminPanels.tsx');
@@ -161,7 +161,7 @@ test('U-03-F8: جدول جامع سفارشات با مرتب‌سازی، فی�
   assert.ok(orders.includes('filter: {'), 'فیلتر وضعیت نیست');
   assert.ok(orders.includes('/projects/${encodeURIComponent(project.id)}/finance'), 'پنجرهٔ مالی به API وصل نیست');
   assert.ok(orders.includes('openChat('), 'منوی گفتگو وجود ندارد');
-  assert.ok(orders.includes('peerUserId: project.customerId'), 'گفتگو به مشتری وصل نیست');
+  assert.ok(orders.includes('peerUserId: project.customerId'), 'گفتگو به سفارش‌دهنده وصل نیست');
   const dataTable = read('src/components/ui/DataTable.tsx');
   assert.ok(dataTable.includes('dt-filter'), 'پویانمای فیلتر سرستون وجود ندارد');
   assert.ok(dataTable.includes('انتخاب همه'), 'گزینهٔ انتخاب همه نیست');
@@ -169,6 +169,6 @@ test('U-03-F8: جدول جامع سفارشات با مرتب‌سازی، فی�
   assert.ok(!admin.includes('<OrdersWorkspace'), 'مسیر جدول قدیمی هنوز سوار است');
   assert.ok(admin.includes('<ProjectList admin />'), 'جدول ادغام‌شده مدیر سوار نشده');
   const panel = read('src/app/panel/[[...slug]]/page.tsx');
-  assert.ok(!panel.includes('<OrdersWorkspace'), 'مسیر جدول قدیمی مشتری هنوز سوار است');
-  assert.ok(panel.includes('<ProjectList />'), 'جدول ادغام‌شده مشتری سوار نشده');
+  assert.ok(!panel.includes('<OrdersWorkspace'), 'مسیر جدول قدیمی سفارش‌دهنده هنوز سوار است');
+  assert.ok(panel.includes('<ProjectList />'), 'جدول ادغام‌شده سفارش‌دهنده سوار نشده');
 });

@@ -3,10 +3,11 @@
 /**
  * فاز ۱۲٫۵-ج-۱ — نمای فقطخواندنی امتیازها در `/admin/projects`.
  *
- * ⚠️ هیچ دکمه ویرایش/حذفی وجود ندارد؛ مدیر فقط میانگین و نظرات مشتریان
+ * ⚠️ هیچ دکمه ویرایش/حذفی وجود ندارد؛ مدیر فقط میانگین و نظرات سفارش‌دهندهان
  *    را می‌بیند. تمام داده‌ها از `/admin/ratings` می‌آیند.
  */
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@/lib/account';
 import { Badge } from '@/components/ui/Badge';
@@ -55,7 +56,7 @@ export function AdminRatingsPanel() {
   return (
     <Card>
       <CardHeader
-        title="امتیاز و نظرات مشتریان"
+        title="امتیاز و نظرات سفارش‌دهندهان"
         actions={
           view.summary.count > 0 ? (
             <Badge tone="info">
@@ -74,7 +75,7 @@ export function AdminRatingsPanel() {
               <thead>
                 <tr>
                   <th scope="col">سفارش</th>
-                  <th scope="col">مشتری</th>
+                  <th scope="col">سفارش‌دهنده</th>
                   <th scope="col">امتیاز</th>
                   <th scope="col">نظر</th>
                   <th scope="col">تاریخ</th>
@@ -84,10 +85,10 @@ export function AdminRatingsPanel() {
                 {view.ratings.map((rating) => (
                   <tr key={rating.id}>
                     <td data-label="سفارش">
-                      <span className="prj-code">{rating.projectCode ?? '—'}</span>
+                      <CopyableCode value={rating.projectCode ?? '—'} label="کد سفارش" />
                       <span className="prj-name">{rating.projectName ?? rating.projectId}</span>
                     </td>
-                    <td data-label="مشتری">{rating.userName ?? '—'}</td>
+                    <td data-label="سفارش‌دهنده">{rating.userName ?? '—'}</td>
                     <td data-label="امتیاز">{rating.score} از ۵</td>
                     <td data-label="نظر">{rating.comment ?? '—'}</td>
                     <td data-label="تاریخ"><JalaliDate value={rating.createdAt} variant="short" /></td>

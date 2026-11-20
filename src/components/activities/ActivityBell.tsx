@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * فاز ۹٫۵ — زنگوله‌ی جداگانه‌ی «سفارشگردانی».
+ * فاز ۹٫۵ — زنگوله‌ی جداگانه‌ی «سفارش‌گردانی».
  *
  * ⚠️ فقط سفارش‌های دارای عملیات دیده‌نشده در منو هستند و زیرمنو فقط همان
  *    ردیفها را نشان می‌دهد (§9.5.4).
@@ -97,9 +97,9 @@ export function ActivityBell() {
         ref={triggerRef}
         type="button"
         className="act-bell__trigger"
-        aria-label={`سفارشگردانی${hasDot ? `، ${unseenTotal} دیده‌نشده` : ''}`}
+        aria-label={`سفارش‌گردانی${hasDot ? `، ${unseenTotal} دیده‌نشده` : ''}`}
         aria-expanded={open}
-        title="سفارشگردانی"
+        title="سفارش‌گردانی"
         onClick={() => {
           setOpen((value) => !value);
           setActiveProject(null);
@@ -118,7 +118,7 @@ export function ActivityBell() {
           popover="manual"
           role="dialog" aria-label="عملیات‌های دیده‌نشده">
           <header className="act-bell__header">
-            <strong>سفارشگردانی</strong>
+            <strong>سفارش‌گردانی</strong>
             <button
               type="button"
               className="chat-link-btn"

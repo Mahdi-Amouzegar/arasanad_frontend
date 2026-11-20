@@ -21,6 +21,7 @@ import {
   type FileManagerResult,
 } from '@/components/files/FileManagerModal';
 import { validateAmount } from '@/lib/finance/core.mjs';
+import { createProjectsApi } from '@/lib/projects/api';
 import { createNonce } from '@/lib/chat/core.mjs';
 import { operationsHref } from '@/lib/activities/core.mjs';
 
@@ -40,6 +41,7 @@ const TITLES: Record<string, string> = {
   set_final_amount: 'ثبت مبلغ نهایی',
   pay_online: 'پرداخت آنلاین',
   request_refund: 'درخواست برگشت وجه',
+  set_quote: 'تعیین نرخ بیعانه',
 };
 
 function needsReceipt(intent: string): boolean {
@@ -47,7 +49,7 @@ function needsReceipt(intent: string): boolean {
 }
 
 function needsNote(intent: string): boolean {
-  return intent === 'declare_payment' || intent === 'request_refund';
+  return intent === 'declare_payment' || intent === 'request_refund' || intent === 'set_quote';
 }
 
 export function ProjectActionDialog({
@@ -60,14 +62,17 @@ export function ProjectActionDialog({
   const router = useRouter();
   const { authedRequest } = useAuth();
   const { showToast } = useAlert();
-  const [amount, setAmount] = useState(String(action.amount ?? ''));
+  const intent = action.intent ?? '';
+  const projectsApi = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
+  const [amount, setAmount] = useState(intent === 'set_quote'
+    ? String(project.quotedPricePerPage ?? project.basePricePerPage ?? action.amount ?? '')
+    : String(action.amount ?? ''));
   const [note, setNote] = useState('');
   const [fileIds, setFileIds] = useState<string[]>([]);
   const [fmOpen, setFmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const intent = action.intent ?? '';
   const title = useMemo(() => TITLES[intent] ?? action.label, [intent, action.label]);
 
   function onFilesSelected(result: FileManagerResult) {
@@ -78,9 +83,36 @@ export function ProjectActionDialog({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // فاز ۱۰٫۵: اعلام واریز و پرداخت آنلاین از سفارش وارد مرکز پرداخت واحد
-    // می‌شوند؛ مبلغ و مرجع دوباره توسط سرور محاسبه می‌گردد.
-    if (intent === 'declare_payment' || intent === 'pay_online') {
+    // فاز ۱۲٫۱۳-هـ: بیعانه مستقیماً در همان دیالوگ با توضیح، مبلغ و پیوست ثبت می‌شود.
+    if (intent === 'set_quote') {
+      const checkedRate = validateAmount(amount);
+      if (!checkedRate.ok || !Number.isInteger(checkedRate.value)) {
+        setError('نرخ هر صفحه باید عددی صحیح و مثبت باشد');
+        return;
+      }
+      if (!note.trim()) {
+        setError('توضیح تعیین نرخ الزامی است');
+        return;
+      }
+      setBusy(true);
+      setError(null);
+      try {
+        await projectsApi.submitQuote(project.id, checkedRate.value, note.trim());
+        showToast({ type: 'success', title, message: 'نرخ و بیعانه ثبت شد؛ سفارش در انتظار پرداخت بیعانه است.' });
+        onClose();
+        await onDone();
+        router.push(`/${role === 'admin' ? 'admin' : 'panel'}/projects/detail/?id=${encodeURIComponent(project.id)}`);
+      } catch (caught) {
+        const message = caught instanceof Error ? caught.message : 'ثبت نرخ انجام نشد';
+        setError(message);
+        showToast({ type: 'error', title: 'ثبت نرخ انجام نشد', message });
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    // پرداخت آنلاین وارد مرکز پرداخت واحد می‌شود؛ مبلغ و مرجع توسط سرور محاسبه می‌گردد.
+    if (intent === 'pay_online') {
       const stage = project.status === 'awaiting_final_payment' ? 'final' : 'deposit';
       const query = new URLSearchParams({ purpose: 'order', projectId: project.id, stage });
       onClose();
@@ -92,7 +124,7 @@ export function ProjectActionDialog({
       setError(checked.reason);
       return;
     }
-    // الزام پیوست رسید فقط سرور تصمیم می‌گیرد (ممکن است مشتری پیشتر
+    // الزام پیوست فایل فقط سرور تصمیم می‌گیرد (ممکن است سفارش‌دهنده پیشتر
     // رسید الصاق کرده باشد)؛ فرانت‌اند در این باره قانونی تکرار نمی‌کند.
     setBusy(true);
     setError(null);
@@ -159,7 +191,9 @@ export function ProjectActionDialog({
           {project.code} — {project.name}
         </p>
         <form onSubmit={(event) => void submit(event)}>
-          <label className="pad-dialog__label" htmlFor="pad-amount">مبلغ (تومان)</label>
+          <label className="pad-dialog__label" htmlFor="pad-amount">
+            {intent === 'set_quote' ? 'نرخ هر صفحه (تومان)' : 'مبلغ (تومان)'}
+          </label>
           <Input
             id="pad-amount"
             type="number"
@@ -173,7 +207,7 @@ export function ProjectActionDialog({
           />
           {needsNote(intent) ? (
             <>
-              <label className="pad-dialog__label" htmlFor="pad-note">توضیح (اختیاری)</label>
+              <label className="pad-dialog__label" htmlFor="pad-note">توضیح</label>
               <Textarea
                 id="pad-note"
                 rows={3}
@@ -194,7 +228,7 @@ export function ProjectActionDialog({
                 disabled={busy}
               >
                 <Icon name="paperclip" size={16} />
-                پیوست رسید
+                پیوست فایل
               </Button>
               <span>{fileIds.length > 0 ? `${fileIds.length} رسید انتخاب شد` : 'بدون رسید تازه'}</span>
             </div>
@@ -216,7 +250,7 @@ export function ProjectActionDialog({
       <FileManagerModal
         open={fmOpen}
         onClose={() => setFmOpen(false)}
-        config={{ role, tabs: ['upload', 'select'], title: 'پیوست رسید پرداخت' }}
+        config={{ role, tabs: ['upload', 'select'], title: 'پیوست فایل پرداخت' }}
         onSelect={onFilesSelected}
       />
     </div>

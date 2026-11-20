@@ -1,14 +1,14 @@
 'use client';
 
 /**
- * فاز ۱۰ (بند ۲ مالک / D-355) — نشانگر اعتراض کنار نام سفارش.
+ * فاز ۱۰ (بند ۲ مالک / D-355) — نشانگر بازبینی کنار نام سفارش.
  *
- * ⚠️ اعتراض **هیچ اثری** بر `projects.status` یا مهلت تحویل ندارد؛ این
+ * ⚠️ بازبینی **هیچ اثری** بر `projects.status` یا مهلت تحویل ندارد؛ این
  *    نشانگر فقط از `openDispute` سرور (project_dispute_state) تغذیه می‌شود.
  * ⚠️ مدیر با کلیک، متن پاسخ را می‌فرستد؛ سرور در همان تراکنش کارت
  *    `activity.dispute_reply` را می‌نویسد و فلگ را می‌بندد، بنابراین پس از
- *    بازخوانی نشانگر ناپدید می‌شود. اعتراض تازه مشتری دوباره آن را باز می‌کند.
- * ⚠️ مشتری به‌جای پاسخ، به همان سابقه عملیات هدایت می‌شود تا کارت اعتراض
+ *    بازخوانی نشانگر ناپدید می‌شود. بازبینی تازه سفارش‌دهنده دوباره آن را باز می‌کند.
+ * ⚠️ سفارش‌دهنده به‌جای پاسخ، به همان سابقه عملیات هدایت می‌شود تا کارت بازبینی
  *    و پاسخ مدیر را ببیند. تمام رویداد‌ها کارت ۹٫۵ دارند.
  */
 
@@ -19,7 +19,7 @@ import { useAlert } from '@/components/ui/AlertProvider';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Textarea } from '@/components/ui/Field';
-import type { ProjectOpenDispute } from '@/lib/projects/api';
+import type { ProjectDisputeReply, ProjectOpenDispute } from '@/lib/projects/api';
 import { createActivitiesApi } from '@/lib/activities/api';
 import {
   operationsHref,
@@ -32,6 +32,8 @@ export interface DisputeFlagProps {
   projectId: string;
   projectName?: string;
   openDispute?: ProjectOpenDispute | null;
+  /** فاز ۱۲٫۱۳-و: پاسخ ثبت‌شده تا زمان دیده‌شدن توسط سفارش‌دهنده. */
+  reply?: ProjectDisputeReply | null;
   role: 'admin' | 'customer';
   /** بازخوانی فهرست/جزئیات پس از پاسخ مدیر تا فلگ ناپدید شود. */
   onResolved?: () => void;
@@ -45,6 +47,7 @@ export function DisputeFlag({
   projectId,
   projectName = '',
   openDispute,
+  reply,
   role,
   onResolved,
   label,
@@ -60,16 +63,18 @@ export function DisputeFlag({
   const [error, setError] = useState<string | null>(null);
 
   // تمام هوکها پیش از هر بازگشت شرطی فراخوانی می‌شوند تا ترتیبشان
-  // میان رندر «بدون اعتراض» و «اعتراض باز» ثابت بماند.
+  // میان رندر «بدون بازبینی» و «بازبینی باز» ثابت بماند.
   const close = useCallback(() => {
     setOpen(false);
     setText('');
     setError(null);
   }, []);
 
-  if (!openDispute?.activityId) return null;
+  const hasOpen = Boolean(openDispute?.activityId);
+  const hasReply = !hasOpen && Boolean(reply?.activityId);
+  if (!hasOpen && !hasReply) return null;
 
-  const caption = label ?? (role === 'admin' ? 'اعتراض ثبت شده — پاسخ دهید' : 'اعتراض ثبت شده');
+  const caption = label ?? (role === 'admin' ? 'بازبینی ثبت شده — پاسخ دهید' : 'بازبینی ثبت شده');
   const href = operationsHref('customer', projectId);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -91,8 +96,8 @@ export function DisputeFlag({
       close();
       showToast({
         type: 'success',
-        title: 'پاسخ اعتراض ثبت شد',
-        message: 'نشانگر اعتراض بسته شد و پاسخ در سابقه عملیات قابل دیدن است.',
+        title: 'پاسخ بازبینی ثبت شد',
+        message: 'نشانگر بازبینی بسته شد و پاسخ در سابقه عملیات قابل دیدن است.',
       });
       onResolved?.();
     } catch (caught) {
@@ -106,13 +111,23 @@ export function DisputeFlag({
 
   return (
     <>
-      {role === 'admin' ? (
+      {hasReply ? (
+        <Link
+          className={`dsp-flag dsp-flag--${variant} dsp-flag--reply dsp-flag--clickable`}
+          href={href}
+          title="پاسخ بازبینی را در سفارش‌گردانی بخوانید"
+        >
+          <Icon name="checkDouble" size={14} />
+          <span>{caption}</span>
+        </Link>
+      ) : (
+        role === 'admin' ? (
         <button
           type="button"
           className={`dsp-flag dsp-flag--${variant} dsp-flag--clickable`}
           onClick={() => setOpen(true)}
-          title="برای پاسخ متنی به اعتراض کلیک کنید"
-          aria-label={`پاسخ به اعتراض ${projectName}`.trim()}
+          title="برای پاسخ متنی به بازبینی کلیک کنید"
+          aria-label={`پاسخ بازبینی ${projectName}`.trim()}
         >
           <Icon name="alert" size={14} />
           <span>{caption}</span>
@@ -121,14 +136,14 @@ export function DisputeFlag({
         <Link
           className={`dsp-flag dsp-flag--${variant}`}
           href={href}
-          title="مشاهده اعتراض در سابقه عملیات"
+          title="مشاهده بازبینی در سابقه عملیات"
         >
           <Icon name="alert" size={14} />
           <span>{caption}</span>
         </Link>
+        )
       )}
-
-      {open ? (
+      {open && hasOpen ? (
         <div className="dsp-backdrop" role="presentation" onMouseDown={close}>
           <div
             className="dsp-dialog"
@@ -138,19 +153,25 @@ export function DisputeFlag({
             onMouseDown={(event) => event.stopPropagation()}
           >
             <div className="dsp-dialog__head">
-              <h2 id="dsp-dialog-title">پاسخ به اعتراض</h2>
+              <h2 id="dsp-dialog-title">پاسخ بازبینی</h2>
               <button type="button" className="dsp-dialog__close" onClick={close} aria-label="بستن">
                 <Icon name="x" size={18} />
               </button>
             </div>
+            {openDispute?.text ? (
+              <blockquote className="dsp-dialog__quote">
+                <strong>بازبینی ثبت شده توسط سفارش‌دهنده:</strong>
+                <span>{openDispute.text}</span>
+              </blockquote>
+            ) : null}
             <p className="dsp-dialog__hint">
               {projectName ? `سفارش: ${projectName} — ` : ''}
-              پاسخ شما در سابقه عملیات ثبت می‌شود و نشانگر اعتراض بسته می‌شود.
+              پاسخ شما در سابقه عملیات ثبت می‌شود و نشانگر بازبینی بسته می‌شود.
               وضعیت سفارش تغییر نمی‌کند.
             </p>
             <form onSubmit={(event) => void submit(event)}>
               <Textarea
-                aria-label="متن پاسخ به اعتراض"
+                aria-label="متن پاسخ بازبینی"
                 placeholder="متن پاسخ مدیر را بنویسید…"
                 value={text}
                 maxLength={ACTIVITY_MAX_TEXT}
@@ -165,7 +186,7 @@ export function DisputeFlag({
                   انصراف
                 </Button>
                 <Button type="submit" variant="primary" size="sm" disabled={busy || !text.trim()}>
-                  {busy ? 'در حال ثبت…' : 'ثبت پاسخ و بستن اعتراض'}
+                  {busy ? 'در حال ثبت…' : 'ثبت پاسخ و بستن بازبینی'}
                 </Button>
               </div>
             </form>

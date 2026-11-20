@@ -11,6 +11,7 @@
  *    تنها تجربه‌ی کاربر است، نه مرز امنیتی.
  */
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { FileName } from '@/components/ui/FileName';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
@@ -422,7 +423,7 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
                               <div>
                                 <Icon name="fileText" size={18} />
                                 <FileName name={file.originalName} className="file-name-ltr" />
-                                <code>{file.fileCode}</code>
+                                <CopyableCode value={file.fileCode} className="file-card__code" label="کد فایل" />
                               </div>
                               <Button
                                 variant="outline"
@@ -520,7 +521,7 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
                 <EmptyState
                   icon={<Icon name="message" size={28} />}
                   title="درخواست اصلاحی ثبت نشده است"
-                  description={admin ? 'پاسخ درخواست‌های مشتری در همین صفحه ثبت می‌شود.' : 'در صورت نیاز، درخواست اصلاح خود را بالا ثبت کنید.'}
+                  description={admin ? 'پاسخ درخواست‌های سفارش‌دهنده در همین صفحه ثبت می‌شود.' : 'در صورت نیاز، درخواست اصلاح خود را بالا ثبت کنید.'}
                 />
               ) : (
                 <div className="dlv-timeline">

@@ -10,6 +10,7 @@
  */
 
 import { FileName } from '@/components/ui/FileName';
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
@@ -148,8 +149,11 @@ export function CustomerFiles() {
                   {view.files.map((entry) => (
                     <tr key={`${entry.scope}-${entry.file.id}-${entry.relationEntityId}`}>
                       <td data-label="فایل">
-                        <span className="prj-code">{entry.file.fileCode}</span>
-                        <FileName name={entry.file.originalName} className="prj-name" />
+                        {/* فاز ۱۲٫۱۳-ج: کد فایل و نام فایل در دو سطر مجزا */}
+                        <div className="fm-file-cell">
+                          <CopyableCode value={entry.file.fileCode ?? ''} className="prj-code" />
+                          <FileName name={entry.file.originalName} className="prj-name" />
+                        </div>
                       </td>
                       <td data-label="دسته">{SCOPE_LABELS[entry.scope] ?? entry.scope}</td>
                       <td data-label="سفارش">

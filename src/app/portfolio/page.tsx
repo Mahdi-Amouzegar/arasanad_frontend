@@ -7,7 +7,7 @@ import { PortfolioAdminPanel } from '@/components/admin/PublicCatalogAdmin';
 
 export const metadata: Metadata = {
   title: 'نمونه‌کارها',
-  description: 'گوشه‌ای از اسنادی که برای مشتریان آراسند آماده شده است.',
+  description: 'گوشه‌ای از اسنادی که برای سفارش‌دهندهان آراسند آماده شده است.',
   alternates: { canonical: '/portfolio/' },
 };
 

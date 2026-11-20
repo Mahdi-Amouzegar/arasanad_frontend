@@ -84,7 +84,7 @@ const ROWS: Row[] = [
   },
 ];
 
-/** «۲ روز» یا «۳ ساعت» — مهلت تحویل درخواستی مشتری. */
+/** «۲ روز» یا «۳ ساعت» — مهلت تحویل درخواستی سفارش‌دهنده. */
 function formatDeadline(hours: number): string {
   if (hours >= 24) {
     const days = Math.round(hours / 24);
@@ -96,7 +96,7 @@ function formatDeadline(hours: number): string {
 const COLUMNS: Column<Row>[] = [
   {
     key: 'customer',
-    header: 'مشتری',
+    header: 'سفارش‌دهنده',
     sortValue: (row) => row.customer.username,
     render: (row) => (
       <span className="row" style={{ gap: 'var(--sp-2)' }}>
@@ -175,7 +175,7 @@ export function TableDemo() {
       columns={COLUMNS}
       rows={ROWS}
       rowKey={(row) => row.code}
-      caption="نمونه‌ی فهرست سفارش‌های مشتری"
+      caption="نمونه‌ی فهرست سفارش‌های سفارش‌دهنده"
     />
   );
 }

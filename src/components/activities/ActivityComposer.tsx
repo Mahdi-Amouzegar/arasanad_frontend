@@ -1,11 +1,11 @@
 'use client';
 
 /**
- * فاز ۹٫۵ — ارسال پیام / پیوست عملیاتی و اعتراض (§9.5.6).
+ * فاز ۹٫۵ — ارسال پیام / پیوست عملیاتی و بازبینی (§9.5.6).
  *
  * از همان `FileManagerModal` سه‌تبه فاز ۸ استفاده می‌شود؛ پس از ساختن کارت،
  * فایل‌ها و لینکها با `entityType='project_activity'` به همان کارت الصاق
- * می‌گردند. اعتراض فقط مشتری و رسیدگی فقط مدیر، و `replyToActivityId`
+ * می‌گردند. بازبینی فقط سفارش‌دهنده و رسیدگی فقط مدیر، و `replyToActivityId`
  * رشته‌ی پاسخ را نگه می‌دارد.
  */
 
@@ -41,7 +41,7 @@ import { createNonce } from '@/lib/chat/core.mjs';
 interface ActivityComposerProps {
   projectId: string;
   role: 'admin' | 'customer';
-  /** کارت اعتراضی که مدیر به آن پاسخ می‌دهد. */
+  /** کارت بازبینیی که مدیر به آن پاسخ می‌دهد. */
   replyTo?: ActivityItem | null;
   onClearReply?: () => void;
   onCreated: () => void | Promise<void>;
@@ -161,7 +161,7 @@ export function ActivityComposer({
         return;
       }
       if (kind === 'dispute_reply' && !replyTo) {
-        setError('نخست کارت اعتراضی را برای پاسخ انتخاب کنید.');
+        setError('نخست کارت بازبینیی را برای پاسخ انتخاب کنید.');
         return;
       }
       if (files.length > ACTIVITY_MAX_ATTACHMENTS || links.length > ACTIVITY_MAX_ATTACHMENTS) {
@@ -215,7 +215,7 @@ export function ActivityComposer({
           message:
             attachErrors.length > 0
               ? `کارت ثبت شد ولی الصاق ${attachErrors.join(' و ')} انجام نشد؛ دوباره تلاش کنید.`
-              : 'کارت تازه در سفارشگردانی قرار گرفت.',
+              : 'کارت تازه در سفارش‌گردانی قرار گرفت.',
         });
         await onCreated();
       } catch (caught) {
@@ -252,7 +252,7 @@ export function ActivityComposer({
         value={text}
         maxLength={2000}
         rows={3}
-        placeholder="یادداشت، توضیح یا متن اعتراض خود را بنویسید…"
+        placeholder="یادداشت، توضیح یا متن بازبینی خود را بنویسید…"
         onChange={(event) => setText(event.target.value)}
       />
 
@@ -326,7 +326,7 @@ export function ActivityComposer({
             disabled={busy}
             onClick={() => void submit('dispute')}
           >
-            اعتراض / بازبینی
+            ثبت بازبینی
           </Button>
         ) : (
           <Button
@@ -335,7 +335,7 @@ export function ActivityComposer({
             disabled={busy || !replyTo}
             onClick={() => void submit('dispute_reply')}
           >
-            رسیدگی به اعتراض
+            پاسخ بازبینی
           </Button>
         )}
       </div>

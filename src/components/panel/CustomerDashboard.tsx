@@ -1,14 +1,15 @@
 'use client';
 
 /**
- * فاز ۱۲٫۵ (زیرفاز ب) — داشبورد واقعی مشتری.
+ * فاز ۱۲٫۵ (زیرفاز ب) — داشبورد واقعی سفارش‌دهنده.
  *
  * ⚠️ تمام اعداد و فهرستها از `/api/v1/panel/dashboard` خوانده می‌شوند
  *    (همان جداول D1 که فهرست سفارش‌ها و کیف پول از آنها می‌خوانند).
- * ⚠️ «اقدام موردنیاز» در بالاترین نقطه قرار دارد تا مشتری نخستین کاری
+ * ⚠️ «اقدام موردنیاز» در بالاترین نقطه قرار دارد تا سفارش‌دهنده نخستین کاری
  *    که باید انجام دهد را ببیند (design.md §8.1).
  */
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
@@ -102,7 +103,7 @@ export function CustomerDashboard() {
               {view.actions.map((action) => (
                 <div className="panel-action" key={action.id}>
                   <div>
-                    <span className="prj-code">{action.code}</span>
+                    <CopyableCode value={action.code} label="کد سفارش" />
                     <strong>{action.name}</strong>
                     <p className="prj-muted">{action.label}</p>
                   </div>
@@ -147,7 +148,7 @@ export function CustomerDashboard() {
                   {view.recentProjects.map((project) => (
                     <tr key={project.id}>
                       <td data-label="کد / عنوان">
-                        <span className="prj-code">{project.code}</span>
+                        <CopyableCode value={project.code} label="کد سفارش" />
                         <span className="prj-name">{project.name}</span>
                       </td>
                       <td data-label="وضعیت">

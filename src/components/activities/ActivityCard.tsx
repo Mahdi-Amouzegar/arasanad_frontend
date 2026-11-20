@@ -1,9 +1,10 @@
 'use client';
+import { CopyableCode } from '@/components/projects/CopyableCode';
 
 /**
  * فاز ۹٫۵ — کارت عملیات سفارش (§9.5.5).
  *
- * سه استایل پس‌زمینه و آیکن گوشه برای سامانه / مدیر / مشتری؛ در تم تیره
+ * سه استایل پس‌زمینه و آیکن گوشه برای سامانه / مدیر / سفارش‌دهنده؛ در تم تیره
  * هم از متغیرهای `tokens.css` استفاده می‌کند تا خوانا بماند.
  * سابقه فقط الحاقی است: هیچ دکمه‌ی ویرایش یا حذفی وجود ندارد.
  */
@@ -32,7 +33,7 @@ import {
 interface ActivityCardProps {
   activity: ActivityItem;
   role: 'admin' | 'customer';
-  /** فقط مدیر و فقط روی کارت اعتراض — کادر پاسخ را بالا میبرد. */
+  /** فقط مدیر و فقط روی کارت بازبینی — کادر پاسخ را بالا میبرد. */
   onReply?: (activity: ActivityItem) => void;
 }
 
@@ -156,7 +157,7 @@ export function ActivityCard({ activity, role, onReply }: ActivityCardProps) {
         ) : null}
         <div className="act-card__meta-row">
           <dt>کد سفارش</dt>
-          <dd dir="ltr">{activity.code ?? '—'}</dd>
+          <CopyableCode value={activity.code ?? '—'} label="کد سفارش" />
         </div>
         <div className="act-card__meta-row">
           <dt>ردیف / ترتیب سروری</dt>
@@ -203,7 +204,7 @@ export function ActivityCard({ activity, role, onReply }: ActivityCardProps) {
 
       <footer className="act-card__foot">
         {/* فاز ۱۲٫۹: سه تیک مستقل؛ تیک تایپیست تنها زمانی که ثبت شده نمایش مییابد. */}
-        {([['admin', 'دیده‌شده توسط مدیر'], ['customer', 'دیده‌شده توسط مشتری'], ['typist', 'دیده‌شده توسط تایپیست']] as const)
+        {([['admin', 'دیده‌شده توسط مدیر'], ['customer', 'دیده‌شده توسط سفارش‌دهنده'], ['typist', 'دیده‌شده توسط تایپیست']] as const)
           .filter(([key]) => key !== 'typist' || activity.seenBy?.typist)
           .map(([key, label]) => {
             const at = activity.seenBy?.[key] ?? null;
@@ -232,7 +233,7 @@ export function ActivityCard({ activity, role, onReply }: ActivityCardProps) {
         {role === 'admin' && isDispute && onReply ? (
           <button type="button" className="act-card__link" onClick={() => onReply(activity)}>
             <Icon name="checkDouble" size={13} />
-            رسیدگی به اعتراض
+            پاسخ بازبینی
           </button>
         ) : null}
       </footer>

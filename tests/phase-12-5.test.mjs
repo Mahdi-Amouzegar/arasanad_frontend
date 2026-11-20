@@ -1,9 +1,9 @@
 /**
- * فاز ۱۲٫۵ — تست ساختاری پنل مشتری و تجربه مهمان.
+ * فاز ۱۲٫۵ — تست ساختاری پنل سفارش‌دهنده و تجربه مهمان.
  *
  * P125-01: `/panel` داشبورد واقعی است و اقدام موردنیاز در آن دیده می‌شود
  * P125-03: «فایل‌های من» همان مودال دانلود فاز ۸ را بهکار می‌گیرد
- * P125-06: هیچ منوی مشتری به Placeholder ختم نمی‌شود
+ * P125-06: هیچ منوی سفارش‌دهنده به Placeholder ختم نمی‌شود
  * P126-01: منوهای مهمان فقط صفحات عمومی را نشان می‌دهند
  */
 import test from 'node:test';
@@ -37,7 +37,7 @@ test('P125-01: /panel به کامپوننت واقعی داشبورد متصل �
   assert.ok(PANEL_API.includes("'/panel/dashboard'"), 'کلاینت API به مسیر درست متصل نیست');
 });
 
-test('P125-01: لینک سفارشگردانی در گروه سفارش‌ها قرار دارد', () => {
+test('P125-01: لینک سفارش‌گردانی در گروه سفارش‌ها قرار دارد', () => {
   assert.ok(NAV.includes("href: '/panel/projects/operations'"), 'لینک عملیات در CUSTOMER_NAV نیست');
   assert.ok(PANEL_PAGE.includes("'/panel/projects/operations': 'operations'"), 'مسیر عملیات در router نیست');
 });
@@ -58,7 +58,7 @@ test('P125-06: تمام منوهای CUSTOMER_NAV مسیر واقعی دارند
   }
 });
 
-test('P125-03: مسیر فایل‌های مشتری به فهرست واقعی و مودال دانلود متصل است', () => {
+test('P125-03: مسیر فایل‌های سفارش‌دهنده به فهرست واقعی و مودال دانلود متصل است', () => {
   assert.ok(NAV.includes("href: '/panel/files'"), 'لینک «فایل‌های من» در منو نیست');
   assert.ok(PANEL_PAGE.includes("'/panel/files': 'files'"), 'مسیر فایل‌ها در router نیست');
   assert.ok(PANEL_PAGE.includes('<CustomerFiles />'), 'کامپوننت فهرست فایل‌ها رندر نمی‌شود');
@@ -80,7 +80,7 @@ test('P125-04: چرخه اصلاح از جزئیات تا کارت عملیات 
 });
 
 test('P125-05: تنظیمات تلگرام در پروفایل و اعلان داخلی جداگانه است', () => {
-  assert.ok(NAV.includes("href: '/panel/profile'"), 'لینک پروفایل در منوی مشتری نیست');
+  assert.ok(NAV.includes("href: '/panel/profile'"), 'لینک پروفایل در منوی سفارش‌دهنده نیست');
   assert.ok(PROFILE.includes('<TelegramConnectCard />'), 'کارت تنظیمات تلگرام در پروفایل نیست');
   assert.ok(PROFILE.includes('اعلان'), 'توضیح اعلان‌های درون‌سامانه‌ای وجود ندارد');
   assert.ok(PROFILE.includes('خاموش'), 'توضیح خاموش‌کردن تلگرام وجود ندارد');
@@ -95,7 +95,7 @@ test('P125-07: امتیاز در جزئیات و نمای فقطخواندن م�
   assert.ok(!ADMIN_RATING.includes('method: \'DELETE\''), 'مسیر ویرایشهای در نمای مدیر وجود دارد');
 });
 
-test('P125-06: نوار پایین موبایل حداکثر ۵ آیتم دارد و هیچ منوی مشتری Placeholder نیست', () => {
+test('P125-06: نوار پایین موبایل حداکثر ۵ آیتم دارد و هیچ منوی سفارش‌دهنده Placeholder نیست', () => {
   const mobileSource = PANEL_PAGE.match(/const mobile = \(CUSTOMER_GROUPS\[0\]\?\.items \?\? \[\]\)\.slice\(0, (\d+)\)/);
   assert.ok(mobileSource, 'محدودیت نوار پایین یافت نشد');
   assert.ok(Number(mobileSource[1]) <= 5, 'نوار پایین بیش از ۵ آیتم دارد');

@@ -102,11 +102,11 @@ test('P128-F09: cancelled orders disable actions and name the canceller', () => 
   const src = read('src/components/projects/ProjectDetail.tsx');
   assert.match(src, /const isCancelled = project\.status === 'cancelled'/);
   assert.ok(src.includes('!isCancelled ? ('));
-  // فاز ۱۲٫۱۰-ب: دکمهٔ «سفارشگردانی» به هدر کارت منتقل شد (از سلول اقدام
+  // فاز ۱۲٫۱۰-ب: دکمهٔ «سفارش‌گردانی» به هدر کارت منتقل شد (از سلول اقدام
   // و card__body حذف شد). حضور آن در هدر مجاز است.
   assert.match(src, /operationsAction/);
   assert.match(src, /operationsAction\?\.href/);
-  assert.match(src, /changedByRole === 'admin' \? 'مدیر' : 'مشتری'/);
+  assert.match(src, /changedByRole === 'admin' \? 'مدیر' : 'سفارش‌دهنده'/);
 });
 
 test('P128-F10: design spec uses Persian labels and disabled snapshot fields', () => {
@@ -161,7 +161,7 @@ test('P128-F13: new order form hides fa-en and uses an A3/A4/A5 paper select', (
 
 test('P128-F14: orders tables are merged into one سفارشات من table', () => {
   const list = read('src/components/projects/ProjectList.tsx');
-  for (const header of ['نام سفارش', 'نوع سفارش', 'مشخصات', 'تاریخ ثبت', 'تاریخ تحویل', 'تراکنشها', 'اقدام']) {
+  for (const header of ['نام سفارش', 'نوع سفارش', 'مشخصات', 'تاریخ ثبت', 'تاریخ تحویل', 'تراکنش‌ها', 'اقدام']) {
     assert.ok(list.includes(`<th scope="col">${header}</th>`), header);
   }
   assert.ok(!list.includes('مبلغ برآوردی'));

@@ -64,7 +64,7 @@ export function PanelMessages() {
         />
         <CardBody>
           <p className="chat-page__lead">
-            گفتگو با مدیر یا مشتری سفارش، بدون خروج از صفحه و در یک دراور کنار
+            گفتگو با مدیر یا سفارش‌دهنده سفارش، بدون خروج از صفحه و در یک دراور کنار
             صفحه انجام می‌شود.
             {unreadTotal > 0 ? ` اکنون ${formatBadge(unreadTotal)} پیام خوانده‌نشده دارید.` : ''}
           </p>

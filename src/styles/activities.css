@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   فاز ۹٫۵ — سفارشگردانی (زنگوله، صفحه و کارت)
+   فاز ۹٫۵ — سفارش‌گردانی (زنگوله، صفحه و کارت)
    قاعده: همه‌ی رنگ‌ها از tokens.css می‌آیند تا تم تیره خودکار کار کند.
    قاعده: هیچ کامپوننتی margin بیرونی ندارد؛ فاصله‌گذاری وظیفه‌ی والد است.
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -560,7 +560,7 @@
   background: var(--c-primary-subtle);
 }
 
-/* ───────────── فاز ۱۰: نشانگر اعتراض کنار نام سفارش (D-355) ───────────── */
+/* ───────────── فاز ۱۰: نشانگر بازبینی کنار نام سفارش (D-355) ───────────── */
 
 .dsp-flag {
   display: inline-flex;
@@ -646,6 +646,23 @@
 
 .dsp-dialog__close:hover {
   background: var(--c-surface-sunken);
+}
+
+.dsp-dialog__quote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin: 0 0 var(--sp-3);
+  padding: var(--sp-3);
+  border-inline-start: 3px solid var(--c-danger);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  line-height: 1.9;
+}
+
+.dsp-flag--reply {
+  border-color: var(--c-success);
+  color: var(--c-success);
 }
 
 .dsp-dialog__hint {

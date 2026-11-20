@@ -1,5 +1,6 @@
 'use client';
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { FileName } from '@/components/ui/FileName';
 import {
   useCallback,
@@ -970,7 +971,7 @@ function SelectTab({
           <div className="fm-item__body">
             <FileName name={file.originalName} className="fm-item__name" />
             <div className="fm-item__meta">
-              <span>{file.fileCode}</span>
+              <CopyableCode value={file.fileCode} label="کد فایل" />
               <span>•</span>
               <span>{formatBytesFa(file.sizeBytes)}</span>
               <span>•</span>

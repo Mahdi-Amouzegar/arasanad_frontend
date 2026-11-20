@@ -27,7 +27,7 @@ export interface StatusMeta {
   icon: IconName;
   /** توضیح کوتاه برای Tooltip یا راهنما */
   description?: string;
-  /** آیا مشتری باید کاری انجام دهد؟ (برای برجسته‌سازی) */
+  /** آیا سفارش‌دهنده باید کاری انجام دهد؟ (برای برجسته‌سازی) */
   needsCustomerAction?: boolean;
 }
 
@@ -283,7 +283,7 @@ export const DELIVERY_STATE: Record<DeliveryState, StatusMeta> = {
 export interface DeliveryInput {
   /** زمان واریز/تأیید بیعانه — مبدأ محاسبه‌ی مهلت */
   depositPaidAt: string | null | undefined;
-  /** مهلت درخواستی مشتری بر حسب ساعت */
+  /** مهلت درخواستی سفارش‌دهنده بر حسب ساعت */
   deliveryHours: number;
   /** زمان تحویل واقعی (اگر تحویل شده) */
   deliveredAt?: string | null;

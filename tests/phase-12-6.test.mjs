@@ -85,14 +85,14 @@ test('P126-03: فهرست و جزئیات عمومی فقط فیلدهای مج�
   const detail = read('src/components/projects/PublicProjectDetail.tsx');
   const detailPage = read('src/app/projects/detail/page.tsx');
 
-  assert.ok(!core.includes("'customerDisplayName'"), 'نام نمایشی مشتری هنوز در لیست سفید عمومی است');
+  assert.ok(!core.includes("'customerDisplayName'"), 'نام نمایشی سفارش‌دهنده هنوز در لیست سفید عمومی است');
   const publicType = api.slice(
     api.indexOf('export interface PublicProject'),
     api.indexOf('export interface ProjectNote'),
   );
-  assert.ok(!publicType.includes('customerDisplayName'), 'نوع عمومی هنوز نام مشتری را می‌پذیرد');
+  assert.ok(!publicType.includes('customerDisplayName'), 'نوع عمومی هنوز نام سفارش‌دهنده را می‌پذیرد');
   assert.ok(api.includes('/projects/public/${safeId}'), 'مسیر جزئیات عمومی در کلاینت نیست');
-  assert.ok(!list.includes('customerDisplayName'), 'فهرست عمومی نام مشتری را نمایش می‌دهد');
+  assert.ok(!list.includes('customerDisplayName'), 'فهرست عمومی نام سفارش‌دهنده را نمایش می‌دهد');
   assert.ok(list.includes('/projects/detail/?id='), 'کارت فهرست به جزئیات عمومی لینک ندارد');
   assert.ok(detailPage.includes('<PublicProjectDetail />'), 'صفحه جزئیات از نمای خصوصی استفاده می‌کند');
   assert.ok(!detailPage.includes('<ProjectDetail />'), 'کامپوننت خصوصی هنوز سوار است');
@@ -185,7 +185,7 @@ test('P126-01: منوهای مهمان به صفحات واقعی ختم می‌
 
 test('P11-07: سیاست اصلاح در همان فرم ثبت سفارش بهصورتdialog باز می‌شود (فاز ۱۲٫۱۲)', () => {
   const newForm = read('src/components/projects/ProjectNewForm.tsx');
-  assert.ok(newForm.includes('RevisionPolicyDialog'), 'دیالوگ سیاست اصلاح در فرم مشتری نیست');
+  assert.ok(newForm.includes('RevisionPolicyDialog'), 'دیالوگ سیاست اصلاح در فرم سفارش‌دهنده نیست');
   assert.ok(newForm.includes('setPolicyOpen(true)'), 'دکمه باز کردن دیالوگ وجود ندارد');
   assert.ok(!newForm.includes('href="/revision-policy/"'), 'دکمه هنوز به صفحه دیگری هدایت می‌کند');
   assert.ok(newForm.includes('سیاست اصلاح'), 'عنوان دکمه سیاست اصلاح نیست');

@@ -1,12 +1,12 @@
 'use client';
 
 /**
- * فاز ۹٫۵ — صفحه‌ی کامل «سفارشگردانی» (نه دراور، نه پنجره).
+ * فاز ۹٫۵ — صفحه‌ی کامل «سفارش‌گردانی» (نه دراور، نه پنجره).
  *
  * ⚠️ خروجی استاتیک: شناسه‌ی سفارش فقط از `?id=...` خوانده می‌شود.
  * ⚠️ ترتیب **جدیدترین در بالا** بر اساس `seq` سروری (§9.5.1).
  * ⚠️ باز کردن صفحه، عملیات‌های دیده‌نشده‌ی همین سفارش را فقط برای همین
- *    بیننده دیده‌شده می‌کند؛ زنگوله‌ی مدیر و مشتری مستقل باقی می‌ماند.
+ *    بیننده دیده‌شده می‌کند؛ زنگوله‌ی مدیر و سفارش‌دهنده مستقل باقی می‌ماند.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -93,7 +93,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
           }
         }
       } catch (caught) {
-        setError(errorText(caught, 'سفارشگردانی دریافت نشد'));
+        setError(errorText(caught, 'سفارش‌گردانی دریافت نشد'));
       } finally {
         setLoading(false);
         setLoadingMore(false);
@@ -153,7 +153,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
       <header className="act-page__head">
         <div>
           <span className="act-page__code">{formatProjectCodeSafe(project?.code ?? '')}</span>
-          <h2 className="act-page__title">{project?.name ?? 'سفارشگردانی'}</h2>
+          <h2 className="act-page__title">{project?.name ?? 'سفارش‌گردانی'}</h2>
           <p className="act-page__hint">
             سابقه‌ی فقط الحاقی عملیات‌ها، جدیدترین در بالا. اصلاح فقط با ثبت ردیف تازه انجام می‌شود.
           </p>
@@ -206,7 +206,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
         <EmptyState
           icon={<Icon name="activity" size={28} />}
           title="هنوز عملیاتی ثبت نشده است"
-          description="نخستین یادداشت یا اعتراض را با کادر بالا ثبت کنید."
+          description="نخستین یادداشت یا بازبینی را با کادر بالا ثبت کنید."
         />
       ) : (
         <div className="act-page__timeline">

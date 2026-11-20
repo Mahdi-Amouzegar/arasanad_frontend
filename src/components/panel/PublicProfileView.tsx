@@ -1,5 +1,6 @@
 'use client';
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public/PublicLayout';
@@ -195,7 +196,7 @@ export function PublicProfileView({ handle }: { handle: string }) {
                     <ul className="row" style={{ flexDirection: 'column', gap: 'var(--sp-2)' }}>
                       {dashboard.recentProjects.map((project) => (
                         <li key={`${project.code}-${project.completedAt ?? ''}`}>
-                          <span className="prj-code">{project.code}</span> — <strong>{project.name}</strong>
+                          <CopyableCode value={project.code} label="کد سفارش" /> — <strong>{project.name}</strong>
                           {project.completedAt ? (
                             <> · <JalaliDate value={project.completedAt} variant="date" /></>
                           ) : null}

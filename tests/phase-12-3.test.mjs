@@ -55,7 +55,7 @@ test('P123-05: نام قلم استاندارد B Nazanin نمایش داده م
 
 test('P123-06: پس از ثبت سفارش به جزئیات کامل پنل می‌رود', () => {
   const form = read('src/components/projects/ProjectNewForm.tsx');
-  assert.ok(form.includes("/panel/projects/detail/"), 'مقصد مشتری جزئیات کامل نیست');
+  assert.ok(form.includes("/panel/projects/detail/"), 'مقصد سفارش‌دهنده جزئیات کامل نیست');
   assert.ok(form.includes("/admin/projects/detail/"), 'مقصدمدیر جزئیات کامل نیست');
   assert.ok(!form.includes("router.push(`/projects/detail/"), ' هنوز به نمای عمومی می‌رود');
   const detail = read('src/components/projects/ProjectDetail.tsx');

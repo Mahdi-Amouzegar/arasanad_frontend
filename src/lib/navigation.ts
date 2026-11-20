@@ -14,14 +14,14 @@ export interface NavGroup {
   items: NavItem[];
 }
 
-/** ناوبری پنل مشتری. */
+/** ناوبری پنل سفارش‌دهنده. */
 export const CUSTOMER_NAV: NavGroup[] = [
   {
     items: [
       { href: '/panel', label: 'داشبورد', icon: 'activity' },
       { href: '/panel/projects', label: 'سفارشات من', icon: 'file' },
       { href: '/panel/projects/new', label: 'ثبت سفارش جدید', icon: 'plus' },
-      { href: '/panel/projects/operations', label: 'سفارشگردانی', icon: 'activity' },
+      { href: '/panel/projects/operations', label: 'سفارش‌گردانی', icon: 'activity' },
       { href: '/panel/projects/delivery', label: 'تحویل و اصلاح', icon: 'package' },
       { href: '/panel/files', label: 'فایل‌های من', icon: 'fileText' },
     ],
@@ -46,7 +46,7 @@ export const ADMIN_NAV: NavGroup[] = [
   {
     items: [
       { href: '/admin', label: 'داشبورد', icon: 'activity' },
-      { href: '/admin/projects', label: 'سفارشات من', icon: 'file' },
+      { href: '/admin/projects', label: 'سفارشات سامانه', icon: 'file' },
       { href: '/admin/projects/delivery', label: 'تحویل و اصلاح', icon: 'package' },
       { href: '/admin/payments', label: 'بررسی پرداخت‌ها', icon: 'card' },
       { href: '/admin/messages', label: 'پیام‌ها', icon: 'message' },
@@ -64,6 +64,7 @@ export const ADMIN_NAV: NavGroup[] = [
     label: 'مدیریت',
     items: [
       { href: '/admin/users', label: 'کاربران', icon: 'user' },
+      { href: '/admin/files', label: 'فایل‌های موجود', icon: 'fileText' },
       { href: '/pricing', label: 'نرخ‌نامه', icon: 'receipt' },
       { href: '/portfolio', label: 'نمونه\u200cکارها', icon: 'package' },
       { href: '/admin/settings', label: 'تنظیمات', icon: 'settings' },

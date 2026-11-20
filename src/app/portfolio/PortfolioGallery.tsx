@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { PORTFOLIO_CATEGORIES, PORTFOLIO_ITEMS } from '@/content/catalog';
 import { asset } from '@/lib/config';
 import { API_BASE } from '@/lib/api';
+import { registerBackDismiss } from '@/lib/android-back';
 
 interface PublicPortfolioItem {
   id: string;
@@ -80,7 +81,7 @@ export function PortfolioGallery() {
   }, [remote]);
 
   const categories = useMemo(
-    () => ['همه', ...Array.from(new Set([...PORTFOLIO_CATEGORIES, ...allItems.map((item) => item.category)]))],
+    () => Array.from(new Set([...PORTFOLIO_CATEGORIES, ...allItems.map((item) => item.category)])),
     [allItems],
   );
 
@@ -142,6 +143,19 @@ export function PortfolioGallery() {
     setOpenIndex(null);
     resetZoom();
   }
+
+  // فاز ۱۲٫۱۳-ب: دکمه back اندروید فقط همین تصویر بزرگشده را می‌بندد.
+  useEffect(() => {
+    if (openIndex === null) return undefined;
+    return registerBackDismiss(() => {
+      dialogRef.current?.close();
+      setOpenIndex(null);
+      resetZoom();
+      return true;
+    });
+    // resetZoom تنها به refها وابسته است و نیازی به تازهسازیEffect ندارد.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openIndex]);
 
   return (
     <>

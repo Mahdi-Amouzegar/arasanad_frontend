@@ -608,9 +608,10 @@
 /* فاز ۹٫۵: سلول «اقدام» سرورمحور */
 .prj-action-cell {
   display: flex;
+  flex-direction: column;
+  align-items: stretch;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--sp-1);
+  gap: var(--sp-2);
 }
 
 .prj-action-future,
@@ -621,8 +622,15 @@
 }
 
 .prj-action-status {
-  flex-basis: 100%;
+  flex-basis: auto;
   color: var(--c-text-secondary);
+}
+
+/* فاز ۱۲٫۱۳-ج: فلگ بازبینی در سطر جداگانه و پایین وضعیت */
+.prj-action-cell .dsp-flag--action {
+  align-self: stretch;
+  width: fit-content;
+  max-width: 100%;
 }
 
 /* ─── جدول جامع سفارشات (فاز ۱۲٫۱) ─── */
@@ -853,7 +861,7 @@
   color: var(--c-primary);
 }
 
-/* فاز ۱۲٫۹-س: اعتراض در ردیف نشانها، با تاکید قرمز */
+/* فاز ۱۲٫۹-س: بازبینی در ردیف نشانها، با تاکید قرمز */
 .prj-badges .dsp-flag {
   border-color: var(--c-danger);
   background: var(--c-danger-bg);

@@ -1,16 +1,27 @@
 'use client';
 
 /**
- * فاز ۱۲٫۱۰-ب: کد سفارش قابلکپی.
- * کلیک روی کد، آن را در کلیپبورد می‌گذارد و بازخورد کوتاه «کپی شد» می‌دهد.
+ * فاز ۱۲٫۱۳-ز: کامپوننت واحد کدهای قابلکپی (فایل / سفارش / کاربر).
+ * کادر کمرنگنگ، کپی با یک کلیک و toast بازخورد. هیچ محل نمایش کدی نیاز به
+ * کپی کد تاز‌های ندارد؛ تنها کافی است مقدار را به این کامپوننت بدهد.
  */
 
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Icon';
+import { useAlert } from '@/components/ui/AlertProvider';
 
-export function CopyableCode({ value }: { value: string }) {
+export function CopyableCode({
+  value,
+  className = '',
+  label = 'کد',
+}: {
+  value: string;
+  className?: string;
+  label?: string;
+}) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { showToast } = useAlert();
 
   useEffect(() => () => {
     if (timer.current) clearTimeout(timer.current);
@@ -21,10 +32,11 @@ export function CopyableCode({ value }: { value: string }) {
     try {
       await navigator.clipboard.writeText(value);
     } catch {
-      // برخی مرورگرها در زمینه‌ی ناامن دسترسی نمی‌دهند؛ بدون بازخورد ادامه می‌دهیم.
+      showToast({ type: 'error', title: 'کپی نشد', message: 'دسترسی به حافظه کلیپبورد ممکن نیست.' });
       return;
     }
     setCopied(true);
+    showToast({ type: 'success', title: 'کپی شد', message: `${label} ${value} در حافظه کپی شد.` });
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => setCopied(false), 1600);
   };
@@ -32,10 +44,10 @@ export function CopyableCode({ value }: { value: string }) {
   return (
     <button
       type="button"
-      className="prj-code prj-code--copy"
+      className={`prj-code prj-code--copy ${className}`.trim()}
       onClick={() => void copy()}
-      title={copied ? 'کپی شد' : 'کپی کد سفارش'}
-      aria-label={copied ? 'کد سفارش کپی شد' : `کپی کد سفارش ${value}`}
+      title={copied ? 'کپی شد' : `کپی ${label}`}
+      aria-label={copied ? `${label} کپی شد` : `کپی ${label} ${value}`}
     >
       <span>{value}</span>
       <Icon name={copied ? 'check' : 'copy'} size={13} />

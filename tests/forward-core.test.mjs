@@ -53,7 +53,7 @@ test('P1211-C03: summary counts messages, files and links', () => {
 
 test('P1211-C04: order description keeps every sender and truncates safely', () => {
   const messages = [
-    msg('a', { senderName: 'مشتری', body: 'متن نخست' }),
+    msg('a', { senderName: 'سفارش‌دهنده', body: 'متن نخست' }),
     msg('b', {
       senderName: 'مدیر',
       body: 'متن دوم',
@@ -61,7 +61,7 @@ test('P1211-C04: order description keeps every sender and truncates safely', () 
     }),
   ];
   const text = buildOrderDescription(messages, ['a', 'b']);
-  assert.match(text, /مشتری/);
+  assert.match(text, /سفارش‌دهنده/);
   assert.match(text, /متن نخست/);
   assert.match(text, /مدیر/);
   assert.match(text, /https:\/\/example.com\/doc/);

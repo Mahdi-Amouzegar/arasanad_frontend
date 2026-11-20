@@ -96,6 +96,19 @@ export interface SiteSettings {
   [key: string]: string;
 }
 
+export interface AdminFile {
+  id: string;
+  originalName: string;
+  fileCode: string;
+  mimeType: string;
+  extension: string;
+  sizeBytes: number;
+  createdAt: string;
+  uploaderUsername?: string | null;
+  uploaderAvatarUrl?: string | null;
+  firstUserName?: string | null;
+}
+
 export interface PageMeta {
   limit: number;
   offset: number;
@@ -130,6 +143,7 @@ export interface AdminApi {
   saveSettings(settings: SiteSettings): Promise<{ updated: number; settings: SiteSettings }>;
   audit(filters?: { action?: string; actor?: string; from?: string; to?: string; offset?: number }): Promise<{ events: AuditEvent[]; page: PageMeta }>;
   messages(): Promise<{ conversations: AdminConversation[] }>;
+  files(uploader?: string, offset?: number): Promise<{ files: AdminFile[]; page: PageMeta }>;
 }
 
 export function createAdminApi(request: AuthedRequest): AdminApi {
@@ -144,6 +158,7 @@ export function createAdminApi(request: AuthedRequest): AdminApi {
 
   return {
     dashboard: () => request('/admin/dashboard'),
+    files: (uploader, offset) => request(`/admin/files${q({ uploader, offset })}`),
     users: (query, offset) => request(`/admin/users${q({ q: query, offset })}`),
     userDetail: (id) => request(`/admin/users/${encodeURIComponent(id)}`),
     serviceTypes: () => request('/admin/service-types'),

@@ -1,5 +1,6 @@
 'use client';
 
+import { CopyableCode } from '@/components/projects/CopyableCode';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getPublicProjects, type PublicProject } from '@/lib/projects/api';
@@ -84,7 +85,7 @@ export function PublicProjectsList() {
       {projects.map((project) => (
         <article className="prj-card" key={project.id}>
           <div className="prj-card__head">
-            <span className="prj-code">{formatProjectCodeSafe(project.code)}</span>
+            <CopyableCode value={formatProjectCodeSafe(project.code)} label="کد سفارش" />
             <ProjectStatusBadge status={project.status as ProjectStatus} />
           </div>
           <h3 className="prj-card__title">{project.name}</h3>

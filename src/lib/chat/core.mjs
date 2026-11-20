@@ -55,7 +55,7 @@ export function mergeMessages(existing, incoming) {
   return sortBySeq([...byId.values()]);
 }
 
-/** نام نمایشی مخاطب — هیچ‌گاه خالی برنمیگردد. */
+/** نام نمایشی مخاطب — هیچ‌گاه خالی برنمی‌گردد. */
 export function peerName(peer) {
   if (!peer) return 'مخاطب';
   const full = [peer.firstName, peer.lastName].filter(Boolean).join(' ').trim();
