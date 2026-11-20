@@ -17,6 +17,7 @@ import { registerBackDismiss } from '@/lib/android-back';
 import { ConversationList } from './ConversationList';
 import { MessageThread } from './MessageThread';
 import { ChatComposer } from './ChatComposer';
+import { ForwardDialog } from './ForwardDialog';
 import { peerName } from '@/lib/chat/core.mjs';
 
 export function ChatDock() {
@@ -29,6 +30,7 @@ export function ChatDock() {
     openChat,
     conversations,
     conversationId,
+    forwardOpen,
   } = useChat();
   const isDrawer = variant === 'drawer';
 
@@ -126,6 +128,8 @@ export function ChatDock() {
 
         {view === 'thread' ? <ChatComposer /> : null}
       </section>
+
+      {forwardOpen && view === 'thread' ? <ForwardDialog /> : null}
     </div>
   );
 }

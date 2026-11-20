@@ -25,6 +25,30 @@ export interface MessagePage {
   hasMore: boolean;
 }
 
+/** فاز ۱۲٫۱۱ — خروجی آماده‌سازی فوروارد برای سفارش تازه. */
+export interface ForwardPrepareResult {
+  text: string;
+  files: Array<{
+    id: string;
+    originalName: string;
+    fileCode: string;
+    mimeType: string;
+    extension: string;
+    sizeBytes: number;
+  }>;
+  links: Array<{ id: string; url: string; description: string | null }>;
+  count: number;
+}
+
+export interface ForwardResult {
+  mode: 'contact' | 'activity';
+  conversationId?: string;
+  projectId?: string;
+  forwarded: number;
+  messageIds?: string[];
+  activityIds?: string[];
+}
+
 export function createChatApi(request: ChatApiRequest) {
   return {
     async searchUsers(q: string): Promise<ChatPeer[]> {
@@ -99,6 +123,41 @@ export function createChatApi(request: ChatApiRequest) {
     async unreadCount(): Promise<number> {
       const data = await request<{ count: number }>('/conversations/unread-count');
       return Number(data.count ?? 0);
+    },
+
+    /** فاز ۱۲٫۱۱: مجوز فایل‌ها و متن پیش‌نویس سفارش تازه. */
+    async prepareForward(
+      conversationId: string,
+      messageIds: string[],
+    ): Promise<ForwardPrepareResult> {
+      return request<ForwardPrepareResult>('/forward/prepare', {
+        method: 'POST',
+        body: { conversationId, messageIds },
+      });
+    },
+
+    async forwardToContact(
+      conversationId: string,
+      messageIds: string[],
+      targetUserId: string,
+      clientNonce: string,
+    ): Promise<ForwardResult> {
+      return request<ForwardResult>('/forward', {
+        method: 'POST',
+        body: { mode: 'contact', conversationId, messageIds, targetUserId, clientNonce },
+      });
+    },
+
+    async forwardToActivity(
+      conversationId: string,
+      messageIds: string[],
+      projectId: string,
+      clientNonce: string,
+    ): Promise<ForwardResult> {
+      return request<ForwardResult>('/forward', {
+        method: 'POST',
+        body: { mode: 'activity', conversationId, messageIds, projectId, clientNonce },
+      });
     },
   };
 }

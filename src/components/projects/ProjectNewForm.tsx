@@ -42,6 +42,8 @@ import { UploaderBadge } from '@/components/files/UploaderBadge';
 import { cx } from '@/lib/cx';
 import { errorText, formatHours } from './ui-utils';
 import { loadGuestDraft } from '@/lib/guest-order';
+import { loadForwardDraft } from '@/lib/chat/forward-draft';
+import { ORDER_DESCRIPTION_MAX } from '@/lib/chat/forward-core.mjs';
 
 const EMPTY_RULES = { urgencyMultiplier: 1.3, depositRatio: 0.5, roundStep: 500 };
 const ATTACHMENT_ISSUE = 'حداقل یک فایل یا لینک پیوست کنید.';
@@ -140,6 +142,31 @@ export function ProjectNewForm() {
       message: 'برآورد مهمان در فرم ثبت سفارش بازگردانده شد.',
     });
   }, [services, showToast]);
+
+  // فاز ۱۲٫۱۱: پیام‌ها و فایل‌های فورواردشده یک‌بار در فرم قرار می‌گیرند.
+  useEffect(() => {
+    const draft = loadForwardDraft();
+    if (!draft) return;
+    setDescription((current) => {
+      const merged = current.trim() ? `${current.trim()}\n\n${draft.text}` : draft.text;
+      return merged.slice(0, ORDER_DESCRIPTION_MAX);
+    });
+    setAttachedFiles((current) => {
+      const seen = new Set(current.map((file) => file.id));
+      const added = draft.files.filter((file) => !seen.has(file.id)).slice(0, 20);
+      return [...current, ...added].slice(0, 20);
+    });
+    setAttachedLinks((current) => {
+      const seen = new Set(current.map((link) => link.id));
+      const added = draft.links.filter((link) => !seen.has(link.id)).slice(0, 20);
+      return [...current, ...added].slice(0, 20);
+    });
+    showToast({
+      type: 'success',
+      title: 'پیام‌ها به سفارش اضافه شد',
+      message: 'توضیحات و پیوست‌ها را بررسی و سپس سفارش را ثبت کنید.',
+    });
+  }, [showToast]);
 
   useEffect(() => {
     if (services.length === 0 || services.some((item) => item.id === serviceTypeId)) return;

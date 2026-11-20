@@ -36,6 +36,7 @@ import {
 } from '@/lib/chat/core.mjs';
 import type { SelectedFile, SelectedLink } from '@/components/files/FileManagerModal';
 import { usePollLeader } from '@/lib/connectivity/poll-leader';
+import { MAX_FORWARD_SELECTION } from '@/lib/chat/forward-core.mjs';
 
 export type ChatVariant = 'drawer' | 'popover';
 export type ChatView = 'list' | 'thread';
@@ -69,6 +70,9 @@ interface ChatContextValue {
   error: string | null;
   unreadTotal: number;
   signedIn: boolean;
+  /** فاز ۱۲٫۱۱ — انتخاب چندپیامی و وضعیت پنجره فوروارد */
+  selectedMessageIds: string[];
+  forwardOpen: boolean;
 
   openList: (variant?: ChatVariant) => void;
   openChat: (input: OpenChatInput, variant?: ChatVariant) => Promise<void>;
@@ -83,6 +87,12 @@ interface ChatContextValue {
   openWithUser: (user: ChatPeer) => Promise<void>;
   sendText: (text: string, files?: SelectedFile[], links?: SelectedLink[]) => Promise<boolean>;
   sendAttachments: (files: SelectedFile[], links: SelectedLink[]) => Promise<boolean>;
+  toggleSelectedMessage: (id: string) => void;
+  setSelectedMessages: (ids: string[]) => void;
+  clearSelection: () => void;
+  openForwardDialog: () => void;
+  closeForwardDialog: () => void;
+  finishForward: () => void;
   clearError: () => void;
 }
 
@@ -121,6 +131,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unreadTotal, setUnreadTotal] = useState(0);
+  const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
+  const [forwardOpen, setForwardOpen] = useState(false);
 
   // refs برای Polling تا اثر وابسته به باز/بستهشدن پنجره دوباره ساخته نشود
   const openRef = useRef(open);
@@ -137,6 +149,34 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     });
     return false;
   }, [signedIn, showToast]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedMessageIds([]);
+    setForwardOpen(false);
+  }, []);
+
+  const toggleSelectedMessage = useCallback((id: string) => {
+    if (!id) return;
+    setSelectedMessageIds((prev) => {
+      if (prev.includes(id)) return prev.filter((item) => item !== id);
+      if (prev.length >= MAX_FORWARD_SELECTION) return prev;
+      return [...prev, id];
+    });
+  }, []);
+
+  const setSelectedMessages = useCallback((ids: string[]) => {
+    setSelectedMessageIds(Array.from(new Set(ids.filter(Boolean))).slice(0, MAX_FORWARD_SELECTION));
+  }, []);
+
+  const openForwardDialog = useCallback(() => {
+    if (selectedMessageIds.length > 0) setForwardOpen(true);
+  }, [selectedMessageIds.length]);
+
+  const closeForwardDialog = useCallback(() => setForwardOpen(false), []);
+  const finishForward = useCallback(() => {
+    setForwardOpen(false);
+    setSelectedMessageIds([]);
+  }, []);
 
   const refreshConversations = useCallback(async () => {
     if (!signedIn) return;
@@ -182,6 +222,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const openList = useCallback(
     (nextVariant: ChatVariant = 'drawer') => {
       if (!requireSession()) return;
+      clearSelection();
       setVariant(nextVariant);
       setView('list');
       setConversationId(null);
@@ -190,12 +231,13 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setError(null);
       void refreshConversations();
     },
-    [requireSession, refreshConversations],
+    [clearSelection, requireSession, refreshConversations],
   );
 
   const openChat = useCallback(
     async (input: OpenChatInput, nextVariant: ChatVariant = 'drawer') => {
       if (!requireSession()) return;
+      clearSelection();
       setVariant(nextVariant);
       setOpen(true);
       setView('thread');
@@ -244,19 +286,23 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setBusy(false);
       }
     },
-    [api, loadMessages, refreshConversations, refreshUnread, requireSession, showToast],
+    [api, clearSelection, loadMessages, refreshConversations, refreshUnread, requireSession, showToast],
   );
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    setOpen(false);
+    clearSelection();
+  }, [clearSelection]);
 
   const backToList = useCallback(() => {
+    clearSelection();
     setView('list');
     setConversationId(null);
     setActivePeer(null);
     setMessages([]);
     setError(null);
     void refreshConversations();
-  }, [refreshConversations]);
+  }, [clearSelection, refreshConversations]);
 
   const loadMoreConversations = useCallback(async () => {
     if (!signedIn || loadingConversations || !hasMoreConversations) return;
@@ -482,6 +528,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       error,
       unreadTotal,
       signedIn,
+      selectedMessageIds,
+      forwardOpen,
       openList,
       openChat,
       close,
@@ -495,15 +543,24 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       openWithUser,
       sendText,
       sendAttachments,
+      toggleSelectedMessage,
+      setSelectedMessages,
+      clearSelection,
+      openForwardDialog,
+      closeForwardDialog,
+      finishForward,
       clearError,
     }),
     [
       open, variant, view, conversationId, activePeer, projectId, projectLabel,
       conversations, messages, hasMoreConversations, hasMoreMessages,
       loadingConversations, loadingMessages, searching, searchResults, busy,
-      error, unreadTotal, signedIn, openList, openChat, close, backToList,
+      error, unreadTotal, signedIn, selectedMessageIds, forwardOpen,
+      openList, openChat, close, backToList,
       refreshConversations, loadMoreConversations, loadMoreMessages,
-      searchUsers, clearSearch, openWithUser, sendText, sendAttachments, clearError,
+      searchUsers, clearSearch, openWithUser, sendText, sendAttachments,
+      toggleSelectedMessage, setSelectedMessages, clearSelection,
+      openForwardDialog, closeForwardDialog, finishForward, clearError,
     ],
   );
 

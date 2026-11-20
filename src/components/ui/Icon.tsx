@@ -80,6 +80,7 @@ export type IconName =
   | 'chevronLeft'
   | 'phone'
   | 'checkDouble'
+  | 'forward'
   /* فاز ۹٫۵: زنگوله‌ی عملیات، متمایز از زنگوله‌ی اعلان */
   | 'activityBell';
 
@@ -164,6 +165,7 @@ const PATHS: Record<IconName, string> = {
   chevronLeft: 'M15 5l-7 7 7 7',
   phone: 'M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM11 18h2',
   checkDouble: 'M2 13l4 4 7-8M10 17l1.5 1.5L22 8',
+  forward: 'M4 18h6a5 5 0 0 0 5-5V8M12 5l3 3-3 3M21 13h-4m4 0-3-3m3 3-3 3',
   /* زنگولهای با خط ضربان — قابل تشخیص از `bell` ساده‌ی اعلان */
   activityBell: 'M18 9a6 6 0 0 0-12 0c0 5-1.5 6.5-2 7h16c-.5-.5-2-2-2-7M10 20h4M6.5 9H9l1.5 3 2-5 1.5 2h3.5',
 };
