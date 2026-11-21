@@ -7,6 +7,7 @@ import { NotificationCenter } from '@/components/chat/NotificationCenter';
 import { ActivityBell } from '@/components/activities/ActivityBell';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
+import { TopbarIdentity } from './TopbarIdentity';
 import type { NavGroup } from '@/lib/navigation';
 
 export interface AppShellProps {
@@ -94,7 +95,12 @@ export function AppShell({
         <Topbar
           title={title}
           search={search}
-          actions={actions}
+          actions={
+            <>
+              <TopbarIdentity />
+              {actions}
+            </>
+          }
           expanded={open}
           onMenu={() => setOpen((value) => !value)}
         />

@@ -58,6 +58,13 @@ export interface ActivityPage {
   unseenTotal: number;
   /** فاز ۱۲٫۱۴-د: شناسه کارت بازبینی باز، برای غیرفعالسازی دکمه ثبت تازه. */
   openDispute: string | null;
+  /** فاز ۱۲٫۱۵: درخواست واریز در انتظار و کارت مربوط به آن. */
+  pendingPayment?: {
+    paymentRequestId: string;
+    activityId: string | null;
+    amount: number;
+    stage: string;
+  } | null;
   project: ActivityProjectSummary;
   serverTime: string;
 }

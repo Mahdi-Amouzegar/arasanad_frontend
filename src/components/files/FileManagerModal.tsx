@@ -521,6 +521,8 @@ export function FileManagerModal({
       ref={dialogRef}
       className="fm-modal"
       aria-labelledby="fm-title"
+      // فاز ۱۲٫۱۵-ج: کلیک داخل پنجره‌ی مشترک نباید مودال پدر را ببندد.
+      onMouseDown={(event) => event.stopPropagation()}
       onCancel={handleClose}
       onClick={(e) => {
         if (e.target === dialogRef.current) handleClose();

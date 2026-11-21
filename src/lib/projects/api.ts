@@ -107,6 +107,13 @@ export interface ProjectFinanceSummary {
   pendingCount: number;
   escrowStatus: string | null;
   downloadUnlocked: boolean;
+  /** فاز ۱۲٫۱۵: درخواست واریز در انتظار تأیید و کارت مربوط به آن. */
+  pendingPayment?: {
+    paymentRequestId: string;
+    activityId: string | null;
+    amount: number;
+    stage: string;
+  } | null;
 }
 
 /** Owner/admin view — camelCase, exactly as returned by the backend. */

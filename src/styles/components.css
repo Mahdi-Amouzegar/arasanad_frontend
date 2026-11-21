@@ -242,6 +242,18 @@
   color: var(--c-info);
 }
 
+/* فاز ۱۲٫۱۵: نشان وضعیتی که به کارت عملیات متصل است، رفتار دکمه دارد. */
+a.badge--link {
+  cursor: pointer;
+  text-decoration: none;
+  border: 1px solid currentColor;
+}
+a.badge--link:hover,
+a.badge--link:focus-visible {
+  filter: brightness(1.08);
+  text-decoration: none;
+}
+
 /* ───────────────────────────── StatCard ───────────────────────────── */
 
 .stat {
@@ -676,6 +688,32 @@
   display: flex;
   align-items: center;
   gap: var(--sp-2);
+}
+
+/* فاز ۱۲٫۱۵-د: آواتار و نام کاربر فعال، عمودی و در ابتدای سمت راست. */
+.topbar__identity {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: 120px;
+  padding: 2px 6px;
+  border-radius: var(--r-md);
+  color: var(--c-text-secondary);
+  text-decoration: none;
+}
+.topbar__identity:hover,
+.topbar__identity:focus-visible {
+  background: var(--c-surface-sunken);
+  color: var(--c-text);
+}
+.topbar__identity-name {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-xs);
+  line-height: 1.4;
 }
 
 /* دکمه‌ی بازکردن سایدبار — فقط موبایل */

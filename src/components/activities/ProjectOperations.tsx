@@ -18,7 +18,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { errorText, formatProjectCodeSafe } from '@/components/projects/ui-utils';
-import { createActivitiesApi, type ActivityItem, type ActivityProjectSummary } from '@/lib/activities/api';
+import { createActivitiesApi, type ActivityItem, type ActivityPage, type ActivityProjectSummary } from '@/lib/activities/api';
 import {
   ACTIVITY_PAGE_SIZE,
   mergeActivities,
@@ -27,6 +27,7 @@ import {
 import { useActivities } from './ActivityProvider';
 import { ActivityCard } from './ActivityCard';
 import { ActivityComposer } from './ActivityComposer';
+import { ApprovePaymentDialog } from '@/components/projects/ApprovePaymentDialog';
 
 function readIdFromLocation(): string {
   if (typeof window === 'undefined') return '';
@@ -49,6 +50,8 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
   const [id, setId] = useState('');
   const [focusActivity, setFocusActivity] = useState('');
   const [openDispute, setOpenDispute] = useState<string | null>(null);
+  const [pendingPayment, setPendingPayment] = useState<ActivityPage['pendingPayment']>(null);
+  const [approveOpen, setApproveOpen] = useState(false);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [project, setProject] = useState<ActivityProjectSummary | null>(null);
   const [hasMore, setHasMore] = useState(false);
@@ -73,6 +76,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
         const page = await api.list(id, ACTIVITY_PAGE_SIZE, offset);
         setProject(page.project);
         setOpenDispute(page.openDispute);
+        setPendingPayment(page.pendingPayment ?? null);
         setActivities((prev) => newestFirst(mergeActivities(more ? prev : [], page.activities)));
         setHasMore(page.hasMore);
         setError(null);
@@ -181,6 +185,18 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
           </p>
         </div>
         <div className="act-page__actions">
+          {role === 'admin' && pendingPayment?.paymentRequestId ? (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setApproveOpen(true)}
+              leadingIcon={<Icon name="check" size={15} />}
+            >
+              {pendingPayment.stage === 'final'
+                ? 'تأیید مبلغ اعلامی واریزی نهایی توسط مشتری'
+                : 'تأیید مبلغ اعلامی واریزی بیعانه توسط مشتری'}
+            </Button>
+          ) : null}
           <Button
             variant="ghost"
             size="sm"
@@ -253,6 +269,23 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
           ) : null}
         </div>
       )}
+      {approveOpen && pendingPayment?.paymentRequestId ? (
+        <ApprovePaymentDialog
+          paymentRequestId={pendingPayment.paymentRequestId}
+          defaultAmount={pendingPayment.amount}
+          projectId={id}
+          role={role}
+          title={pendingPayment.stage === 'final'
+            ? 'تأیید مبلغ اعلامی واریزی نهایی توسط مشتری'
+            : 'تأیید مبلغ اعلامی واریزی بیعانه توسط مشتری'}
+          onClose={() => setApproveOpen(false)}
+          onDone={async () => {
+            setApproveOpen(false);
+            reload();
+            void refreshBell(true).catch(() => undefined);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

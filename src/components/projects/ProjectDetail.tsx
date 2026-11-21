@@ -210,10 +210,6 @@ export function ProjectDetail() {
       setActionError('نرخ پیشنهادی نمی‌تواند کمتر از نرخ پایه باشد');
       return;
     }
-    if (rate > base && reason.trim().length === 0) {
-      setActionError('برای افزایش نرخ، دلیل الزامی است');
-      return;
-    }
     const deposit = Number(quoteDeposit);
     if (!Number.isInteger(deposit) || deposit < 1) {
       setActionError('مبلغ بیعانه باید عددی صحیح و مثبت باشد');
@@ -369,6 +365,15 @@ export function ProjectDetail() {
 
   const { project, history, notes } = detail;
   const isAdmin = user?.role === 'admin';
+  // فاز ۱۲٫۱۵-ج: badge بیعانه به کارت اعلام واریز متصل می‌شود.
+  const pendingPayment = project.finance?.pendingPayment ?? null;
+  const depositBadgeHref = pendingPayment?.activityId
+    ? `/${role === 'admin' ? 'admin' : 'panel'}/projects/operations/?id=${encodeURIComponent(project.id)}&activity=${encodeURIComponent(pendingPayment.activityId)}`
+    : undefined;
+  const awaitingDepositConfirmation =
+    project.status === 'awaiting_deposit'
+    && pendingPayment?.stage === 'deposit'
+    && Boolean(pendingPayment.paymentRequestId);
   const isOwner = Boolean(user && (!project.customerId || project.customerId === user.id));
   // فاز ۱۲٫۱۰-ب: «سفارش‌گردانی» از سلول اقدام به هدر کارت منتقل می‌شود؛
   // «جزئیات سفارش» چون خود صفحه‌ی جزئیات است، حذف می‌شود.
@@ -453,7 +458,12 @@ export function ProjectDetail() {
         <CardBody>
           {/* فاز ۱۲٫۹-س: نشانگر بازبینی در ردیف نشانها، با تاکید قرمز. */}
           <div className="prj-badges">
-            <ProjectStatusBadge status={project.status as ProjectStatus} />
+            <ProjectStatusBadge
+              status={project.status as ProjectStatus}
+              href={awaitingDepositConfirmation ? depositBadgeHref : undefined}
+              label={awaitingDepositConfirmation ? 'در انتظار تأیید پرداخت بیعانه توسط مدیر' : undefined}
+              title={awaitingDepositConfirmation ? 'برای دیدن کارت اعلام واریز بیعانه کلیک کنید' : undefined}
+            />
             <FinancialStatusBadge status={financialStatusOf(project)} />
             {deliveryState ? <DeliveryStateBadge state={deliveryState} /> : null}
             {(Array.isArray(project.availableActions) ? project.availableActions : [])
@@ -563,7 +573,7 @@ export function ProjectDetail() {
             </div>
           </div>
           {project.quoteReason ? (
-            <p className="prj-note">دلیل تغییر نرخ: {project.quoteReason}</p>
+            <p className="prj-note">توضیحات بیعانه: {project.quoteReason}</p>
           ) : null}
         </CardBody>
       </Card>

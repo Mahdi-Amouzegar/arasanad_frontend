@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Badge } from './Badge';
 import { Icon } from './Icon';
 import {
@@ -27,9 +28,30 @@ function render(label: string, tone: Parameters<typeof Badge>[0]['tone'], icon: 
   );
 }
 
-export function ProjectStatusBadge({ status }: { status: ProjectStatus }) {
+export function ProjectStatusBadge({
+  status,
+  href,
+  label,
+  title,
+}: {
+  status: ProjectStatus;
+  /** فاز ۱۲٫۱۵: تبدیل نشان به دکمهای که مستقیماً به کارت عملیات می‌رود. */
+  href?: string;
+  label?: string;
+  title?: string;
+}) {
   const meta = PROJECT_STATUS[status];
-  return render(meta.label, meta.tone, meta.icon, meta.description);
+  const text = label ?? meta.label;
+  const hint = title ?? meta.description;
+  if (href) {
+    return (
+      <Link className={`badge badge--${meta.tone} badge--link`} href={href} title={hint}>
+        <Icon name={meta.icon} size={13} />
+        <span title={hint}>{text}</span>
+      </Link>
+    );
+  }
+  return render(text, meta.tone, meta.icon, hint);
 }
 
 export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {

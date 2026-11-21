@@ -24,6 +24,7 @@ import { validateAmount } from '@/lib/finance/core.mjs';
 import { createProjectsApi } from '@/lib/projects/api';
 import { createNonce } from '@/lib/chat/core.mjs';
 import { operationsHref } from '@/lib/activities/core.mjs';
+import { ApprovePaymentDialog } from './ApprovePaymentDialog';
 
 export interface ProjectActionDialogProps {
   action: ProjectAction;
@@ -36,7 +37,7 @@ export interface ProjectActionDialogProps {
 
 const TITLES: Record<string, string> = {
   declare_payment: 'اعلام واریز',
-  approve_payment: 'تأیید واریز',
+  approve_payment: 'تأیید مبلغ اعلامی واریزی بیعانه توسط مشتری',
   pay_from_wallet: 'واریز از کیف پول',
   set_final_amount: 'ثبت مبلغ نهایی',
   pay_online: 'پرداخت آنلاین',
@@ -78,6 +79,21 @@ export function ProjectActionDialog({
 
   const title = useMemo(() => TITLES[intent] ?? action.label, [intent, action.label]);
 
+  // فاز ۱۲٫۱۵-ج: تأیید مبلغ از هر محل همان پنجره‌ی مشترک را باز می‌کند.
+  if (intent === 'approve_payment') {
+    return (
+      <ApprovePaymentDialog
+        paymentRequestId={action.paymentRequestId ?? ''}
+        defaultAmount={Number(action.amount ?? 0)}
+        projectId={project.id}
+        role={role}
+        title={title}
+        onClose={onClose}
+        onDone={onDone}
+      />
+    );
+  }
+
   function onFilesSelected(result: FileManagerResult) {
     const ids = result.files.map((file) => file.id).filter(Boolean);
     setFileIds((prev) => Array.from(new Set([...prev, ...ids])).slice(0, 10));
@@ -93,10 +109,7 @@ export function ProjectActionDialog({
         setError('نرخ هر صفحه باید عددی صحیح و مثبت باشد');
         return;
       }
-      if (!note.trim()) {
-        setError('توضیح تعیین نرخ الزامی است');
-        return;
-      }
+      // فاز ۱۲٫۱۵-ب: توضیح نرخ کاملاً اختیاری است.
       const checkedDeposit = validateAmount(depositAmount);
       if (!checkedDeposit.ok || !Number.isInteger(checkedDeposit.value)) {
         setError('مبلغ بیعانه باید عددی صحیح و مثبت باشد');
@@ -181,7 +194,7 @@ export function ProjectActionDialog({
   }
 
   return (
-    <div className="pad-backdrop" role="presentation" onMouseDown={onClose}>
+    <div className="pad-backdrop" role="presentation" onMouseDown={() => { if (!fmOpen) onClose(); }}>
       <div
         className="pad-dialog"
         role="dialog"
