@@ -141,8 +141,6 @@ test('P1217-F8: notification, activity and chat providers subscribe and pause po
       [
         'chat.message.created',
         'chat.message.read',
-        'chat.conversation.updated',
-        'chat.unread.updated',
       ],
     ],
   ];

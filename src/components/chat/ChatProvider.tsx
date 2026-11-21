@@ -524,7 +524,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
   // Phase 12.17: realtime events replace business polling while connected.
   useRealtimeEvent(
-    ['chat.message.created', 'chat.message.read', 'chat.conversation.updated', 'chat.unread.updated'],
+    ['chat.message.created', 'chat.message.read'],
     (event) => {
       if (!signedIn) return;
       const payload = event.payload ?? {};
@@ -548,8 +548,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         void refreshConversations();
         return;
       }
-      if (event.type === 'chat.unread.updated') {
+      if (event.type === 'chat.message.read') {
         void syncUnread();
+        void refreshConversations();
         return;
       }
       void refreshConversations();
