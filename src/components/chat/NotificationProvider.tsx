@@ -34,6 +34,7 @@ import {
 } from '@/lib/notifications/browser';
 import { POLL_CACHE_MS, pollDelayFor } from '@/lib/chat/core.mjs';
 import { usePollLeader } from '@/lib/connectivity/poll-leader';
+import { useRealtimeEvent, useRealtimeStatus } from '@/components/system/RealtimeProvider';
 
 interface NotificationContextValue {
   /** آیا کاربر وارد شده است — برای پنهان کردن کامل لایه‌ی اعلان در صفحات عمومی */
@@ -69,6 +70,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const api = useMemo(() => createNotificationsApi(authedRequest), [authedRequest]);
   // فاز ۱۰ (O-99): پایش پس‌زمینه فقط از تب رهبر و فقط آنلاین.
   const { isLeader, online, multiplier, publish, subscribe } = usePollLeader();
+  const { connected } = useRealtimeStatus();
 
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -100,6 +102,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     }
   }, [api, signedIn]);
+
+  const syncUnread = useCallback(async () => {
+    if (!signedIn) return;
+    try {
+      const count = await api.unreadCount();
+      setUnreadCount(count);
+      lastCountRef.current = count;
+      publish('notifications', { unreadCount: count });
+      void setAppBadge(count);
+    } catch {
+      /* unread count is optional */
+    }
+  }, [api, publish, signedIn]);
 
   const loadMore = useCallback(async () => {
     if (!signedIn || loading || !hasMore) return;
@@ -193,6 +208,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   /* ── Polling هوشمند ── */
   useEffect(() => {
     if (!signedIn) return undefined;
+    void refreshTelegramStatus();
+    // Phase 12.17: skip business polling while realtime is connected.
+    if (connected) return undefined;
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let failures = 0;
@@ -265,7 +283,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       window.addEventListener('pointerdown', noteInteraction);
       window.addEventListener('keydown', noteInteraction);
     }
-    void refreshTelegramStatus();
     if (isLeader && online) void tick();
 
     return () => {
@@ -277,7 +294,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         window.removeEventListener('keydown', noteInteraction);
       }
     };
-  }, [api, refresh, refreshTelegramStatus, signedIn, isLeader, online, multiplier, publish]);
+  }, [api, refresh, refreshTelegramStatus, signedIn, isLeader, online, multiplier, publish, connected]);
 
   /** تب‌های پیرو شمارنده اعلان را بدون درخواست شبک‌ای می‌گیرند. */
   useEffect(() => {
@@ -293,6 +310,13 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
     });
   }, [isLeader, signedIn, subscribe]);
+
+  // Phase 12.17: realtime events replace business polling while connected.
+  useRealtimeEvent(['notification.created', 'notification.read'], () => {
+    if (!signedIn) return;
+    void syncUnread();
+    void refresh();
+  });
 
   const value = useMemo<NotificationContextValue>(
     () => ({

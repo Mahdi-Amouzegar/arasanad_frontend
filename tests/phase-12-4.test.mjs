@@ -10,14 +10,14 @@ import { join } from 'node:path';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const read = (rel) => readFileSync(join(ROOT, rel), 'utf8');
 
-test('P124-05: پروفایل کاربر تازه پیام انتظار بیلد نشان می‌دهد', () => {
-  const view = read('src/app/profile/ProfileView.tsx');
-  assert.ok(view.includes('hasStaticProfile'), 'وضعیت وجود صفحه ایستا محاسبه ن‌می‌شود');
-  assert.ok(view.includes('isPublicProfileSlug(publicCode)'), 'اسنپشات زمان بیلد چک ن‌می‌شود');
-  assert.ok(view.includes('لینک اختصاصی پنل'), 'پیام انتظار وجود ندارد');
-  assert.ok(view.includes('name="clock"'), 'آیکون وضعیت وجود ندارد');
-  assert.ok(view.includes('href="/panel/"'), 'لینک موقت پنل وجود ندارد');
-  assert.ok(view.includes('permanentProfileHref'), 'لینک دائمی post-build وجود ندارد');
+test("P124-05: پروفایل کاربر لینک پایدار فوری نشان می‌دهد", () => {
+  const view = read("src/app/profile/ProfileView.tsx");
+  assert.ok(view.includes("profileQueryHref(publicProfileCode(user))"), "لینک پایدار فوری ساخته نمی‌شود");
+  assert.ok(view.includes("permanentProfileHref"), "لینک دائمی وجود ندارد");
+  assert.ok(view.includes("linkCopied") && view.includes("کپی لینک"), "کپی لینک وجود ندارد");
+  assert.ok(!view.includes("hasStaticProfile"), "منطق انتظار بیلد حذف نشد");
+  assert.ok(!view.includes("name=\"clock\""), "آیکون انتظار حذف نشد");
+  assert.ok(!view.includes("لینک اختصاصی پنل شما"), "پیام انتظار بیلد حذف نشد");
 });
 
 test('P124-06: اسنپشات نام کاربری با فهرست API ادغام می‌شود', () => {

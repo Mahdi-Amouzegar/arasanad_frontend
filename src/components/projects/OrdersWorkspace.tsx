@@ -24,6 +24,7 @@ import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useRealtimeEvent } from '@/components/system/RealtimeProvider';
 
 interface FinancePayment {
   id: string;
@@ -244,6 +245,20 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
   const [financeFor, setFinanceFor] = useState<Project | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
+
+  const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedRealtimeRefresh = useCallback(() => {
+    if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+    realtimeTimerRef.current = setTimeout(() => {
+      realtimeTimerRef.current = null;
+      reload();
+    }, 300);
+  }, [reload]);
+  useEffect(() => () => {
+    if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+  }, []);
+  // Phase 12.17: refetch keeps server-side filters, sorting and counts intact.
+  useRealtimeEvent(['project.created', 'project.status_changed'], debouncedRealtimeRefresh);
 
   useEffect(() => {
     let alive = true;

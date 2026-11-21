@@ -36,6 +36,7 @@ import {
 } from '@/lib/chat/core.mjs';
 import type { SelectedFile, SelectedLink } from '@/components/files/FileManagerModal';
 import { usePollLeader } from '@/lib/connectivity/poll-leader';
+import { useRealtimeEvent, useRealtimeStatus } from '@/components/system/RealtimeProvider';
 import { MAX_FORWARD_SELECTION } from '@/lib/chat/forward-core.mjs';
 
 export type ChatVariant = 'drawer' | 'popover';
@@ -112,6 +113,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const signedIn = Boolean(user && token);
   // فاز ۱۰ (O-99): فقط تب رهبر پایش پس‌زمینه می‌کند؛ بقیه از پخش تب می‌گیرند.
   const { isLeader, online, multiplier, publish, subscribe } = usePollLeader();
+  const { connected } = useRealtimeStatus();
 
   const [open, setOpen] = useState(false);
   const [variant, setVariant] = useState<ChatVariant>('drawer');
@@ -201,6 +203,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       /* شمارنده اختیاری است؛ شکست آن گفتگو را مختل نمی‌کند */
     }
   }, [api, signedIn]);
+
+  const syncUnread = useCallback(async () => {
+    if (!signedIn) return;
+    try {
+      const count = Math.max(0, Number(await api.unreadCount()) || 0);
+      setUnreadTotal(count);
+      publish('chat', { unreadTotal: count });
+    } catch {
+      /* unread count is optional */
+    }
+  }, [api, publish, signedIn]);
 
   const loadMessages = useCallback(
     async (id: string) => {
@@ -426,6 +439,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   /* ── Polling هوشمند: توقف در تب مخفی، فوراً پس از بازگشت ── */
   useEffect(() => {
     if (!signedIn) return undefined;
+    void refreshUnread();
+    // Phase 12.17: skip business polling while realtime is connected.
+    if (connected) return undefined;
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let failures = 0;
@@ -483,7 +499,6 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       window.addEventListener('pointerdown', noteInteraction);
       window.addEventListener('keydown', noteInteraction);
     }
-    void refreshUnread();
     if (isLeader && online) void tick();
 
     return () => {
@@ -495,7 +510,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         window.removeEventListener('keydown', noteInteraction);
       }
     };
-  }, [api, refreshUnread, signedIn, isLeader, online, multiplier, publish]);
+  }, [api, refreshUnread, signedIn, isLeader, online, multiplier, publish, connected]);
 
   /** تب‌های پیرو شمارنده را بدون درخواست شبک‌ای از رهبر می‌گیرند. */
   useEffect(() => {
@@ -506,6 +521,40 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       if (Number.isFinite(count)) setUnreadTotal(Math.max(0, count));
     });
   }, [isLeader, signedIn, subscribe]);
+
+  // Phase 12.17: realtime events replace business polling while connected.
+  useRealtimeEvent(
+    ['chat.message.created', 'chat.message.read', 'chat.conversation.updated', 'chat.unread.updated'],
+    (event) => {
+      if (!signedIn) return;
+      const payload = event.payload ?? {};
+      const changedId = typeof payload.conversationId === 'string' ? payload.conversationId : null;
+      const activeId = openRef.current ? conversationRef.current : null;
+      if (event.type === 'chat.message.created' && activeId && changedId === activeId) {
+        void (async () => {
+          try {
+            const page = await api.listMessages(activeId);
+            setMessages((prev) => mergeMessages(prev, page.messages));
+            void api.markRead(activeId).then(refreshUnread).catch(() => undefined);
+          } catch {
+            /* retry on next event, visibility or reconnect */
+          }
+        })();
+        void syncUnread();
+        return;
+      }
+      if (event.type === 'chat.message.created') {
+        void syncUnread();
+        void refreshConversations();
+        return;
+      }
+      if (event.type === 'chat.unread.updated') {
+        void syncUnread();
+        return;
+      }
+      void refreshConversations();
+    },
+  );
 
   const value = useMemo<ChatContextValue>(
     () => ({

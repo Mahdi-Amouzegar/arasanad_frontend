@@ -15,6 +15,8 @@ import { CustomerDashboard } from '@/components/panel/CustomerDashboard';
 import { CustomerFiles } from '@/components/panel/CustomerFiles';
 import { CustomerProfileAlias } from '@/components/panel/CustomerProfileAlias';
 import { PublicProfileView } from '@/components/panel/PublicProfileView';
+import { PublicProfileQuery } from '@/components/panel/PublicProfileQuery';
+import { PanelQueryGate } from '@/components/panel/PanelQueryGate';
 import { CUSTOMER_GROUPS, CUSTOMER_PAGES, hrefFromSlug, infoFor, slugsFor } from '@/lib/panel-pages';
 import { isPublicProfileSlug, profileHandleLabel, profileSlugs } from '@/lib/profiles';
 
@@ -98,7 +100,7 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
 
   if (view) {
     const mobile = (CUSTOMER_GROUPS[0]?.items ?? []).slice(0, 5);
-    return (
+    const dashboard = (
       <AppShell
         groups={CUSTOMER_GROUPS}
         activeHref={view === 'pay-result' ? '/panel/pay' : href}
@@ -177,6 +179,13 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
         )}
       </AppShell>
     );
+
+    // فاز ۱۲٫۱۷: در ریشهٔ `/panel/` تنها موقعی که پارامتر `u` در مرورگر
+    // وجود دارد، نمای عمومی جای داشبورد خصوصی می\u200cنشیند.
+    if (href === '/panel') {
+      return <PanelQueryGate queryBranch={<PublicProfileQuery />}>{dashboard}</PanelQueryGate>;
+    }
+    return dashboard;
   }
 
   return (

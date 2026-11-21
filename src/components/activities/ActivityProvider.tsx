@@ -32,6 +32,7 @@ import {
   visibleUnseenGroups,
 } from '@/lib/activities/core.mjs';
 import { usePollLeader } from '@/lib/connectivity/poll-leader';
+import { useRealtimeEvent, useRealtimeStatus } from '@/components/system/RealtimeProvider';
 import { governorDecision } from '@/lib/connectivity/poll-governor.mjs';
 
 interface ActivityContextValue {
@@ -77,6 +78,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
   const role: 'admin' | 'customer' = user?.role === 'admin' ? 'admin' : 'customer';
   const api = useMemo(() => createActivitiesApi(authedRequest), [authedRequest]);
   const { isLeader, online, multiplier, publish, subscribe } = usePollLeader();
+  const { connected } = useRealtimeStatus();
 
   const [groups, setGroups] = useState<UnseenGroup[]>([]);
   const [unseenTotal, setUnseenTotal] = useState(0);
@@ -179,6 +181,11 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
     });
   }, [applyState, isLeader, signedIn, subscribe]);
 
+  // Phase 12.17: realtime events replace business polling while connected.
+  useRealtimeEvent(['activity.created', 'project.status_changed', 'project.created'], () => {
+    void refresh(false);
+  });
+
   const markSeen = useCallback(
     async (activityIds: string[], projectId?: string) => {
       if (!signedIn || activityIds.length === 0) return;
@@ -207,6 +214,8 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       etagRef.current = null;
       return undefined;
     }
+    // Phase 12.17: no business timers while the realtime socket is connected.
+    if (connected) return undefined;
 
     let alive = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -269,7 +278,7 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
         document.removeEventListener('visibilitychange', onVisibility);
       }
     };
-  }, [refresh, signedIn, isLeader, online, multiplier]);
+  }, [refresh, signedIn, isLeader, online, multiplier, connected]);
 
   const value = useMemo<ActivityContextValue>(
     () => ({

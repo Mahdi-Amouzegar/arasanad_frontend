@@ -1,7 +1,7 @@
 'use client';
 
 import { CopyableCode } from '@/components/projects/CopyableCode';
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
 import { createProjectsApi, type Project, type ProjectAction } from '@/lib/projects/api';
@@ -20,6 +20,7 @@ import { ProjectActionDialog } from './ProjectActionDialog';
 import { ProjectSpecsDialog } from './ProjectSpecsDialog';
 import { FinanceDialog } from './OrdersWorkspace';
 import { errorText, formatHours, formatProjectCodeSafe } from './ui-utils';
+import { useRealtimeEvent } from '@/components/system/RealtimeProvider';
 
 /** فقط مسیرهای نسبی درون‌برنامه‌ای؛ پاسخ سرور هرگز کورکورانه لینک نمی‌شود. */
 function safeActionHref(href: string | undefined, fallback: string): string {
@@ -168,6 +169,20 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
   }, [api, status, query, sort, reloadKey]);
 
   const refresh = useCallback(() => setReloadKey((value) => value + 1), []);
+
+  const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debouncedRealtimeRefresh = useCallback(() => {
+    if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+    realtimeTimerRef.current = setTimeout(() => {
+      realtimeTimerRef.current = null;
+      refresh();
+    }, 300);
+  }, [refresh]);
+  useEffect(() => () => {
+    if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
+  }, []);
+  // Phase 12.17: refetch keeps server-side filters, sorting and counts intact.
+  useRealtimeEvent(['project.created', 'project.status_changed'], debouncedRealtimeRefresh);
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

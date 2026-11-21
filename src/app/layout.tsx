@@ -19,6 +19,7 @@ import { NotificationProvider } from '@/components/chat/NotificationProvider';
 import { ActivityProvider } from '@/components/activities/ActivityProvider';
 import { AlertProvider } from '@/components/ui/AlertProvider';
 import { AccountProvider } from '@/components/system/AccountProvider';
+import { RealtimeProvider } from '@/components/system/RealtimeProvider';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
 import { AndroidBackHandler } from '@/components/system/AndroidBackHandler';
 import { ConnectivityBootstrap } from '@/components/system/ConnectivityBootstrap';
@@ -75,19 +76,21 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <AlertProvider>
           <AndroidBackHandler />
           <AccountProvider>
-            {/* فاز ۹: گفتگو و اعلان، یک وضعیت سراسری در تمام صفحات.
-                ⚠️ ترتیب وابستگی: هر دو Provider به useAuth نیاز دارند،
-                   پس حتماً درون AccountProvider قرار می‌گیرند. */}
-            <NotificationProvider>
-              {/* فاز ۹٫۵: زنگوله‌ی عملیات، مستقل از اعلان فاز ۹. */}
-              <ActivityProvider>
-                <ChatProvider>
-                  {children}
-                  <ChatDock />
-                  <ChatLauncher />
-                </ChatProvider>
-              </ActivityProvider>
-            </NotificationProvider>
+            <RealtimeProvider>
+              {/* فاز ۹: گفتگو و اعلان، یک وضعیت سراسری در تمام صفحات.
+                  ⚠️ ترتیب وابستگی: هر دو Provider به useAuth نیاز دارند،
+                     پس حتماً درون AccountProvider قرار می‌گیرند. */}
+              <NotificationProvider>
+                {/* فاز ۹٫۵: زنگوله‌ی عملیات، مستقل از اعلان فاز ۹. */}
+                <ActivityProvider>
+                  <ChatProvider>
+                    {children}
+                    <ChatDock />
+                    <ChatLauncher />
+                  </ChatProvider>
+                </ActivityProvider>
+              </NotificationProvider>
+            </RealtimeProvider>
           </AccountProvider>
         </AlertProvider>
         <ServiceWorkerRegister />

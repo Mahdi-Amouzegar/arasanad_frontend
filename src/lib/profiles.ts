@@ -36,6 +36,17 @@ export function profileHref(publicId: string): string {
   return `/panel/${encodeURIComponent(publicId.trim().toLowerCase())}/`;
 }
 
+/**
+ * فاز ۱۲٫۱۷ — نشانی پایدار بدون نیاز به Build.
+ *
+ * ⚠️ قالب `/panel/?u=CODE` روی خروجی ایستا هم کار می‌کند؛ برخلاف مسیر
+ *    پویای `/panel/CODE/` نیازی به اسنپشات یا اجرای مجدد بیلد ندارد.
+ *    توکن و شناسه داخلی هرگز وارد این نشانی نمی‌شوند.
+ */
+export function profileQueryHref(publicId: string): string {
+  return `/panel/?u=${encodeURIComponent(publicId.trim().toLowerCase())}`;
+}
+
 /** کد پایدار پروفایل یک کاربر؛ حتی اگر پاسخ کهن فاقد publicId باشد. */
 export function publicProfileCode(user: { id: string; publicId?: string }): string {
   return isValidPublicId(user.publicId ?? '')
@@ -43,9 +54,9 @@ export function publicProfileCode(user: { id: string; publicId?: string }): stri
     : publicIdFromUserId(user.id);
 }
 
-/** نشانی پروفایل یک کاربر واردشده. */
+/** نشانی پروفایل یک کاربر واردشده — فوری و بدون وابستگی به بیلد. */
 export function profileHrefForUser(user: { id: string; publicId?: string }): string {
-  return profileHref(publicProfileCode(user));
+  return profileQueryHref(publicProfileCode(user));
 }
 
 /** تمام مسیرهای استاتیکی که باید هنگام بیلد ساخته شوند. */

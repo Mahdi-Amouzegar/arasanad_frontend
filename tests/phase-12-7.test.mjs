@@ -38,7 +38,7 @@ test('P127-10: رابط کاربری از کد پایدار استفاده می�
   const view = read('src/app/profile/ProfileView.tsx');
   assert.ok(view.includes('publicProfileCode(user)'), 'کد پروفایل در صفحه حساب محاسبه نمی‌شود');
   assert.ok(view.includes('permanentProfileHref'), 'لینک دائمی براساس کد ساخته نمی‌شود');
-  assert.ok(view.includes('لینک اختصاصی پنل'), 'پیام انتظار بیلد حذف شد');
+  assert.ok(view.includes("profileQueryHref(publicProfileCode(user))"), "لینک دائمی فوری براساس کد ساخته نمی‌شود");
 
   const menu = read('src/components/public/AccountMenu.tsx');
   assert.ok(menu.includes('profileHrefForUser(user)'), 'منوی حساب هنوز از نام کاربری استفاده می‌کند');

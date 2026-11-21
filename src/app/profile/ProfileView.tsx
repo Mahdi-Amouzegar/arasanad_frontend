@@ -15,7 +15,7 @@ import { useAlert } from '@/components/ui/AlertProvider';
 import { OtpQrPanel } from './OtpQrPanel';
 import { useAuth, type AuthUser } from '@/lib/account';
 import { validateUsername } from '@/lib/account/username';
-import { isPublicProfileSlug, profileHrefForUser, publicProfileCode } from '@/lib/profiles';
+import { profileQueryHref, publicProfileCode } from '@/lib/profiles';
 import { ApiError, apiRequest } from '@/lib/api';
 import { formatBytes, processAvatar, uploadAvatar } from '@/lib/avatar';
 import { BASE_PATH } from '@/lib/config';
@@ -64,6 +64,7 @@ export function ProfileView() {
   const [newCode, setNewCode] = useState<OtpCodeResult | null>(null);
   const [creatingCode, setCreatingCode] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const otpTtlId = useId();
   const debounceRef = useRef<number | null>(null);
   const avatarInputRef = useRef<HTMLInputElement | null>(null);
@@ -316,10 +317,23 @@ export function ProfileView() {
   const usernameError =
     usernameState.status === 'taken' ? usernameState.reason : undefined;
 
-  // ⚠️ صفحات پروفایل در بیلد ساخته می‌شوند؛ تا آن زمان آدرس اختصاصی وجود ندارد.
-  const publicCode = publicProfileCode(user);
-  const hasStaticProfile = isPublicProfileSlug(publicCode);
-  const permanentProfileHref = profileHrefForUser(user);
+  // فاز ۱۲٫۱۷: لینک پایدار بلافاصله و بدون انتظار بیلد در دسترس است.
+  const permanentProfileHref = profileQueryHref(publicProfileCode(user));
+
+  const copyProfileLink = async () => {
+    try {
+      const absolute = `${window.location.origin}${BASE_PATH}${permanentProfileHref}`;
+      await navigator.clipboard.writeText(absolute);
+      setLinkCopied(true);
+      showToast({ title: 'لینک پروفایل کپی شد' });
+    } catch {
+      showToast({
+        type: 'error',
+        title: 'کپی نشد',
+        message: 'مرورگر اجازهٔ کپی نداد؛ لینک را دستی رونوشت کنید.',
+      });
+    }
+  };
 
   const usernameHint =
     usernameState.status === 'checking'
@@ -674,29 +688,25 @@ export function ProfileView() {
         )}
       </div>
 
-      {hasStaticProfile ? (
-        <p style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-muted)' }}>
-          نشانی پروفایل عمومی:{' '}
+      <div className="calc-card">
+        <h2 className="section-head__title" style={{ fontSize: 'var(--fs-section)' }}>
+          لینک اختصاصی پروفایل
+        </h2>
+        <p className="prj-note">
+          این لینک پایدار است و بلافاصله قابل استفاده است؛ نیازی به اجرای بیلد سایت نیست.
+          تغییر نام کاربری لینک منتشرشده را خراب نمی‌کند.
+        </p>
+        <div className="row" style={{ gap: 'var(--sp-3)', alignItems: 'center', flexWrap: 'wrap' }}>
           <Link href={permanentProfileHref} className="ltr">
             {BASE_PATH}
             {permanentProfileHref}
           </Link>
-        </p>
-      ) : (
-        <div className="guest-notice guest-notice--inline" role="status">
-          <Icon name="clock" size={18} />
-          <div>
-            <strong>لینک اختصاصی پنل شما تا چند لحظه دیگر فعال می‌شود</strong>
-            <p>
-              آدرس پروفایل شما پس از اجرای بیلد سایت (معمولاً چند دقیقه) در دسترس
-              قرار می‌گیرد. تا آن زمان می‌توانید از پنل کاربری معمولی استفاده کنید.
-            </p>
-            <Link href="/panel/" className="btn btn--outline btn--sm">
-              رفتن به پنل کاربری
-            </Link>
-          </div>
+          <Button variant="outline" size="sm" onClick={copyProfileLink}>
+            <Icon name={linkCopied ? 'check' : 'copy'} size={14} />
+            {linkCopied ? 'کپی شد' : 'کپی لینک'}
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
