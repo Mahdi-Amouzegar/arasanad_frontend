@@ -133,6 +133,11 @@ export interface Project {
   basePricePerPage: number;
   quotedPricePerPage: number | null;
   quoteReason: string | null;
+  /** فاز ۱۲٫۱۶: حالت نرخگذاری و جزئیات فرم مبلغ نهایی. */
+  quoteMode?: 'total' | 'per_page';
+  quoteTotal?: number | null;
+  finalPages?: number;
+  finalPricePerPage?: number;
   estimateAmount: number;
   depositAmount: number;
   designMode: string;
@@ -152,7 +157,7 @@ export interface Project {
   depositSource: string | null;
   customerId?: string;
   customerDisplayName: string | null;
-  /** فاز ۱۲٫۱۰: هویت ثبتکننده برای مودال «مشخصات». */
+  /** فاز ۱۲٫۱۰: هویت ثبت‌کننده برای مودال «مشخصات». */
   customerUsername?: string | null;
   customerAvatarUrl?: string | null;
   customerAvatarFileId?: string | null;
@@ -261,7 +266,13 @@ export interface ProjectsApi {
   getHistory(id: string): Promise<ProjectHistoryItem[]>;
   addNote(id: string, text: string): Promise<ProjectNote>;
   createProject(body: CreateProjectBody): Promise<Project>;
-  submitQuote(id: string, quotedPricePerPage: number, reason: string, depositAmount?: number): Promise<Project>;
+  submitQuote(
+    id: string,
+    quotedPricePerPage: number,
+    reason: string,
+    depositAmount?: number,
+    pricingMode?: 'total' | 'per_page',
+  ): Promise<Project>;
   acceptQuote(id: string): Promise<Project>;
   requestQuoteReview(id: string): Promise<Project>;
   cancelProject(id: string, reason: string): Promise<Project>;
@@ -316,10 +327,10 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
       return data.project;
     },
 
-    async submitQuote(id, quotedPricePerPage, reason, depositAmount) {
+    async submitQuote(id, quotedPricePerPage, reason, depositAmount, pricingMode) {
       const data = await request<{ project: Project }>(projectPath(id, '/quote'), {
         method: 'POST',
-        body: { quotedPricePerPage, reason, depositAmount },
+        body: { quotedPricePerPage, reason, depositAmount, pricingMode: pricingMode ?? 'per_page' },
       });
       return data.project;
     },

@@ -52,8 +52,12 @@ function ProjectActionsCell({
     return <span className="prj-muted">—</span>;
   }
 
-  const links = actions.filter((action) => action.kind === 'link');
-  const buttons = actions.filter((action) => action.kind === 'button');
+  // فاز ۱۲٫۱۶-بند ۲۴: ترتیب سرور حفظ می‌شود تا «پرداخت / شارژ» و «اعلام واریز»
+  // در کنار هم قرار گیرند؛ سبک دکمه‌ها بدون تغییر باقی می‌ماند.
+  const interactive = actions.filter(
+    (action) => action.kind === 'link' || action.kind === 'button',
+  );
+  const buttons = interactive.filter((action) => action.kind === 'button');
   const flags = actions.filter((action) => action.kind === 'flag');
   const future = actions.filter((action) => action.kind === 'future');
   const status = actions.find((action) => action.kind === 'status');
@@ -61,26 +65,27 @@ function ProjectActionsCell({
   return (
     <>
       <div className="prj-action-cell">
-        {links.map((action: ProjectAction, index) => (
-          <Link
-            key={action.id}
-            className={`btn btn--sm ${index === 0 && buttons.length === 0 ? 'btn--primary' : 'btn--outline'}`}
-            href={safeActionHref(action.href, fallback)}
-            title={action.hint ?? action.label}
-          >
-            {action.label}
-          </Link>
-        ))}
-        {buttons.map((action: ProjectAction, index) => (
-          <button
-            key={action.id}
-            type="button"
-            className={`btn btn--sm ${index === 0 ? 'btn--primary' : 'btn--outline'}`}
-            title={action.hint ?? action.label}
-            onClick={() => setActive(action)}
-          >
-            {action.label}
-          </button>
+        {interactive.map((action: ProjectAction, index) => (
+          action.kind === 'link' ? (
+            <Link
+              key={action.id}
+              className={`btn btn--sm ${index === 0 && buttons.length === 0 ? 'btn--primary' : 'btn--outline'}`}
+              href={safeActionHref(action.href, fallback)}
+              title={action.hint ?? action.label}
+            >
+              {action.label}
+            </Link>
+          ) : (
+            <button
+              key={action.id}
+              type="button"
+              className={`btn btn--sm ${action === buttons[0] ? 'btn--primary' : 'btn--outline'}`}
+              title={action.hint ?? action.label}
+              onClick={() => setActive(action)}
+            >
+              {action.label}
+            </button>
+          )
         ))}
         {future.map((action) => (
           <span key={action.id} className="prj-action-future" title={action.hint ?? undefined}>
@@ -265,6 +270,20 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
               {projects.map((project) => {
                 const detailHref = `${detailPath}?id=${encodeURIComponent(project.id)}`;
                 const deliveryAt = project.deliveredAt ?? project.deadlineAt;
+                // فاز ۱۲٫۱۶-بندهای ۹ و ۲۱: عنوان نشان مشخصات پس از اعلام واریز،
+                // متن کوتاه‌تر و متناسب با وضعیت فعلی می‌گیرد.
+                const pendingStage = project.finance?.pendingPayment?.stage ?? null;
+                const hasPending = (project.finance?.pendingCount ?? 0) > 0;
+                const badgeLabel = hasPending && project.status === 'awaiting_deposit' && pendingStage === 'deposit'
+                  ? 'در انتظار تأیید پرداخت بیعانه'
+                  : hasPending && project.status === 'awaiting_final_payment' && pendingStage === 'final'
+                    ? 'در انتظار تأیید پرداخت'
+                    : undefined;
+                const badgeTitle = badgeLabel === 'در انتظار تأیید پرداخت بیعانه'
+                  ? 'بیعانه توسط سفارش‌دهنده اعلام شد؛ منتظر تأیید پرداخت توسط مدیر است.'
+                  : badgeLabel === 'در انتظار تأیید پرداخت'
+                    ? 'مانده توسط سفارش‌دهنده اعلام شد؛ منتظر تأیید پرداخت نهایی توسط مدیر است.'
+                    : undefined;
                 return (
                   <tr key={project.id}>
                     <td data-label="نام سفارش">
@@ -305,7 +324,11 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                         aria-label={`مشخصات سفارش ${project.name}`}
                       >
                         <div className="prj-specs-cell__inner">
-                          <ProjectStatusBadge status={project.status as ProjectStatus} />
+                          <ProjectStatusBadge
+                            status={project.status as ProjectStatus}
+                            label={badgeLabel}
+                            title={badgeTitle}
+                          />
                           <span className="prj-muted">
                             {formatNumberFa(project.sourcePageCount)} صفحه · {formatHours(project.deliveryHours)}
                           </span>

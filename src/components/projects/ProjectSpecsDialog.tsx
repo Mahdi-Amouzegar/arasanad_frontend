@@ -3,7 +3,7 @@
 /**
  * فاز ۱۲٫۱۰-ج: مودال «مشخصات» ردیف سفارش.
  *
- * هدر: آواتار + نام + نام کاربری ثبتکننده + نام سفارش.
+ * هدر: آواتار + نام + نام کاربری ثبت‌کننده + نام سفارش.
  * بدنه: دو بخش متمایز «توضیحات» و «نیازمندی‌های ویژه».
  */
 
@@ -32,7 +32,7 @@ export function ProjectSpecsDialog({ project, onClose }: ProjectSpecsDialogProps
 
   if (!project) return null;
 
-  const registrantName = project.customerDisplayName ?? 'ثبتکننده';
+  const registrantName = project.customerDisplayName ?? 'ثبت‌کننده';
   const avatarSrc = project.customerAvatarUrl ?? (
     project.customerAvatarFileId ? `/media/avatar/${project.customerId}` : null
   );

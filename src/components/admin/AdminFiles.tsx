@@ -2,7 +2,7 @@
 
 /**
  * فاز ۱۲٫۱۳-ز: «فایل‌های موجود» در پنل 관리 — تمام فایل‌های همه کاربران.
- * فیلتر نام ثبتکننده و نام نخستین آپلودکننده سرورمحوراند؛ هیچ مجوزی در
+ * فیلتر نام ثبت‌کننده و نام نخستین آپلودکننده سرورمحوراند؛ هیچ مجوزی در
  * کلاینت حدس زده نمی‌شود.
  */
 
@@ -33,6 +33,8 @@ export function AdminFiles() {
   const [files, setFiles] = useState<AdminFile[]>([]);
   const [draft, setDraft] = useState('');
   const [uploader, setUploader] = useState('');
+  const [scope, setScope] = useState<'all' | 'project' | 'delivery' | 'receipt'>('all');
+  const [filters, setFilters] = useState<Array<{ id: string; label: string; count: number }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<AdminFile | null>(null);
@@ -41,14 +43,15 @@ export function AdminFiles() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.files(uploader);
+      const data = await api.files(uploader, undefined, scope);
       setFiles(Array.isArray(data.files) ? data.files : []);
+      setFilters(Array.isArray(data.filters) ? data.filters : []);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'فهرست فایل‌ها دریافت نشد');
     } finally {
       setLoading(false);
     }
-  }, [authedRequest, uploader]);
+  }, [authedRequest, uploader, scope]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -67,16 +70,33 @@ export function AdminFiles() {
         <CardBody>
           <form className="adm-form-inline" onSubmit={submit}>
             <Input
-              aria-label="نام ثبتکننده فایل"
-              placeholder="نام یا نام کاربری ثبتکننده"
+              aria-label="نام ثبت‌کننده فایل"
+              placeholder="نام یا نام کاربری ثبت‌کننده"
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
             />
             <Button type="submit" size="sm" variant="outline">جستجو</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => { setDraft(''); setUploader(''); }}>
+            <Button type="button" size="sm" variant="ghost" onClick={() => { setDraft(''); setUploader(''); setScope('all'); }}>
               پاک کردن
             </Button>
           </form>
+          {/* فاز ۱۲٫۱۶-بند ۲۵: همان چهار فیلتر «فایل‌های من» در پنل مدیر. */}
+          {filters.length > 0 ? (
+            <div className="panel-filters" role="group" aria-label="فیلتر فایل‌ها">
+              {filters.map((filter) => (
+                <button
+                  type="button"
+                  key={filter.id}
+                  className={`panel-filter${filter.id === scope ? ' panel-filter--active' : ''}`}
+                  aria-pressed={filter.id === scope}
+                  onClick={() => setScope(filter.id as typeof scope)}
+                >
+                  <span>{filter.label}</span>
+                  <span className="panel-filter__count">{formatNumberFa(filter.count)}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </CardBody>
       </Card>
 
@@ -87,14 +107,14 @@ export function AdminFiles() {
           {loading ? (
             <p className="prj-note">در حال بارگذاری…</p>
           ) : files.length === 0 ? (
-            <EmptyState icon={<Icon name="fileText" size={26} />} title="فایلی یافت نشد" description="فیلتر نام ثبتکننده را تغییر دهید." />
+            <EmptyState icon={<Icon name="fileText" size={26} />} title="فایلی یافت نشد" description="فیلتر نام ثبت‌کننده را تغییر دهید." />
           ) : (
             <div className="prj-table-wrap">
               <table className="prj-table">
                 <thead>
                   <tr>
                     <th scope="col">فایل</th>
-                    <th scope="col">ثبتکننده</th>
+                    <th scope="col">ثبت‌کننده</th>
                     <th scope="col">حجم</th>
                     <th scope="col">تاریخ</th>
                     <th scope="col">اقدام</th>
@@ -109,7 +129,7 @@ export function AdminFiles() {
                           <FileName name={file.originalName} className="prj-name" />
                         </div>
                       </td>
-                      <td data-label="ثبتکننده">
+                      <td data-label="ثبت‌کننده">
                         <div className="ord-customer">
                           <Avatar
                             src={file.uploaderAvatarUrl ?? null}

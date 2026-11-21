@@ -33,10 +33,10 @@ test('P1214-01: زوم با کلیک، Ctrl+کلیک، کلیدها و نوار 
 test('P1214-02: فیلد مستقیم بیعانه در رابطهای管理者 و سفارش‌دهنده', () => {
   const api = read('src/lib/projects/api.ts');
   assert.match(api, /depositAmount\?: number/);
-  assert.match(api, /body: \{ quotedPricePerPage, reason, depositAmount \}/);
+  assert.match(api, /body: \{ quotedPricePerPage, reason, depositAmount, pricingMode: pricingMode \?\? 'per_page' \}/);
   const dialog = read('src/components/projects/ProjectActionDialog.tsx');
   assert.match(dialog, /id="pad-deposit"/);
-  assert.match(dialog, /submitQuote\(project\.id, checkedRate\.value, note\.trim\(\), checkedDeposit\.value\)/);
+  assert.match(dialog, /submitQuote\(\s*project\.id, checkedRate\.value, note\.trim\(\), checkedDeposit\.value, pricingMode,?\s*\)/);
   const detail = read('src/components/projects/ProjectDetail.tsx');
   assert.match(detail, /id="prj-quote-deposit"/);
   assert.match(detail, /project\.status === 'awaiting_deposit'/);
@@ -62,7 +62,7 @@ test('P1214-03: فلگها به کارت خاص متصلاند و یکپارچه
   assert.match(api, /openDispute: string \| null/);
 });
 
-test('P1214-04: عبارت پنجره اقدام بهسفارشگردانی تغییر یافت', () => {
+test('P1214-04: عبارت پنجره اقدام بهسفارش‌گردانی تغییر یافت', () => {
   const dialog = read('src/components/projects/ProjectActionDialog.tsx');
   assert.doesNotMatch(dialog, /مشاهده سابقه عملیات/);
   assert.match(dialog, /مشاهده سفارش\u200cگردانی/);

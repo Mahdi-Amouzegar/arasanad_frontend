@@ -237,7 +237,7 @@ export function DisputeFlag({
               </div>
             </form>
             <Link className="dsp-dialog__link" href={operationsHref(role, projectId, openDispute?.activityId)}>
-              مشاهده سفارش­گردانی
+              مشاهده سفارش‌گردانی
             </Link>
           </div>
         </div>

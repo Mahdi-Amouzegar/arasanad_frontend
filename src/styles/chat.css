@@ -826,6 +826,26 @@
   margin-inline-start: auto;
 }
 
+/* فاز ۱۲٫۱۶-بند ۴: در عرض حدود ۱۲۰۰px بقیه دکمه‌های ستون فقط آیکوناند؛
+   عنوان «گفتگو‌ها» نیز همان رفتار را پیدا می‌کند. در Drawer موبایل (<769px)
+   عنوان مانند سایر لینکها بازمی‌گردد. */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .chat-sidebar-btn {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .chat-sidebar-btn > span:not(.chat-sidebar-btn__badge) {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .chat-sidebar-btn > span:not(.chat-sidebar-btn__badge) {
+    display: inline;
+  }
+}
+
 /* همان دکمه در ستون صفحات عمومی: ظاهر لینک، ولی عنصر button */
 button.public-side__link {
   width: 100%;

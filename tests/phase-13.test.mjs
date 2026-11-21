@@ -35,7 +35,7 @@ test('U-01-E2: کلید بازگشت اندروید به‌صورت متمرکز
   const lib = read('src/lib/android-back.ts');
   const handler = read('src/components/system/AndroidBackHandler.tsx');
   const layout = read('src/app/layout.tsx');
-  assert.ok(lib.includes('registerBackDismiss'), 'ثبتکنندهٔ متمرکز وجود ندارد');
+  assert.ok(lib.includes('registerBackDismiss'), 'ثبت‌کنندهٔ متمرکز وجود ندارد');
   assert.ok(lib.includes('dismissTopOverlay'), 'بستن لایهٔ بالا وجود ندارد');
   assert.ok(lib.includes('popstate'), 'هسته به popstate گوش ‌نمی‌دهد');
   assert.ok(handler.includes("routerRef.current.push('/')"), 'بازگشت به صفحهٔ اصلی نیست');

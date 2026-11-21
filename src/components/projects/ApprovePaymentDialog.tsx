@@ -37,7 +37,7 @@ export function ApprovePaymentDialog({
   defaultAmount,
   projectId,
   role,
-  title = 'تأیید مبلغ اعلامی واریزی بیعانه توسط مشتری',
+  title = 'تأیید واریز بیعانه',
   onClose,
   onDone,
 }: ApprovePaymentDialogProps) {
@@ -138,13 +138,13 @@ export function ApprovePaymentDialog({
           </div>
         </form>
         <Link className="pad-dialog__link" href={operationsHref(role, projectId)}>
-          مشاهده سفارش­گردانی
+          مشاهده سفارش‌گردانی
         </Link>
       </div>
       <FileManagerModal
         open={fmOpen}
         onClose={() => setFmOpen(false)}
-        config={{ role, tabs: ['upload', 'select'], title: 'پیوست فایل پرداخت' }}
+        config={{ role, title: 'مدیریت فایل‌ها' }}
         onSelect={onFilesSelected}
       />
     </div>

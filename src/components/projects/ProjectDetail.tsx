@@ -66,6 +66,15 @@ function readIdFromLocation(): string {
   return new URLSearchParams(window.location.search).get('id')?.trim() ?? '';
 }
 
+/** بند ۱۱: مقدار خام ارائهدهنده («manual») برای کاربر قابلخواندن شود. */
+function depositMethodLabel(source?: string | null): string {
+  if (!source) return '—';
+  if (source === 'manual') return 'واریز دستی (اعلام رسید)';
+  if (source === 'online') return 'پرداخت آنلاین';
+  if (source === 'wallet') return 'کیف پول';
+  return source;
+}
+
 function formatBytesFa(bytes: number): string {
   if (bytes < 1024) return `${formatNumberFa(bytes)} بایت`;
   if (bytes < 1024 * 1024) return `${formatNumberFa(Math.round(bytes / 1024))} کیلوبایت`;
@@ -461,7 +470,7 @@ export function ProjectDetail() {
             <ProjectStatusBadge
               status={project.status as ProjectStatus}
               href={awaitingDepositConfirmation ? depositBadgeHref : undefined}
-              label={awaitingDepositConfirmation ? 'در انتظار تأیید پرداخت بیعانه توسط مدیر' : undefined}
+              label={awaitingDepositConfirmation ? 'در انتظار تأیید پرداخت بیعانه' : undefined}
               title={awaitingDepositConfirmation ? 'برای دیدن کارت اعلام واریز بیعانه کلیک کنید' : undefined}
             />
             <FinancialStatusBadge status={financialStatusOf(project)} />
@@ -568,8 +577,8 @@ export function ProjectDetail() {
             <div><span>بیعانه</span><strong><Money value={project.depositAmount} /></strong></div>
             <div><span>مبلغ نهایی</span><strong><Money value={project.finalTotal} /></strong></div>
             <div>
-              <span>منبع بیعانه</span>
-              <strong>{project.depositSource ?? '—'}</strong>
+              <span>روش پرداخت بیعانه</span>
+              <strong>{depositMethodLabel(project.depositSource)}</strong>
             </div>
           </div>
           {project.quoteReason ? (
@@ -1017,8 +1026,7 @@ export function ProjectDetail() {
           role: 'admin',
           defaultTab: 'upload',
           title: 'انتخاب فایل نهایی',
-          tabs: ['upload', 'select'],
-        }}
+          }}
         onSelect={handleDeliveryFiles}
       />
 

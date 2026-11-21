@@ -311,7 +311,7 @@ export function PaymentCenter() {
 
             {saved.length > 0 ? (
               <fieldset className="pay-saved">
-                <legend>استفاده از مرجع ذخیرهشده</legend>
+                <legend>استفاده از مرجع ذخیره‌شده</legend>
                 {saved.map((row) => (
                   <label key={row.id}>
                     <input
@@ -338,7 +338,7 @@ export function PaymentCenter() {
       ) : null}
 
       <Card>
-        <CardHeader title="مراجع ذخیرهشده" />
+        <CardHeader title="مراجع ذخیره‌شده" />
         <CardBody>
           <form className="fin-form" onSubmit={(event) => void saveReference(event)}>
             <Input aria-label="برچسب مرجع" placeholder="برچسب" value={refLabel} onChange={(e) => setRefLabel(e.target.value)} required />
@@ -354,7 +354,7 @@ export function PaymentCenter() {
       <FileManagerModal
         open={fmOpen}
         onClose={() => setFmOpen(false)}
-        config={{ role: 'customer', tabs: ['upload', 'select'], title: 'پیوست رسید پرداخت' }}
+        config={{ role: 'customer', title: 'پیوست رسید پرداخت' }}
         onSelect={(result: FileManagerResult) => {
           setFileIds((prev) => Array.from(new Set([...prev, ...result.files.map((file) => file.id)])).slice(0, 10));
           setFmOpen(false);

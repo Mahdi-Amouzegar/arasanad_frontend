@@ -105,6 +105,8 @@ export function FileManagerModal({
 }: FileManagerModalProps) {
   const { token, authedRequest, user } = useAuth();
   const dialogRef = useRef<HTMLDialogElement>(null);
+  /** بند ۷: هنگام باز بودن انتخابگر بومی، لغوdialog نباید پنجرهها را ببندد. */
+  const pickerOpenRef = useRef(false);
   const [activeTab, setActiveTab] = useState<FileManagerTab>(
     config.defaultTab ?? 'upload',
   );
@@ -239,6 +241,15 @@ export function FileManagerModal({
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
+
+  // انتخابگر بومی پس از بسته شدن (حتی با Cancel) تمرکز را به پنجره برمی‌گرداند.
+  useEffect(() => {
+    const settle = () => {
+      if (pickerOpenRef.current) window.setTimeout(() => { pickerOpenRef.current = false; }, 0);
+    };
+    window.addEventListener('focus', settle);
+    return () => window.removeEventListener('focus', settle);
+  }, []);
 
   // ─── Upload tab ───
   const handleFileSelect = useCallback((fileList: FileList | null) => {
@@ -523,9 +534,15 @@ export function FileManagerModal({
       aria-labelledby="fm-title"
       // فاز ۱۲٫۱۵-ج: کلیک داخل پنجره‌ی مشترک نباید مودال پدر را ببندد.
       onMouseDown={(event) => event.stopPropagation()}
-      onCancel={handleClose}
+      onCancel={(event) => {
+        if (pickerOpenRef.current) {
+          event.preventDefault();
+          return;
+        }
+        handleClose();
+      }}
       onClick={(e) => {
-        if (e.target === dialogRef.current) handleClose();
+        if (e.target === dialogRef.current && !pickerOpenRef.current) handleClose();
       }}
     >
       <div className="fm-modal__shell">
@@ -590,6 +607,8 @@ export function FileManagerModal({
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onFileSelect={handleFileSelect}
+              onPickerOpen={() => { pickerOpenRef.current = true; }}
+              onPickerSettled={() => { pickerOpenRef.current = false; }}
               fileInputRef={fileInputRef}
               pendingFiles={pendingFiles}
               uploader={{ username: user?.username, avatarUrl: user?.avatarUrl }}
@@ -665,6 +684,8 @@ interface UploadTabProps {
   onDragOver: (e: React.DragEvent) => void;
   onDragLeave: (e: React.DragEvent) => void;
   onFileSelect: (files: FileList | null) => void;
+  onPickerOpen: () => void;
+  onPickerSettled: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   pendingFiles: Array<{
     file: File;
@@ -692,6 +713,8 @@ function UploadTab({
   onDragOver,
   onDragLeave,
   onFileSelect,
+  onPickerOpen,
+  onPickerSettled,
   fileInputRef,
   pendingFiles,
   uploader,
@@ -721,7 +744,10 @@ function UploadTab({
         onDrop={onDrop}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
-        onClick={() => fileInputRef.current?.click()}
+        onClick={() => {
+          onPickerOpen();
+          fileInputRef.current?.click();
+        }}
       >
         <Icon name="uploadCloud" size={32} className="fm-dropzone__icon" />
         <p className="fm-dropzone__text">
@@ -737,6 +763,7 @@ function UploadTab({
           style={{ display: 'none' }}
           accept={allowedExtensions.map((ext) => `.${ext}`).join(',')}
           onChange={(e) => {
+            onPickerSettled();
             onFileSelect(e.target.files);
             e.target.value = '';
           }}

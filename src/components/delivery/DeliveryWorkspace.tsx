@@ -333,8 +333,8 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
       ) : (
         <>
           {admin ? (
-            <Card>
-              <CardHeader title="ثبت نسخه‌ی تازه" actions={<Icon name="plus" size={18} />} />
+            <Card id="final-files">
+              <CardHeader title="فایل‌های نهایی و تحویل‌ها — ثبت نسخه‌ی تازه" actions={<Icon name="plus" size={18} />} />
               <CardBody>
                 <form className="fin-form" onSubmit={(event) => void submitDelivery(event)}>
                   <label htmlFor="dlv-pages">تعداد صفحات</label>
@@ -628,7 +628,6 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
         onClose={() => setPicker(null)}
         config={{
           role,
-          tabs: ['upload', 'select'],
           title: picker === 'delivery'
             ? 'انتخاب فایل‌های تحویل'
             : picker === 'response'

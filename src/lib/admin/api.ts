@@ -143,7 +143,16 @@ export interface AdminApi {
   saveSettings(settings: SiteSettings): Promise<{ updated: number; settings: SiteSettings }>;
   audit(filters?: { action?: string; actor?: string; from?: string; to?: string; offset?: number }): Promise<{ events: AuditEvent[]; page: PageMeta }>;
   messages(): Promise<{ conversations: AdminConversation[] }>;
-  files(uploader?: string, offset?: number): Promise<{ files: AdminFile[]; page: PageMeta }>;
+  files(
+    uploader?: string,
+    offset?: number,
+    scope?: 'all' | 'project' | 'delivery' | 'receipt',
+  ): Promise<{
+    files: AdminFile[];
+    page: PageMeta;
+    filters?: Array<{ id: string; label: string; count: number }>;
+    scope?: string;
+  }>;
 }
 
 export function createAdminApi(request: AuthedRequest): AdminApi {
@@ -158,7 +167,7 @@ export function createAdminApi(request: AuthedRequest): AdminApi {
 
   return {
     dashboard: () => request('/admin/dashboard'),
-    files: (uploader, offset) => request(`/admin/files${q({ uploader, offset })}`),
+    files: (uploader, offset, scope) => request(`/admin/files${q({ uploader, offset, scope })}`),
     users: (query, offset) => request(`/admin/users${q({ q: query, offset })}`),
     userDetail: (id) => request(`/admin/users/${encodeURIComponent(id)}`),
     serviceTypes: () => request('/admin/service-types'),
