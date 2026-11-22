@@ -7,7 +7,7 @@
  * تغییر مستقیم موجودی کیف پول وجود ندارد (امنیت مالی).
  */
 
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
 import { useAlert } from '@/components/ui/AlertProvider';
@@ -28,6 +28,7 @@ import {
   type SiteSettings,
 } from '@/lib/admin/api';
 import { createFinanceApi, type ReconciliationView } from '@/lib/finance/api';
+import { useDashboardSyncController } from '@/components/system/DashboardSyncController';
 
 function useAdminApi() {
   const { authedRequest } = useAuth();
@@ -65,18 +66,37 @@ export function AdminDashboard() {
   const financeApi = useMemo(() => createFinanceApi(authedRequest), [authedRequest]);
   const [cards, setCards] = useState<DashboardCard[]>([]);
   const [overview, setOverview] = useState<{
-    users: number;
-    revenue: number;
-    escrow: number;
-    refunds: number;
+    users: number; revenue: number; escrow: number; refunds: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
+  const requestSeqRef = useRef(0);
+
+  const fetchSection = useCallback(async (section: string) => {
+    if (section !== 'cards') return { data: [], dataVersion: 0 };
+    const result = await api.dashboardCards();
+    return { data: result.data, dataVersion: result.dataVersion };
+  }, [api]);
+  const mergeSection = useCallback(
+    (_current: DashboardCard[], section: string, data: unknown) =>
+      section === 'cards' && Array.isArray(data) ? (data as DashboardCard[]) : _current,
+    [],
+  );
+  const controller = useDashboardSyncController<DashboardCard[]>({
+    role: 'admin',
+    view: cards,
+    setView: setCards,
+    fetchSection,
+    mergeSection,
+  });
+  const { versionAtRequest, isStaleResponse } = controller;
 
   useEffect(() => {
     let alive = true;
+    const requestId = ++requestSeqRef.current;
+    const versionWhenRequested = versionAtRequest();
     setLoading(true);
     // سه منبع مستقل موازی: شمارشها، مالی و تعداد کاربران (فاز ۱۲٫۱-و).
     void Promise.all([
@@ -85,7 +105,8 @@ export function AdminDashboard() {
       api.users().catch(() => null),
     ])
       .then(([dashboard, reconciliation, users]) => {
-        if (!alive) return;
+        if (!alive || requestId !== requestSeqRef.current) return;
+        if (isStaleResponse(versionWhenRequested)) return;
         setCards(dashboard.cards);
         const totals: ReconciliationView['totals'] | undefined = reconciliation?.totals;
         setOverview({
@@ -96,10 +117,10 @@ export function AdminDashboard() {
         });
         setError(null);
       })
-      .catch((caught) => { if (alive) setError(errorText(caught)); })
-      .finally(() => { if (alive) setLoading(false); });
+      .catch((caught) => { if (alive && requestId === requestSeqRef.current) setError(errorText(caught)); })
+      .finally(() => { if (alive && requestId === requestSeqRef.current) setLoading(false); });
     return () => { alive = false; };
-  }, [api, financeApi, reloadKey]);
+  }, [api, financeApi, isStaleResponse, reloadKey, versionAtRequest]);
 
   const primary = cards.slice(0, 4);
 

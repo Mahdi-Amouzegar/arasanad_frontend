@@ -10,10 +10,12 @@
  */
 
 import { CopyableCode } from '@/components/projects/CopyableCode';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
-import { createPanelApi } from '@/lib/panel/api';
+import { createPanelApi, type CustomerDashboardSection, type CustomerDashboardView } from '@/lib/panel/api';
+import { useDashboardSyncController } from '@/components/system/DashboardSyncController';
+import { mergeDashboardSection } from '@/lib/dashboard/sync.mjs';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -31,21 +33,47 @@ function errorText(error: unknown): string {
 export function CustomerDashboard() {
   const { authedRequest } = useAuth();
   const api = useMemo(() => createPanelApi(authedRequest), [authedRequest]);
-  const [view, setView] = useState<Awaited<ReturnType<ReturnType<typeof createPanelApi>['dashboard']>> | null>(null);
+  const [view, setView] = useState<CustomerDashboardView | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
+  const requestSeqRef = useRef(0);
+
+  const fetchSection = useCallback(async (section: string) => {
+    const result = await api.dashboardSection<unknown>(section as CustomerDashboardSection);
+    return { data: result.data, dataVersion: result.dataVersion };
+  }, [api]);
+  const mergeSection = useCallback(
+    (current: CustomerDashboardView | null, section: string, data: unknown) =>
+      current ? (mergeDashboardSection(current, section, data) as CustomerDashboardView) : current,
+    [],
+  );
+  const controller = useDashboardSyncController<CustomerDashboardView | null>({
+    role: 'customer',
+    view,
+    setView,
+    fetchSection,
+    mergeSection,
+  });
+  const { versionAtRequest, isStaleResponse } = controller;
 
   useEffect(() => {
     let alive = true;
+    const requestId = ++requestSeqRef.current;
+    const versionWhenRequested = versionAtRequest();
     setLoading(true);
     void api.dashboard()
-      .then((data) => { if (alive) { setView(data); setError(null); } })
-      .catch((caught) => { if (alive) setError(errorText(caught)); })
-      .finally(() => { if (alive) setLoading(false); });
+      .then((data) => {
+        if (!alive || requestId !== requestSeqRef.current) return;
+        if (isStaleResponse(versionWhenRequested)) return;
+        setView(data);
+        setError(null);
+      })
+      .catch((caught) => { if (alive && requestId === requestSeqRef.current) setError(errorText(caught)); })
+      .finally(() => { if (alive && requestId === requestSeqRef.current) setLoading(false); });
     return () => { alive = false; };
-  }, [api, reloadKey]);
+  }, [api, isStaleResponse, reloadKey, versionAtRequest]);
 
   if (loading) {
     return (

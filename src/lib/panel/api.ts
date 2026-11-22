@@ -41,6 +41,15 @@ export interface DashboardConversation {
   updatedAt: string;
 }
 
+export type CustomerDashboardSection = 'cards' | 'actions' | 'recent' | 'wallet' | 'conversations';
+
+export interface DashboardSectionResponse<T> {
+  section: CustomerDashboardSection;
+  data: T;
+  dataVersion: number;
+  serverTime: string;
+}
+
 export interface CustomerDashboardView {
   cards: DashboardCard[];
   actions: DashboardAction[];
@@ -175,6 +184,20 @@ export function createPanelApi(request: AuthedRequest) {
         serverTime: text(data.serverTime),
       };
     },
+    /** فاز ۱۲٫۲۰-F — پاسخ Partial یک بخش داشبورد با نسخه عددی. */
+    async dashboardSection<T>(section: CustomerDashboardSection): Promise<DashboardSectionResponse<T>> {
+      const data = await request<DashboardSectionResponse<T>>(
+        `/panel/dashboard/section/${encodeURIComponent(section)}`,
+      );
+      const version = Number(data.dataVersion ?? 0);
+      return {
+        section,
+        data: data.data,
+        dataVersion: Number.isFinite(version) ? version : 0,
+        serverTime: text(data.serverTime),
+      };
+    },
+
 
     /**
      * فهرست فایل‌های مجاز سفارش‌دهنده. فیلتر و شمارندهها از سرور می‌آیند تا برچسبها

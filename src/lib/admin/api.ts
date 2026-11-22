@@ -124,8 +124,16 @@ export interface AdminConversation {
   lastMessageAt: string;
 }
 
+export interface DashboardCardsSection {
+  section: 'cards';
+  data: DashboardCard[];
+  dataVersion: number;
+  serverTime: string;
+}
+
 export interface AdminApi {
   dashboard(): Promise<{ cards: DashboardCard[] }>;
+  dashboardCards(): Promise<DashboardCardsSection>;
   users(query?: string, offset?: number): Promise<{ users: AdminUser[]; page: PageMeta }>;
   userDetail(id: string): Promise<AdminUserDetail>;
   serviceTypes(): Promise<{ services: ServiceType[] }>;
@@ -167,6 +175,7 @@ export function createAdminApi(request: AuthedRequest): AdminApi {
 
   return {
     dashboard: () => request('/admin/dashboard'),
+    dashboardCards: () => request('/admin/dashboard/section/cards'),
     files: (uploader, offset, scope) => request(`/admin/files${q({ uploader, offset, scope })}`),
     users: (query, offset) => request(`/admin/users${q({ q: query, offset })}`),
     userDetail: (id) => request(`/admin/users/${encodeURIComponent(id)}`),
