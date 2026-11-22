@@ -28,6 +28,8 @@ import { useActivities } from './ActivityProvider';
 import { ActivityCard } from './ActivityCard';
 import { ActivityComposer } from './ActivityComposer';
 import { ApprovePaymentDialog } from '@/components/projects/ApprovePaymentDialog';
+import { ProjectActionDialog } from '@/components/projects/ProjectActionDialog';
+import { createProjectsApi, type Project, type ProjectAction } from '@/lib/projects/api';
 
 function readIdFromLocation(): string {
   if (typeof window === 'undefined') return '';
@@ -44,6 +46,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
   const { user, loading: authLoading, authedRequest } = useAuth();
   const { showToast } = useAlert();
   const api = useMemo(() => createActivitiesApi(authedRequest), [authedRequest]);
+  const projectsApi = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
   const { refresh: refreshBell } = useActivities();
 
   const role: 'admin' | 'customer' = admin || user?.role === 'admin' ? 'admin' : 'customer';
@@ -60,6 +63,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<ActivityItem | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [cardAction, setCardAction] = useState<{ action: ProjectAction; project: Project } | null>(null);
   const markedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -141,6 +145,29 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
     markedRef.current.delete(id);
     setReloadKey((value) => value + 1);
   }, [id]);
+
+  /**
+   * فاز ۱۲٫۱۹ — دکمه‌ی روی کارت، همان دیالوگ سرورمحور صفحه جزئیات را باز می‌کند.
+   * اقدام و مبالغ از `availableActions[]` سرور خوانده می‌شوند، نه از فرانت‌اند.
+   */
+  const openCardAction = useCallback(
+    (intent: 'set_quote' | 'declare_deposit') => {
+      void projectsApi
+        .getProject(id)
+        .then((detail) => {
+          const action = (detail.project.availableActions ?? []).find((item) => item.intent === intent);
+          if (action) setCardAction({ action, project: detail.project });
+        })
+        .catch((caught) => {
+          showToast({
+            type: 'error',
+            title: 'اقدام در دسترس نیست',
+            message: errorText(caught, 'اقدام اکنون در دسترس نیست'),
+          });
+        });
+    },
+    [id, projectsApi, showToast],
+  );
 
   const onCreated = useCallback(async () => {
     reload();
@@ -255,6 +282,9 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
               activity={item}
               role={role}
               onReply={(target) => setReplyTo(target)}
+              onSetQuote={() => openCardAction('set_quote')}
+              onDeclareDeposit={() => openCardAction('declare_deposit')}
+              projectStatus={project?.status ?? ''}
             />
           ))}
           {hasMore ? (
@@ -269,6 +299,19 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
           ) : null}
         </div>
       )}
+      {cardAction ? (
+        <ProjectActionDialog
+          action={cardAction.action}
+          project={cardAction.project}
+          role={role}
+          onClose={() => setCardAction(null)}
+          onDone={() => {
+            setCardAction(null);
+            reload();
+            void refreshBell(true).catch(() => undefined);
+          }}
+        />
+      ) : null}
       {approveOpen && pendingPayment?.paymentRequestId ? (
         <ApprovePaymentDialog
           paymentRequestId={pendingPayment.paymentRequestId}

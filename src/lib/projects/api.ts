@@ -133,7 +133,7 @@ export interface Project {
   basePricePerPage: number;
   quotedPricePerPage: number | null;
   quoteReason: string | null;
-  /** فاز ۱۲٫۱۶: حالت نرخگذاری و جزئیات فرم مبلغ نهایی. */
+  /** فاز ۱۲٫۱۶: حالت نرخ‌گذاری و جزئیات فرم مبلغ نهایی. */
   quoteMode?: 'total' | 'per_page';
   quoteTotal?: number | null;
   finalPages?: number;

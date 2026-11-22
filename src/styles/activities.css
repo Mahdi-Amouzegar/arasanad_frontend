@@ -480,6 +480,14 @@
   overflow-wrap: anywhere;
 }
 
+/* فاز ۱۲٫۱۹ — اقدامهای مرحلهای روی کارت ثبت/تعیین نرخ */
+.act-card__quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-block-start: var(--sp-3);
+}
+
 .act-card__foot {
   display: flex;
   flex-wrap: wrap;

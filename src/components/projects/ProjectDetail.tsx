@@ -470,7 +470,7 @@ export function ProjectDetail() {
             <ProjectStatusBadge
               status={project.status as ProjectStatus}
               href={awaitingDepositConfirmation ? depositBadgeHref : undefined}
-              label={awaitingDepositConfirmation ? 'در انتظار تأیید پرداخت بیعانه' : undefined}
+              label={awaitingDepositConfirmation ? 'در انتظار تأیید بیعانه' : undefined}
               title={awaitingDepositConfirmation ? 'برای دیدن کارت اعلام واریز بیعانه کلیک کنید' : undefined}
             />
             <FinancialStatusBadge status={financialStatusOf(project)} />
@@ -846,30 +846,19 @@ export function ProjectDetail() {
           {isOwner && !isCancelled ? (
             <div className="prj-actions">
               {project.status === 'awaiting_deposit' ? (
-                <>
-                  <Button
-                    variant="primary"
-                    disabled={busy}
-                    onClick={() =>
-                      void run('پذیرش نرخ', () => api.acceptQuote(id), 'نرخ پذیرفته شد')
-                    }
-                  >
-                    پذیرش نرخ
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={busy}
-                    onClick={() =>
-                      void run(
-                        'درخواست بازبینی',
-                        () => api.requestQuoteReview(id),
-                        'سفارش به بررسی بازگشت',
-                      )
-                    }
-                  >
-                    درخواست بازبینی نرخ
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() =>
+                    void run(
+                      'درخواست بازبینی',
+                      () => api.requestQuoteReview(id),
+                      'سفارش به بررسی بازگشت',
+                    )
+                  }
+                >
+                  درخواست بازبینی نرخ
+                </Button>
               ) : null}
               {!['cancelled', 'cancel_requested'].includes(project.status) ? (
                 <Button variant="danger" disabled={busy} onClick={() => void cancelProject()}>

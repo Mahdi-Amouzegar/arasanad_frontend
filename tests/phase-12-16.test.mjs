@@ -19,9 +19,9 @@ function sources(dir, result = []) {
   return result;
 }
 
-test('P1216-F1: عنوان دکمه گفتگو در عرض حدود ۱۲۰۰ مخفی می‌شود', () => {
+test('P1216-F1: عنوان دکمه گفتگو در عرض تا ۱۰۲۴ مخفی می‌شود', () => {
   const css = read('src/styles/chat.css');
-  assert.match(css, /@media \(min-width: 769px\) and \(max-width: 1200px\)/);
+  assert.match(css, /@media \(min-width: 769px\) and \(max-width: 1024px\)/);
   assert.match(css, /\.chat-sidebar-btn > span:not\(\.chat-sidebar-btn__badge\)/);
 });
 

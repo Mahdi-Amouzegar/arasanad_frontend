@@ -55,6 +55,51 @@ export function nextCursorFrom(events, fallback = 0) {
   return cursor;
 }
 
+/**
+ * فاز ۱۲٫۱۹ — فیلدهای غیرحساس یک رویداد سفارش. payload سرور تنها شناسه،
+ * کد و وضعیت‌ها را می‌فرستد؛ هیچ مبلغ/فایلی در آن قرار ندارد.
+ */
+export function projectEventFields(event) {
+  const payload =
+    event && typeof event === 'object' && event.payload && typeof event.payload === 'object'
+      ? event.payload
+      : {};
+  const text = (key) => (typeof payload[key] === 'string' ? payload[key] : '');
+  return {
+    projectId: text('projectId'),
+    code: text('code'),
+    status: text('status'),
+    fromStatus: text('fromStatus'),
+  };
+}
+
+/**
+ * به‌روزرسانی خوشبینانه‌ی وضعیت همان ردیف تا رسیدن پاسخ تازه‌ی API.
+ * بقیه فیلدها (اقدام‌ها، مالی) از پاسخ سرور می‌آیند، نه از رویداد payload.
+ * دکمه‌ها و مبالغ تنها پس از بازخوانی سرور به‌روز می‌شوند.
+ */
+export function applyProjectStatus(rows, event) {
+  const { projectId, status } = projectEventFields(event);
+  if (!projectId || !status || !Array.isArray(rows)) return rows;
+  let changed = false;
+  const next = rows.map((row) => {
+    if (!row || row.id !== projectId || row.status === status) return row;
+    changed = true;
+    return { ...row, status };
+  });
+  return changed ? next : rows;
+}
+
+/** تک اثر جانبی (مثل Toast) تنها یک‌بار برای هر id رویداد. */
+export function claimRealtimeEventId(seen, id) {
+  if (typeof id !== 'string' || id.length === 0) return false;
+  const set = seen instanceof Set ? seen : new Set();
+  if (set.has(id)) return false;
+  if (set.size > 300) set.clear();
+  set.add(id);
+  return true;
+}
+
 /** تأخیر اتصال مجدد: ۱ ثانیه تا ۳۰ ثانیه، به‌همراه لرزهٔ اختیاری. */
 export function reconnectDelay(attempt, jitter = 0) {
   const n = Math.max(1, Math.floor(Number(attempt) || 1));

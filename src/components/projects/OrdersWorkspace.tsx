@@ -149,6 +149,11 @@ export function FinanceDialog({
   const payments = view?.payments ?? [];
   const deposits = payments.filter((p) => p.stage === 'deposit' && p.status === 'approved');
   const finals = payments.filter((p) => p.stage === 'final' && p.status === 'approved');
+  // فاز ۱۲٫۱۹: پیش از بررسی مدیر، مبالغ تنها برآورد سامانهاند و نباید
+  // به‌عنوان تصمیم مدیر نمایش داده شوند.
+  const unreviewed = project.status === 'pending_review';
+  const depositLabel = unreviewed ? 'بیعانه حدودی محاسبه شده' : 'بیعانه تعیین‌شده توسط مدیر';
+  const finalLabel = unreviewed ? 'مبلغ نهایی حدودی محاسبه شده' : 'مبلغ نهایی تعیین‌شده توسط مدیر';
 
   const row = (label: string, value: ReactNode, date?: string | null) => (
     <tr>
@@ -197,7 +202,7 @@ export function FinanceDialog({
                 </tr>
               </thead>
               <tbody>
-                {row('بیعانه تعیین‌شده توسط مدیر', <Money value={view?.targets?.depositTarget ?? 0} />, null)}
+                {row(depositLabel, <Money value={view?.targets?.depositTarget ?? 0} />, null)}
                 {deposits.map((p) => (
                   <tr key={p.id}>
                     <td data-label="مورد">واریز بیعانه {p.code ?? ''}</td>
@@ -206,7 +211,7 @@ export function FinanceDialog({
                     <td data-label="روش پرداخت">{p.rail === 'online' ? 'آنلاین' : 'دستی'}</td>
                   </tr>
                 ))}
-                {row('مبلغ نهایی تعیین‌شده توسط مدیر', <Money value={view?.targets?.finalTarget ?? 0} />, null)}
+                {row(finalLabel, <Money value={view?.targets?.finalTarget ?? 0} />, null)}
                 {finals.map((p) => (
                   <tr key={p.id}>
                     <td data-label="مورد">واریز تسویه نهایی {p.code ?? ''}</td>

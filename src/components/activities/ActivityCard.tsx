@@ -35,6 +35,10 @@ interface ActivityCardProps {
   role: 'admin' | 'customer';
   /** فقط مدیر و فقط روی کارت بازبینی — کادر پاسخ را بالا میبرد. */
   onReply?: (activity: ActivityItem) => void;
+  /** فاز ۱۲٫۱۹ — اقدامهای سرورمحور روی کارت‌های ثبت و تعیین نرخ. */
+  onSetQuote?: () => void;
+  onDeclareDeposit?: () => void;
+  projectStatus?: string;
 }
 
 function statusLabel(status: string | null): string {
@@ -112,13 +116,20 @@ function ActivityAttachments({ activityId }: { activityId: string }) {
   );
 }
 
-export function ActivityCard({ activity, role, onReply }: ActivityCardProps) {
+export function ActivityCard({ activity, role, onReply, onSetQuote, onDeclareDeposit, projectStatus }: ActivityCardProps) {
   const actor = actorMeta(activity.actorKind);
   const event = eventMeta(activity.eventType);
   const automatic = isAutomaticActivity(activity);
   const counts = attachmentCountsOf(activity);
   const hasAttachments = counts.fileCount > 0 || counts.linkCount > 0;
   const isDispute = activity.eventType === 'activity.dispute';
+  // فاز ۱۲٫۱۹: دکمه‌ها تنها در همان مرحله قابلنمایشاند؛ وضعیت از سرور می‌آید.
+  const showSetQuote =
+    role === 'admin' && activity.eventType === 'project.created'
+    && projectStatus === 'pending_review' && typeof onSetQuote === 'function';
+  const showDepositActions =
+    role === 'customer' && ['quote.set', 'deposit.set'].includes(activity.eventType)
+    && projectStatus === 'awaiting_deposit' && typeof onDeclareDeposit === 'function';
 
   return (
     <article id={`activity-${activity.id}`} className={`act-card act-card--${activity.actorKind}`}>
@@ -201,6 +212,30 @@ export function ActivityCard({ activity, role, onReply }: ActivityCardProps) {
           </dd>
         </div>
       </dl>
+
+      {showSetQuote || showDepositActions ? (
+        <div className="act-card__quick">
+          {showSetQuote ? (
+            <button type="button" className="btn btn--sm btn--primary" onClick={onSetQuote}>
+              تعیین نرخ بیعانه
+            </button>
+          ) : null}
+          {showDepositActions ? (
+            <>
+              <Link
+                className="btn btn--sm btn--outline"
+                title="مبلغ و مرجع توسط سرور محاسبه می‌شود"
+                href={`/panel/pay/?purpose=order&projectId=${encodeURIComponent(activity.projectId)}&stage=deposit`}
+              >
+                پرداخت / شارژ
+              </Link>
+              <button type="button" className="btn btn--sm btn--primary" title="اعلام پرداخت بیعانه" onClick={onDeclareDeposit}>
+                اعلام پرداخت بیعانه
+              </button>
+            </>
+          ) : null}
+        </div>
+      ) : null}
 
       <footer className="act-card__foot">
         {/* فاز ۱۲٫۹: سه تیک مستقل؛ تیک تایپیست تنها زمانی که ثبت شده نمایش مییابد. */}

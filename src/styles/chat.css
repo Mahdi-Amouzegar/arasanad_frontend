@@ -826,10 +826,10 @@
   margin-inline-start: auto;
 }
 
-/* فاز ۱۲٫۱۶-بند ۴: در عرض حدود ۱۲۰۰px بقیه دکمه‌های ستون فقط آیکوناند؛
+/* فاز ۱۲٫۱۹: در عرض تا ۱۰۲۴px بقیه دکمه‌های ستون فقط آیکوناند؛
    عنوان «گفتگو‌ها» نیز همان رفتار را پیدا می‌کند. در Drawer موبایل (<769px)
    عنوان مانند سایر لینکها بازمی‌گردد. */
-@media (min-width: 769px) and (max-width: 1200px) {
+@media (min-width: 769px) and (max-width: 1024px) {
   .chat-sidebar-btn {
     justify-content: center;
     padding-inline: 0;

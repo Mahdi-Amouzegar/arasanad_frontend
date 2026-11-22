@@ -105,7 +105,7 @@ export function DeliveryCard({
             </div>
           )}
           <div className="delivery-card__meta-item">
-            <span className="delivery-card__meta-label">تحویلدهنده</span>
+            <span className="delivery-card__meta-label">تحویل‌دهنده</span>
             <span className="delivery-card__meta-value">
               {delivery.deliveredByName ?? 'مدیر'}
             </span>

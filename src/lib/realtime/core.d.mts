@@ -17,4 +17,18 @@ export declare function nextCursorFrom(
   events: readonly { seq: number }[],
   fallback?: number,
 ): number;
+
+export interface ProjectEventFields {
+  projectId: string;
+  code: string;
+  status: string;
+  fromStatus: string;
+}
+export declare function projectEventFields(event: unknown): ProjectEventFields;
+export declare function applyProjectStatus<T extends { id?: string; status?: string }>(
+  rows: readonly T[] | null | undefined,
+  event: unknown,
+): T[];
+export declare function claimRealtimeEventId(seen: Set<string>, id: unknown): boolean;
+
 export declare function reconnectDelay(attempt: number, jitter?: number): number;

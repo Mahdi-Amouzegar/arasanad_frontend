@@ -411,7 +411,7 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
                       <div className="dlv-card__meta">
                         <span>صفحات: {formatNumberFa(delivery.pageCount ?? 0)}</span>
                         <span>مبلغ: {formatMoneyFa(delivery.amount ?? 0)}</span>
-                        <span>تحویلدهنده: {delivery.deliveredByName ?? 'مدیر'}</span>
+                        <span>تحویل‌دهنده: {delivery.deliveredByName ?? 'مدیر'}</span>
                         <span><RelativeTime value={delivery.createdAt} /></span>
                       </div>
                       {delivery.files.length === 0 ? (
