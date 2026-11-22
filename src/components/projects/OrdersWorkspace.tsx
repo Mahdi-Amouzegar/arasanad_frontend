@@ -24,7 +24,8 @@ import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { useRealtimeEvent } from '@/components/system/RealtimeProvider';
+import { useProjectListController } from './ProjectListController';
+import { projectListResourceKey } from '@/lib/projects/list-sync.mjs';
 
 interface FinancePayment {
   id: string;
@@ -250,30 +251,43 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
   const [financeFor, setFinanceFor] = useState<Project | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
-
-  const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const debouncedRealtimeRefresh = useCallback(() => {
-    if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
-    realtimeTimerRef.current = setTimeout(() => {
-      realtimeTimerRef.current = null;
-      reload();
-    }, 300);
-  }, [reload]);
-  useEffect(() => () => {
-    if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
-  }, []);
-  // Phase 12.17: refetch keeps server-side filters, sorting and counts intact.
-  useRealtimeEvent(['project.created', 'project.status_changed'], debouncedRealtimeRefresh);
+  const resourceKey = useMemo(
+    () => projectListResourceKey({
+      scope: admin ? 'admin' : 'customer',
+      view: 'orders-workspace',
+      sort: 'new',
+      limit: 200,
+    }),
+    [admin],
+  );
+  const requestSeqRef = useRef(0);
+  const controller = useProjectListController({
+    resourceKey,
+    setProjects,
+    onRefresh: reload,
+  });
+  const { versionAtRequest, isStaleResponse, acceptServerRows } = controller;
 
   useEffect(() => {
     let alive = true;
+    const requestId = ++requestSeqRef.current;
+    const versionWhenRequested = versionAtRequest();
     setLoading(true);
     void api.listProjects({ sort: 'new', limit: 200 })
-      .then((rows) => { if (alive) { setProjects(rows); setError(null); } })
-      .catch((caught) => { if (alive) setError(errorText(caught)); })
-      .finally(() => { if (alive) setLoading(false); });
+      .then((rows) => {
+        if (!alive || requestId !== requestSeqRef.current) return;
+        if (isStaleResponse(versionWhenRequested)) return;
+        acceptServerRows(rows);
+        setError(null);
+      })
+      .catch((caught) => {
+        if (alive && requestId === requestSeqRef.current) setError(errorText(caught));
+      })
+      .finally(() => {
+        if (alive && requestId === requestSeqRef.current) setLoading(false);
+      });
     return () => { alive = false; };
-  }, [api, reloadKey]);
+  }, [acceptServerRows, api, isStaleResponse, reloadKey, versionAtRequest]);
 
   const serviceOptions = useMemo(
     () => Array.from(new Set(projects.map((p) => p.serviceName).filter(Boolean)))

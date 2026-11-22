@@ -20,8 +20,8 @@ import { ProjectActionDialog } from './ProjectActionDialog';
 import { ProjectSpecsDialog } from './ProjectSpecsDialog';
 import { FinanceDialog } from './OrdersWorkspace';
 import { errorText, formatHours, formatProjectCodeSafe } from './ui-utils';
-import { useRealtimeEvent } from '@/components/system/RealtimeProvider';
-import { applyProjectStatus } from '@/lib/realtime/core.mjs';
+import { useProjectListController } from './ProjectListController';
+import { projectListResourceKey } from '@/lib/projects/list-sync.mjs';
 
 /** فقط مسیرهای نسبی درون‌برنامه‌ای؛ پاسخ سرور هرگز کورکورانه لینک نمی‌شود. */
 function safeActionHref(href: string | undefined, fallback: string): string {
@@ -144,8 +144,23 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
   const [financeFor, setFinanceFor] = useState<Project | null>(null);
   const [specsFor, setSpecsFor] = useState<Project | null>(null);
 
+  const resourceKey = useMemo(
+    () => projectListResourceKey({ scope: role, view: 'project-list', status, q: query, sort }),
+    [role, status, query, sort],
+  );
+  const refresh = useCallback(() => setReloadKey((value) => value + 1), []);
+  const requestSeqRef = useRef(0);
+  const controller = useProjectListController({
+    resourceKey,
+    setProjects,
+    onRefresh: refresh,
+  });
+  const { versionAtRequest, isStaleResponse, acceptServerRows } = controller;
+
   useEffect(() => {
     let alive = true;
+    const requestId = ++requestSeqRef.current;
+    const versionWhenRequested = versionAtRequest();
     setLoading(true);
     void api
       .listProjects({
@@ -154,42 +169,23 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
         sort,
       })
       .then((rows) => {
-        if (!alive) return;
-        setProjects(rows);
+        if (!alive || requestId !== requestSeqRef.current) return;
+        if (isStaleResponse(versionWhenRequested)) return;
+        acceptServerRows(rows);
         setError(null);
       })
       .catch((caught) => {
-        if (alive) setError(errorText(caught, 'فهرست سفارش‌ها دریافت نشد'));
+        if (alive && requestId === requestSeqRef.current) {
+          setError(errorText(caught, 'فهرست سفارش‌ها دریافت نشد'));
+        }
       })
       .finally(() => {
-        if (alive) setLoading(false);
+        if (alive && requestId === requestSeqRef.current) setLoading(false);
       });
     return () => {
       alive = false;
     };
-  }, [api, status, query, sort, reloadKey]);
-
-  const refresh = useCallback(() => setReloadKey((value) => value + 1), []);
-
-  const realtimeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const debouncedRealtimeRefresh = useCallback(() => {
-    if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
-    realtimeTimerRef.current = setTimeout(() => {
-      realtimeTimerRef.current = null;
-      refresh();
-    }, 300);
-  }, [refresh]);
-  useEffect(() => () => {
-    if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
-  }, []);
-  // فاز ۱۲٫۲۰-B — Toast سراسری به BusinessToastBridge منتقل شد. اینجا تنها
-  // به‌روزرسانی فوری ردیف و Refetch با همان پارامترها انجام می‌شود.
-  useRealtimeEvent(['project.created', 'project.status_changed'], (event) => {
-    if (event.type === 'project.status_changed') {
-      setProjects((previous) => applyProjectStatus(previous, event));
-    }
-    debouncedRealtimeRefresh();
-  });
+  }, [acceptServerRows, api, isStaleResponse, query, sort, status, versionAtRequest, reloadKey]);
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

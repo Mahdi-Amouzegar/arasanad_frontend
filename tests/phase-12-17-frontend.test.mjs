@@ -158,18 +158,19 @@ test('P1217-F8: notification, activity and chat providers subscribe and pause po
   assert.match(chat, /publishChatSnapshot\(count\)/);
 });
 
-test('P1217-F9: order tables refetch through their existing refresh path', () => {
+test('P1217-F9: order tables refetch through the shared controller refresh path', () => {
+  const controller = read('src/components/projects/ProjectListController.ts');
+  assert.match(controller, /useRealtimeEvent\(\['project\.created', 'project\.status_changed'\]/);
+  assert.match(controller, /}, 300\);/);
+  assert.match(controller, /refreshRef\.current\(\)/);
+
   const list = read('src/components/projects/ProjectList.tsx');
-  assert.match(list, /useRealtimeEvent\(\['project\.created', 'project\.status_changed'\]/);
-  assert.match(list, /debouncedRealtimeRefresh/);
-  assert.match(list, /}, 300\);/);
-  assert.match(list, /refresh\(\);/);
+  assert.match(list, /useProjectListController/);
+  assert.match(list, /onRefresh: refresh/);
 
   const orders = read('src/components/projects/OrdersWorkspace.tsx');
-  assert.match(orders, /useRealtimeEvent\(\['project\.created', 'project\.status_changed'\]/);
-  assert.match(orders, /debouncedRealtimeRefresh/);
-  assert.match(orders, /}, 300\);/);
-  assert.match(orders, /reload\(\);/);
+  assert.match(orders, /useProjectListController/);
+  assert.match(orders, /onRefresh: reload/);
 });
 
 test('P1217-F10: provider order and lease/network timers are preserved', () => {

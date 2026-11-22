@@ -66,11 +66,12 @@ test('P1219-F4: پخش BroadcastChannel همان رویداد را دوباره 
 test('P1219-F5: فرانت از دیکشنری وضعیت و کد سفارش در Toast استفاده می‌کند', () => {
   const bridge = read('src/components/system/BusinessToastBridge.tsx');
   const mapper = read('src/lib/realtime/toast.mjs');
+  const controller = read('src/components/projects/ProjectListController.ts');
   const list = read('src/components/projects/ProjectList.tsx');
   assert.match(bridge, /PROJECT_STATUS\[value as ProjectStatus\]\.label/);
   assert.match(bridge, /showToast\(toast\)/);
   assert.match(mapper, /سفارش \$\{formatProjectCode\(raw\)\}/);
-  assert.match(list, /applyProjectStatus\(previous, event\)/);
+  assert.match(controller, /applyProjectStatus\(previous, event\)/);
   assert.ok(!/if\s*\(\s*!?isLeader/.test(bridge));
   assert.ok(!list.includes('window.location.reload'));
 });
