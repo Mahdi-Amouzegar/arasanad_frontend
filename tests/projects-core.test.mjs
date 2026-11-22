@@ -60,8 +60,8 @@ test('catalog constants are finite, ordered and free of duplicates', () => {
   assert.deepEqual(DELIVERY_UNITS.map((u) => u.hours), [1, 24, 168]);
   assert.equal(DELIVERY_VALUE_MIN, 1);
   assert.equal(DELIVERY_VALUE_MAX, 24);
-  assert.equal(PROJECT_STATUSES.length, 12);
-  assert.equal(new Set(PROJECT_STATUSES).size, 12);
+  assert.equal(PROJECT_STATUSES.length, 14);
+  assert.equal(new Set(PROJECT_STATUSES).size, 14);
   assert.equal(LANGUAGES.length, 4);
   assert.ok(LANGUAGES.includes('ترکیبی (فارسی-عربی / فارسی-انگلیسی)'));
   assert.equal(SOURCE_TYPES.length, 3);

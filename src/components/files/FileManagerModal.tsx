@@ -243,12 +243,21 @@ export function FileManagerModal({
   }, [onClose]);
 
   // انتخابگر بومی پس از بسته شدن (حتی با Cancel) تمرکز را به پنجره برمی‌گرداند.
+  // فاز ۱۲٫۲۱: Cancel در گفتگوی سیستم نباید کل مودال را ببندد. آزاد\u200cسازی قفل
+  // با تأخیر کوتاه انجام می\u200cشود تا رویداد cancel مودال ابتدا مسدود شود؛
+  // انتخاب موفق فایل قفل را بلافاصله آزاد می\u200cکند.
   useEffect(() => {
+    let settleTimer: number | undefined;
     const settle = () => {
-      if (pickerOpenRef.current) window.setTimeout(() => { pickerOpenRef.current = false; }, 0);
+      if (!pickerOpenRef.current) return;
+      if (settleTimer) window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(() => { pickerOpenRef.current = false; }, 500);
     };
     window.addEventListener('focus', settle);
-    return () => window.removeEventListener('focus', settle);
+    return () => {
+      window.removeEventListener('focus', settle);
+      if (settleTimer) window.clearTimeout(settleTimer);
+    };
   }, []);
 
   // ─── Upload tab ───
@@ -341,7 +350,7 @@ export function FileManagerModal({
     for (const { i } of pending) {
       await uploadOne(i);
     }
-    // فاز ۱۲٫۹-ه: فایل تازهآپلودشده بلافاصله در تب «فایل‌های موجود» دیده شود.
+    // فاز ۱۲٫۹-ه: فایل تازه‌آپلودشده بلافاصله در تب «فایل‌های موجود» دیده شود.
     if (pending.length > 0) await refreshExistingFiles();
   }, [pendingFiles, uploadOne, refreshExistingFiles]);
 

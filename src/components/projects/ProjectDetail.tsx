@@ -99,6 +99,7 @@ export function ProjectDetail() {
   /** فاز ۱۰: مودال اقدام مالی سرورمحور (همان قرارداد ستون اقدام فهرست). */
   const [activeAction, setActiveAction] = useState<ProjectAction | null>(null);
   const role: 'admin' | 'customer' = user?.role === 'admin' ? 'admin' : 'customer';
+  const isTotalQuote = detail?.project.quoteMode === 'total';
 
   const [note, setNote] = useState('');
   const [quoteRate, setQuoteRate] = useState('');
@@ -125,6 +126,17 @@ export function ProjectDetail() {
   const [deliveryError, setDeliveryError] = useState<string | null>(null);
 
   useEffect(() => setId(readIdFromLocation()), []);
+
+  // فاز ۱۲٫۲۱: لینک «ثبت فایل نهایی» مستقیماً فرم تحویل همان صفحه را باز می\u200cکند.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('deliver') !== '1') return;
+    setDeliveryOpen(true);
+    window.requestAnimationFrame(() => {
+      document.getElementById('final-files')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, []);
 
   /**
    * فایل‌ها، لینکها و تحویل‌ها جداگانه بارگذاری می‌شوند تا شکست یکی از آنها
@@ -156,6 +168,13 @@ export function ProjectDetail() {
       setError(null);
       setQuoteRate(String(data.project.quotedPricePerPage ?? data.project.basePricePerPage));
       setQuoteDeposit(String(data.project.finance?.depositTarget ?? data.project.depositAmount));
+      // فاز ۱۲٫۲۱: پیش\u200cفرض فرم تحویل از همان نرخی که در بیعانه ثبت شد می\u200cآید.
+      const totalMode = data.project.quoteMode === 'total';
+      const suggestedRate = totalMode
+        ? (data.project.quoteTotal ?? data.project.finalPricePerPage ?? data.project.quotedPricePerPage ?? 0)
+        : (data.project.finalPricePerPage ?? data.project.quotedPricePerPage ?? data.project.basePricePerPage ?? 0);
+      setDeliveryAmount(suggestedRate > 0 ? String(suggestedRate) : '');
+      setDeliveryPageCount(totalMode ? '1' : String(data.project.finalPages ?? data.project.sourcePageCount ?? 1));
       setNextStatus('');
       await loadFiles();
     } catch (caught) {
@@ -292,6 +311,7 @@ export function ProjectDetail() {
       await filesApi.createDelivery(id, {
         pageCount,
         amount,
+        pricePerPage: amount,
         description: deliveryDescription.trim() || undefined,
         fileIds: deliveryFiles.map((file) => file.id),
       });
@@ -670,8 +690,8 @@ export function ProjectDetail() {
         </CardBody>
       </Card>
 
-      {/* ── فاز ۸: تحویل فایل نهایی ── */}
-      <Card>
+      {/* ── فاز ۸ / ۱۲٫۲۱: تحویل فایل نهایی با لینک قابل فرود ── */}
+      <Card id="final-files">
         <CardHeader
           title="فایل‌های نهایی و تحویل‌ها"
           actions={
@@ -691,17 +711,23 @@ export function ProjectDetail() {
           {isAdmin && deliveryOpen ? (
             <form className="prj-stack" onSubmit={submitDelivery} noValidate>
               <div className="prj-grid">
-                <FormField label="تعداد صفحات خروجی" htmlFor="dlv-pages" required>
-                  <Input
-                    id="dlv-pages"
-                    type="number"
-                    min={1}
-                    inputMode="numeric"
-                    value={deliveryPageCount}
-                    onChange={(event) => setDeliveryPageCount(event.target.value)}
-                  />
-                </FormField>
-                <FormField label="مبلغ (تومان)" htmlFor="dlv-amount" required>
+                {isTotalQuote ? null : (
+                  <FormField label="تعداد صفحات خروجی" htmlFor="dlv-pages" required>
+                    <Input
+                      id="dlv-pages"
+                      type="number"
+                      min={1}
+                      inputMode="numeric"
+                      value={deliveryPageCount}
+                      onChange={(event) => setDeliveryPageCount(event.target.value)}
+                    />
+                  </FormField>
+                )}
+                <FormField
+                  label={isTotalQuote ? 'نرخ کل(تومان)' : 'نرخ هر صفحه (تومان)'}
+                  htmlFor="dlv-amount"
+                  required
+                >
                   <Input
                     id="dlv-amount"
                     type="number"
@@ -803,7 +829,7 @@ export function ProjectDetail() {
                   delivery={delivery}
                   isAdmin={isAdmin}
                   settlementConfirmed={
-                    projectSettled || delivery.paymentStatus === 'paid'
+                    projectSettled || Boolean(delivery.settledAt) || delivery.paymentStatus === 'paid'
                   }
                   onPaymentStatusChange={
                     isAdmin

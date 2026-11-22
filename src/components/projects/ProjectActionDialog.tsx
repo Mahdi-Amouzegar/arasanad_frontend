@@ -92,7 +92,7 @@ export function ProjectActionDialog({
   const title = useMemo(
     () => intent === 'approve_payment'
       ? (project.status === 'awaiting_final_payment' ? 'تأیید واریز نهایی' : 'تأیید واریز بیعانه')
-      : TITLES[intent] ?? action.label,
+      : action.label ?? TITLES[intent] ?? 'اقدام مالی',
     [intent, action.label, project.status],
   );
   const isFinalAmount = intent === 'set_final_amount';
@@ -241,7 +241,7 @@ export function ProjectActionDialog({
         <form onSubmit={(event) => void submit(event)}>
           {intent === 'set_quote' ? (
             <>
-              <label className="pad-dialog__label" htmlFor="pad-mode">نوع نرخ\u200cگذاری</label>
+              <label className="pad-dialog__label" htmlFor="pad-mode">نوع نرخ‌گذاری</label>
               <Select
                 id="pad-mode"
                 value={pricingMode}
@@ -298,7 +298,7 @@ export function ProjectActionDialog({
           {intent === 'set_quote' ? (
             <>
               <label className="pad-dialog__label" htmlFor="pad-deposit">
-                مبلغ بیعانه (تومان) — مستقل از نوع نرخ\u200cگذاری
+                مبلغ بیعانه (تومان) — مستقل از نوع نرخ‌گذاری
               </label>
               <Input
                 id="pad-deposit"

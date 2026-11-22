@@ -14,7 +14,11 @@ export const MAX_PAYMENT_AMOUNT = 1_000_000_000;
 
 export function stageForStatus(status) {
   if (status === 'awaiting_deposit') return 'deposit';
-  if (status === 'awaiting_final_payment') return 'final';
+  if (
+    status === 'awaiting_final_payment'
+    || status === 'awaiting_settlement'
+    || status === 'awaiting_settlement_confirmation'
+  ) return 'final';
   return null;
 }
 
@@ -95,6 +99,8 @@ export function financeStatusText({ status, stage, remaining, pendingCount }) {
   if (status === 'awaiting_deposit') return 'در انتظار پرداخت بیعانه';
   if (status === 'awaiting_final_quote') return 'در انتظار ثبت مبلغ نهایی';
   if (status === 'awaiting_final_payment') return 'در انتظار پرداخت نهایی';
+  if (status === 'awaiting_settlement') return 'در انتظار تسویه';
+  if (status === 'awaiting_settlement_confirmation') return 'در انتظار تأیید تسویه';
   if (status === 'ready_for_delivery') return 'آمادهٔ تحویل';
   if (status === 'in_progress') return 'در حال اجرا';
   if (Number(remaining) > 0 && stage) return `ماندهٔ ${stageLabel(stage)} ثبت شد`;

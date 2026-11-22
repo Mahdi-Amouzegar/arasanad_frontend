@@ -82,7 +82,7 @@ export function PanelMessages() {
               onClick={() => void refreshConversations()}
               loading={loadingConversations}
             >
-              تازهمسازی
+              تازه‌سازی
             </Button>
           }
         />

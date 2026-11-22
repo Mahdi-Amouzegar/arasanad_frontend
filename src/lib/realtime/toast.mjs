@@ -76,10 +76,13 @@ export function businessToastFor(event, statusLabel = (value) => value) {
   }
 
   if (event.type === 'activity.created') {
+    const operation = textOf(payload, 'operation');
+    // فاز ۱۲٫۲۱: Toast «کارت عملیات تازه ثبت شد» دیگر منتشر نمی\u200cشود.
+    if (operation === 'auto' || operation === 'create') return null;
     return {
       type: 'info',
       title: 'کارت عملیات تازه',
-      message: ACTIVITY_LABELS[textOf(payload, 'operation')] ?? `${label}: عملیات به‌روز شد`,
+      message: ACTIVITY_LABELS[operation] ?? `${label}: عملیات به‌روز شد`,
     };
   }
 

@@ -82,7 +82,7 @@ export function ProjectSpecsDialog({ project, onClose }: ProjectSpecsDialogProps
             {project.specialRequirements ? (
               <p className="prj-specs-dialog__text">{project.specialRequirements}</p>
             ) : (
-              <p className="prj-specs-dialog__empty">نیازمندی ویژهای ثبت نشده است.</p>
+              <p className="prj-specs-dialog__empty">نیازمندی ویژه‌ای ثبت نشده است.</p>
             )}
           </section>
         </div>

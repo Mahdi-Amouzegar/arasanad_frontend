@@ -7,6 +7,8 @@ export type ProjectStatus =
   | 'in_progress'
   | 'awaiting_final_quote'
   | 'awaiting_final_payment'
+  | 'awaiting_settlement'
+  | 'awaiting_settlement_confirmation'
   | 'ready_for_delivery'
   | 'delivered'
   | 'revision_requested'

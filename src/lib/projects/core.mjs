@@ -50,7 +50,7 @@ export function parseOutputFormats(value) {
   return Array.from(new Set(tokens));
 }
 
-/** ۱۲ وضعیت سفارش — همنام و هم\u200cترتیب با `src/lib/status.ts`. */
+/** ۱۴ وضعیت سفارش — همنام و هم\u200cترتیب با `src/lib/status.ts` و بکند. */
 export const PROJECT_STATUSES = [
   'draft',
   'pending_review',
@@ -58,6 +58,8 @@ export const PROJECT_STATUSES = [
   'in_progress',
   'awaiting_final_quote',
   'awaiting_final_payment',
+  'awaiting_settlement',
+  'awaiting_settlement_confirmation',
   'ready_for_delivery',
   'delivered',
   'revision_requested',
@@ -73,18 +75,38 @@ export const STATUS_TRANSITIONS = {
   awaiting_deposit: ['in_progress', 'pending_review', 'cancel_requested', 'cancelled'],
   in_progress: [
     'awaiting_final_quote',
+    'awaiting_settlement',
     'ready_for_delivery',
     'delivered',
     'revision_requested',
     'cancel_requested',
     'cancelled',
   ],
-  awaiting_final_quote: ['awaiting_final_payment', 'in_progress', 'cancel_requested', 'cancelled'],
-  awaiting_final_payment: ['ready_for_delivery', 'cancel_requested', 'cancelled'],
-  ready_for_delivery: ['delivered', 'cancel_requested', 'cancelled'],
-  delivered: ['completed', 'revision_requested', 'cancel_requested', 'cancelled'],
+  awaiting_final_quote: [
+    'awaiting_final_payment',
+    'awaiting_settlement',
+    'in_progress',
+    'cancel_requested',
+    'cancelled',
+  ],
+  awaiting_final_payment: ['awaiting_settlement', 'ready_for_delivery', 'cancel_requested', 'cancelled'],
+  awaiting_settlement: [
+    'awaiting_settlement_confirmation',
+    'awaiting_final_payment',
+    'delivered',
+    'cancel_requested',
+    'cancelled',
+  ],
+  awaiting_settlement_confirmation: [
+    'awaiting_settlement',
+    'ready_for_delivery',
+    'cancel_requested',
+    'cancelled',
+  ],
+  ready_for_delivery: ['awaiting_settlement', 'delivered', 'cancel_requested', 'cancelled'],
+  delivered: ['awaiting_settlement', 'completed', 'revision_requested', 'cancel_requested', 'cancelled'],
   revision_requested: ['in_progress', 'delivered', 'cancel_requested', 'cancelled'],
-  completed: ['revision_requested', 'cancel_requested', 'cancelled'],
+  completed: ['awaiting_settlement', 'revision_requested', 'cancel_requested', 'cancelled'],
   cancel_requested: [
     'cancelled',
     'draft',
@@ -93,6 +115,8 @@ export const STATUS_TRANSITIONS = {
     'in_progress',
     'awaiting_final_quote',
     'awaiting_final_payment',
+    'awaiting_settlement',
+    'awaiting_settlement_confirmation',
     'ready_for_delivery',
     'delivered',
     'revision_requested',

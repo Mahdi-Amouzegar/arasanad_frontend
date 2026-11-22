@@ -151,7 +151,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
    * اقدام و مبالغ از `availableActions[]` سرور خوانده می‌شوند، نه از فرانت‌اند.
    */
   const openCardAction = useCallback(
-    (intent: 'set_quote' | 'declare_deposit') => {
+    (intent: 'set_quote' | 'declare_deposit' | 'declare_payment' | 'approve_payment') => {
       void projectsApi
         .getProject(id)
         .then((detail) => {
@@ -284,6 +284,8 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
               onReply={(target) => setReplyTo(target)}
               onSetQuote={() => openCardAction('set_quote')}
               onDeclareDeposit={() => openCardAction('declare_deposit')}
+              onDeclareSettlement={() => openCardAction('declare_payment')}
+              onApproveSettlement={() => openCardAction('approve_payment')}
               projectStatus={project?.status ?? ''}
             />
           ))}

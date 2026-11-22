@@ -38,6 +38,9 @@ interface ActivityCardProps {
   /** فاز ۱۲٫۱۹ — اقدامهای سرورمحور روی کارت‌های ثبت و تعیین نرخ. */
   onSetQuote?: () => void;
   onDeclareDeposit?: () => void;
+  /** فاز ۱۲٫۲۱: اقدامهای تسویه\u200cی نهایی روی همان کارت عملیات. */
+  onDeclareSettlement?: () => void;
+  onApproveSettlement?: () => void;
   projectStatus?: string;
 }
 
@@ -116,7 +119,7 @@ function ActivityAttachments({ activityId }: { activityId: string }) {
   );
 }
 
-export function ActivityCard({ activity, role, onReply, onSetQuote, onDeclareDeposit, projectStatus }: ActivityCardProps) {
+export function ActivityCard({ activity, role, onReply, onSetQuote, onDeclareDeposit, onDeclareSettlement, onApproveSettlement, projectStatus }: ActivityCardProps) {
   const actor = actorMeta(activity.actorKind);
   const event = eventMeta(activity.eventType);
   const automatic = isAutomaticActivity(activity);
@@ -130,6 +133,13 @@ export function ActivityCard({ activity, role, onReply, onSetQuote, onDeclareDep
   const showDepositActions =
     role === 'customer' && ['quote.set', 'deposit.set'].includes(activity.eventType)
     && projectStatus === 'awaiting_deposit' && typeof onDeclareDeposit === 'function';
+  // فاز ۱۲٫۲۱: دکمه\u200cی تسویه دقیقاً روی کارت مربوط به همان مرحله ظاهر می\u200cشود.
+  const showSettlementDeclare =
+    role === 'customer' && activity.eventType === 'delivery.created'
+    && projectStatus === 'awaiting_settlement' && typeof onDeclareSettlement === 'function';
+  const showSettlementApproval =
+    role === 'admin' && activity.eventType === 'final_payment.declared'
+    && projectStatus === 'awaiting_settlement_confirmation' && typeof onApproveSettlement === 'function';
 
   return (
     <article id={`activity-${activity.id}`} className={`act-card act-card--${activity.actorKind}`}>
@@ -213,7 +223,7 @@ export function ActivityCard({ activity, role, onReply, onSetQuote, onDeclareDep
         </div>
       </dl>
 
-      {showSetQuote || showDepositActions ? (
+      {showSetQuote || showDepositActions || showSettlementDeclare || showSettlementApproval ? (
         <div className="act-card__quick">
           {showSetQuote ? (
             <button type="button" className="btn btn--sm btn--primary" onClick={onSetQuote}>
@@ -233,6 +243,16 @@ export function ActivityCard({ activity, role, onReply, onSetQuote, onDeclareDep
                 اعلام پرداخت بیعانه
               </button>
             </>
+          ) : null}
+          {showSettlementDeclare ? (
+            <button type="button" className="btn btn--sm btn--primary" onClick={onDeclareSettlement}>
+              اعلام تسویه
+            </button>
+          ) : null}
+          {showSettlementApproval ? (
+            <button type="button" className="btn btn--sm btn--primary" onClick={onApproveSettlement}>
+              تأیید تسویه
+            </button>
           ) : null}
         </div>
       ) : null}

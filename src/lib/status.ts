@@ -40,6 +40,8 @@ export type ProjectStatus =
   | 'in_progress'
   | 'awaiting_final_quote'
   | 'awaiting_final_payment'
+  | 'awaiting_settlement'
+  | 'awaiting_settlement_confirmation'
   | 'ready_for_delivery'
   | 'delivered'
   | 'revision_requested'
@@ -85,6 +87,19 @@ export const PROJECT_STATUS: Record<ProjectStatus, StatusMeta> = {
     icon: 'card',
     description: 'مبلغ نهایی ثبت شده است؛ برای دریافت فایل، مانده را پرداخت کنید.',
     needsCustomerAction: true,
+  },
+  awaiting_settlement: {
+    label: 'در انتظار تسویه',
+    tone: 'warning',
+    icon: 'wallet',
+    description: 'فایل نهایی ثبت شده است؛ مبلغ سفارش را اعلام و تسویه کنید.',
+    needsCustomerAction: true,
+  },
+  awaiting_settlement_confirmation: {
+    label: 'در انتظار تأیید تسویه',
+    tone: 'info',
+    icon: 'hourglass',
+    description: 'تسویه اعلام شده و منتظر تأیید مدیر است.',
   },
   ready_for_delivery: {
     label: 'آماده تحویل',
@@ -343,6 +358,8 @@ export const PROJECT_STATUS_FLOW: ProjectStatus[] = [
   'in_progress',
   'awaiting_final_quote',
   'awaiting_final_payment',
+  'awaiting_settlement',
+  'awaiting_settlement_confirmation',
   'ready_for_delivery',
   'delivered',
   'revision_requested',
