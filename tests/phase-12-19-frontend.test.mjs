@@ -64,13 +64,15 @@ test('P1219-F4: پخش BroadcastChannel همان رویداد را دوباره 
 });
 
 test('P1219-F5: فرانت از دیکشنری وضعیت و کد سفارش در Toast استفاده می‌کند', () => {
-  const source = read('src/components/projects/ProjectList.tsx');
-  assert.match(source, /PROJECT_STATUS\[value as ProjectStatus\]\.label/);
-  assert.match(source, /showToast\(\{/);
-  assert.match(source, /سفارش \$\{code\}/);
-  assert.match(source, /applyProjectStatus\(previous, event\)/);
-  assert.match(source, /claimRealtimeEventId\(toastIdsRef\.current, event\.id\)/);
-  assert.ok(!source.includes('window.location.reload'));
+  const bridge = read('src/components/system/BusinessToastBridge.tsx');
+  const mapper = read('src/lib/realtime/toast.mjs');
+  const list = read('src/components/projects/ProjectList.tsx');
+  assert.match(bridge, /PROJECT_STATUS\[value as ProjectStatus\]\.label/);
+  assert.match(bridge, /showToast\(toast\)/);
+  assert.match(mapper, /سفارش \$\{formatProjectCode\(raw\)\}/);
+  assert.match(list, /applyProjectStatus\(previous, event\)/);
+  assert.ok(!/if\s*\(\s*!?isLeader/.test(bridge));
+  assert.ok(!list.includes('window.location.reload'));
 });
 
 test('P1219-F6: payload تنها فیلدهای غیرحساس دارد', () => {

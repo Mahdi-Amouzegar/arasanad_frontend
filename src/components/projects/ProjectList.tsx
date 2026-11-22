@@ -21,19 +21,7 @@ import { ProjectSpecsDialog } from './ProjectSpecsDialog';
 import { FinanceDialog } from './OrdersWorkspace';
 import { errorText, formatHours, formatProjectCodeSafe } from './ui-utils';
 import { useRealtimeEvent } from '@/components/system/RealtimeProvider';
-import { useAlert } from '@/components/ui/AlertProvider';
-import {
-  applyProjectStatus,
-  claimRealtimeEventId,
-  projectEventFields,
-} from '@/lib/realtime/core.mjs';
-
-/** نام فارسی وضعیت از همان دیکشنری پروژه؛ مقادیر ناشناخته همانطور باقی می‌مانند. */
-function statusLabel(value: string): string {
-  return Object.prototype.hasOwnProperty.call(PROJECT_STATUS, value)
-    ? PROJECT_STATUS[value as ProjectStatus].label
-    : value;
-}
+import { applyProjectStatus } from '@/lib/realtime/core.mjs';
 
 /** فقط مسیرهای نسبی درون‌برنامه‌ای؛ پاسخ سرور هرگز کورکورانه لینک نمی‌شود. */
 function safeActionHref(href: string | undefined, fallback: string): string {
@@ -141,7 +129,6 @@ function ProjectActionsCell({
 /** Shared list for the customer panel and the admin queue. */
 export function ProjectList({ admin = false }: { admin?: boolean }) {
   const { authedRequest, user } = useAuth();
-  const { showToast } = useAlert();
   const role: 'admin' | 'customer' = admin || user?.role === 'admin' ? 'admin' : 'customer';
   const detailPath = role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
   const api = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
@@ -195,32 +182,11 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
   useEffect(() => () => {
     if (realtimeTimerRef.current) clearTimeout(realtimeTimerRef.current);
   }, []);
-  // فاز ۱۲٫۱۹ — Refetch با همان پارامترها، فیلتر/ترتیب/دسترسی سروری حفظ می‌شود.
-  // RealtimeProvider پیشتر براساس id رویداد‌ها را تکری می‌کند؛ این محافظ دوم
-  // بازیابی Cursor و پخش BroadcastChannel را هم پوشش می‌دهد.
-  const toastIdsRef = useRef(new Set<string>());
+  // فاز ۱۲٫۲۰-B — Toast سراسری به BusinessToastBridge منتقل شد. اینجا تنها
+  // به‌روزرسانی فوری ردیف و Refetch با همان پارامترها انجام می‌شود.
   useRealtimeEvent(['project.created', 'project.status_changed'], (event) => {
-    if (!claimRealtimeEventId(toastIdsRef.current, event.id)) return;
-    const fields = projectEventFields(event);
-    const code = formatProjectCodeSafe(fields.code);
-    const label = code ? `سفارش ${code}` : 'سفارش';
-
-    if (event.type === 'project.created') {
-      showToast({
-        type: 'success',
-        title: 'سفارش تازه ثبت شد',
-        message: `${label} در انتظار بررسی است.`,
-      });
-    } else {
-      // وضعیت ردیف بلافاصله عوض می‌شود؛ اقدام‌ها و مبالغ از پاسخ تازه‌ی API می‌آیند.
+    if (event.type === 'project.status_changed') {
       setProjects((previous) => applyProjectStatus(previous, event));
-      const to = statusLabel(fields.status);
-      const from = fields.fromStatus ? statusLabel(fields.fromStatus) : '';
-      showToast({
-        type: 'info',
-        title: 'تغییر وضعیت سفارش',
-        message: from ? `${label}: ${to} ← ${from}` : `${label}: ${to}`,
-      });
     }
     debouncedRealtimeRefresh();
   });

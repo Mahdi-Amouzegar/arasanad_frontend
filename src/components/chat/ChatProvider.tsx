@@ -70,6 +70,8 @@ interface ChatContextValue {
   busy: boolean;
   error: string | null;
   unreadTotal: number;
+  /** فاز ۱۲٫۲۰-B: پیام تازه در مکالمهای غیرفعال — برای حالت Launcher. */
+  freshMessage: boolean;
   signedIn: boolean;
   /** فاز ۱۲٫۱۱ — انتخاب چندپیامی و وضعیت پنجره فوروارد */
   selectedMessageIds: string[];
@@ -133,6 +135,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unreadTotal, setUnreadTotal] = useState(0);
+  const [freshMessage, setFreshMessage] = useState(false);
+  const freshIdsRef = useRef<Set<string>>(new Set());
   const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
   const [forwardOpen, setForwardOpen] = useState(false);
 
@@ -204,16 +208,34 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     }
   }, [api, signedIn]);
 
+  /** اسنپشات کامل chat شامل شمارنده و پرچم پیام تازه برای تب‌های پیرو. */
+  const publishChatSnapshot = useCallback(
+    (count: number) => {
+      if (!signedIn || !isLeader) return;
+      publish('chat', {
+        unreadTotal: Math.max(0, Number(count) || 0),
+        freshConversationIds: [...freshIdsRef.current],
+      });
+    },
+    [isLeader, publish, signedIn],
+  );
+
+  const clearFreshConversation = useCallback((id: string | null | undefined) => {
+    if (!id) return;
+    freshIdsRef.current.delete(id);
+    setFreshMessage(freshIdsRef.current.size > 0);
+  }, []);
+
   const syncUnread = useCallback(async () => {
     if (!signedIn) return;
     try {
       const count = Math.max(0, Number(await api.unreadCount()) || 0);
       setUnreadTotal(count);
-      publish('chat', { unreadTotal: count });
+      publishChatSnapshot(count);
     } catch {
       /* unread count is optional */
     }
-  }, [api, publish, signedIn]);
+  }, [api, publishChatSnapshot, signedIn]);
 
   const loadMessages = useCallback(
     async (id: string) => {
@@ -272,7 +294,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           setActivePeer(found.peer);
           setProjectId(found.projectId);
           await loadMessages(found.id);
-          void api.markRead(found.id).then(refreshUnread).catch(() => undefined);
+          clearFreshConversation(found.id);
+          void api.markRead(found.id).then(syncUnread).catch(() => undefined);
           void refreshConversations();
           return;
         }
@@ -290,7 +313,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setProjectId(conversation.projectId ?? contextProjectId);
         await loadMessages(conversation.id);
         // ورود به گفتگو = خواندهشدن پیام‌ها (نه بازکردن فهرست)
-        void api.markRead(conversation.id).then(refreshUnread).catch(() => undefined);
+        clearFreshConversation(conversation.id);
+        void api.markRead(conversation.id).then(syncUnread).catch(() => undefined);
         void refreshConversations();
       } catch (err) {
         setError(messageOf(err));
@@ -299,7 +323,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setBusy(false);
       }
     },
-    [api, clearSelection, loadMessages, refreshConversations, refreshUnread, requireSession, showToast],
+    [api, clearFreshConversation, clearSelection, loadMessages, refreshConversations, requireSession, showToast, syncUnread],
   );
 
   const close = useCallback(() => {
@@ -475,10 +499,10 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         ]);
         if (!alive) return;
         setUnreadTotal(count);
-        publish('chat', { unreadTotal: count });
+        publishChatSnapshot(count);
         if (page) {
           setMessages((prev) => mergeMessages(prev, page.messages));
-          if (activeId) void api.markRead(activeId).then(refreshUnread).catch(() => undefined);
+          if (activeId) void api.markRead(activeId).then(syncUnread).catch(() => undefined);
         }
         failures = 0;
       } catch {
@@ -510,17 +534,31 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         window.removeEventListener('keydown', noteInteraction);
       }
     };
-  }, [api, refreshUnread, signedIn, isLeader, online, multiplier, publish, connected]);
+  }, [api, refreshUnread, signedIn, isLeader, online, multiplier, publishChatSnapshot, syncUnread, connected]);
 
-  /** تب‌های پیرو شمارنده را بدون درخواست شبک‌ای از رهبر می‌گیرند. */
+  /** تب‌های پیرو شمارنده و پرچم پیام تازه را بدون درخواست شبکه‌ای از رهبر می‌گیرند. */
   useEffect(() => {
     if (!signedIn || isLeader) return undefined;
     return subscribe((message) => {
       if (message.channel !== 'chat') return;
-      const count = Number((message.payload as { unreadTotal?: unknown } | null)?.unreadTotal ?? 0);
+      const payload = message.payload as
+        | { unreadTotal?: unknown; freshConversationIds?: unknown }
+        | null;
+      const count = Number(payload?.unreadTotal ?? 0);
       if (Number.isFinite(count)) setUnreadTotal(Math.max(0, count));
+      const ids = Array.isArray(payload?.freshConversationIds) ? payload.freshConversationIds : null;
+      if (ids) {
+        freshIdsRef.current = new Set(ids.filter((id): id is string => typeof id === 'string'));
+        setFreshMessage(freshIdsRef.current.size > 0);
+      }
     });
   }, [isLeader, signedIn, subscribe]);
+
+  /** تب رهبر اسنپشات فعلی را هنگام ارتقا و باز شدن تب پخش می‌کند. */
+  useEffect(() => {
+    if (!signedIn || !isLeader) return;
+    publishChatSnapshot(unreadTotal);
+  }, [isLeader, publishChatSnapshot, signedIn, unreadTotal]);
 
   // Phase 12.17: realtime events replace business polling while connected.
   useRealtimeEvent(
@@ -535,7 +573,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           try {
             const page = await api.listMessages(activeId);
             setMessages((prev) => mergeMessages(prev, page.messages));
-            void api.markRead(activeId).then(refreshUnread).catch(() => undefined);
+            void api.markRead(activeId).then(syncUnread).catch(() => undefined);
           } catch {
             /* retry on next event, visibility or reconnect */
           }
@@ -544,11 +582,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         return;
       }
       if (event.type === 'chat.message.created') {
+        if (changedId) {
+          freshIdsRef.current.add(changedId);
+          setFreshMessage(true);
+        }
         void syncUnread();
         void refreshConversations();
         return;
       }
       if (event.type === 'chat.message.read') {
+        clearFreshConversation(changedId);
         void syncUnread();
         void refreshConversations();
         return;
@@ -577,6 +620,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       busy,
       error,
       unreadTotal,
+      freshMessage,
       signedIn,
       selectedMessageIds,
       forwardOpen,
@@ -605,7 +649,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       open, variant, view, conversationId, activePeer, projectId, projectLabel,
       conversations, messages, hasMoreConversations, hasMoreMessages,
       loadingConversations, loadingMessages, searching, searchResults, busy,
-      error, unreadTotal, signedIn, selectedMessageIds, forwardOpen,
+      error, unreadTotal, freshMessage, signedIn, selectedMessageIds, forwardOpen,
       openList, openChat, close, backToList,
       refreshConversations, loadMoreConversations, loadMoreMessages,
       searchUsers, clearSearch, openWithUser, sendText, sendAttachments,

@@ -30,7 +30,6 @@ import {
   notificationSupported,
   requestNotificationPermission,
   setAppBadge,
-  showBrowserNotifications,
 } from '@/lib/notifications/browser';
 import { POLL_CACHE_MS, pollDelayFor } from '@/lib/chat/core.mjs';
 import { usePollLeader } from '@/lib/connectivity/poll-leader';
@@ -84,7 +83,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const lastCountRef = useRef(0);
   const lastPollRef = useRef(0);
-  const shownIdsRef = useRef<Set<string>>(new Set());
 
   const refresh = useCallback(async () => {
     if (!signedIn) return;
@@ -249,16 +247,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         void setAppBadge(count);
         setError(null);
 
-        if (count > lastCountRef.current) {
-          const fresh = await api.fresh();
-          const unseen = fresh.filter((item) => !shownIdsRef.current.has(item.id));
-          if (unseen.length > 0) {
-            for (const item of unseen) shownIdsRef.current.add(item.id);
-            const shown = await showBrowserNotifications(unseen);
-            if (shown > 0) await api.markShown().catch(() => undefined);
-            void refresh();
-          }
-        }
+        // فاز ۱۲٫۲۰-B: نمایش نوتیف مرورگر به BrowserNotificationBridge سپرده شد.
+        // اینجا تنها فهرست درونسایت در صورت increase تازه می‌شود؛ `/fresh` و
+        // `/shown` توسط پل تکتب با قرارداد shownAt فراخوانی می‌شوند.
+        if (count > lastCountRef.current) void refresh();
         lastCountRef.current = count;
         failures = 0;
       } catch {

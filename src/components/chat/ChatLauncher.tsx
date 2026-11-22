@@ -13,15 +13,15 @@ import { useChat } from './ChatProvider';
 import { formatBadge } from '@/lib/chat/core.mjs';
 
 export function ChatLauncher() {
-  const { open, variant, signedIn, openList, unreadTotal } = useChat();
+  const { open, variant, signedIn, openList, unreadTotal, freshMessage } = useChat();
   if (!signedIn || (open && variant === 'popover')) return null;
 
   return (
     <button
       type="button"
-      className="chat-launcher"
+      className={`chat-launcher${freshMessage ? ' chat-launcher--fresh' : ''}`}
       onClick={() => openList('popover')}
-      aria-label={`باز کردن گفتگو‌ها${unreadTotal > 0 ? `، ${unreadTotal} پیام خوانده‌نشده` : ''}`}
+      aria-label={`باز کردن گفتگو‌ها${unreadTotal > 0 ? `، ${unreadTotal} پیام خوانده‌نشده` : ''}${freshMessage ? '، پیام خوانده‌نشده تازه' : ''}`}
       title="گفتگو‌ها"
     >
       <Icon name="phone" size={22} />

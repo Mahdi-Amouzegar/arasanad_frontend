@@ -20,6 +20,8 @@ import { ActivityProvider } from '@/components/activities/ActivityProvider';
 import { AlertProvider } from '@/components/ui/AlertProvider';
 import { AccountProvider } from '@/components/system/AccountProvider';
 import { RealtimeProvider } from '@/components/system/RealtimeProvider';
+import { BusinessToastBridge } from '@/components/system/BusinessToastBridge';
+import { BrowserNotificationBridge } from '@/components/system/BrowserNotificationBridge';
 import { ServiceWorkerRegister } from '@/components/system/ServiceWorkerRegister';
 import { AndroidBackHandler } from '@/components/system/AndroidBackHandler';
 import { ConnectivityBootstrap } from '@/components/system/ConnectivityBootstrap';
@@ -77,10 +79,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AndroidBackHandler />
           <AccountProvider>
             <RealtimeProvider>
+              {/* فاز ۱۲٫۲۰-B: Toast سراسری در تمام تبها و نوتیف مرورگر تکتب. */}
+              <BusinessToastBridge />
               {/* فاز ۹: گفتگو و اعلان، یک وضعیت سراسری در تمام صفحات.
                   ⚠️ ترتیب وابستگی: هر دو Provider به useAuth نیاز دارند،
                      پس حتماً درون AccountProvider قرار می‌گیرند. */}
               <NotificationProvider>
+                <BrowserNotificationBridge />
                 {/* فاز ۹٫۵: زنگوله‌ی عملیات، مستقل از اعلان فاز ۹. */}
                 <ActivityProvider>
                   <ChatProvider>

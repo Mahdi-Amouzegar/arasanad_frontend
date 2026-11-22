@@ -790,6 +790,13 @@
   color: #fff;
 }
 
+/* فاز ۱۲٫۲۰-B: پیام تازه در مکالمه غیرفعال — بدون وابستگی به Leader. */
+.chat-launcher--fresh .chat-launcher__pulse {
+  background: var(--c-warning);
+  outline: 3px solid var(--c-warning);
+  outline-offset: 2px;
+}
+
 .chat-launcher__badge {
   position: absolute;
   inset-block-start: -4px;

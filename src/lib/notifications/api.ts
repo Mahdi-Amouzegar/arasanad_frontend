@@ -57,8 +57,17 @@ export function createNotificationsApi(request: AuthedRequest) {
       return Array.isArray(data.notifications) ? data.notifications : [];
     },
 
-    async markShown(): Promise<void> {
-      await request<{ shownAt: string }>('/notifications/shown', { method: 'POST', body: {} });
+    /**
+     * فاز ۱۲٫۲۰-B: `shownAt` پیش از fresh گرفته می‌شود تا نوتیفهای بین
+     * fresh و shown از دست نروند. بدنه هم برای سازگاری با کلاینتهای قدیمی ارسال می‌شود.
+     */
+    async markShown(shownAt?: string): Promise<string> {
+      const suffix = shownAt ? `?shownAt=${encodeURIComponent(shownAt)}` : '';
+      const data = await request<{ shownAt: string }>(`/notifications/shown${suffix}`, {
+        method: 'POST',
+        body: shownAt ? { shownAt } : {},
+      });
+      return data.shownAt;
     },
 
     async markRead(id: string): Promise<void> {

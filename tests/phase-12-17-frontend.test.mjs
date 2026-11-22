@@ -155,7 +155,7 @@ test('P1217-F8: notification, activity and chat providers subscribe and pause po
   }
   const chat = read('src/components/chat/ChatProvider.tsx');
   assert.match(chat, /mergeMessages\(prev, page\.messages\)/);
-  assert.match(chat, /publish\('chat', \{ unreadTotal: count \}\)/);
+  assert.match(chat, /publishChatSnapshot\(count\)/);
 });
 
 test('P1217-F9: order tables refetch through their existing refresh path', () => {

@@ -11,6 +11,8 @@ export type RealtimeEventType =
   | 'project.created'
   | 'project.status_changed'
   | 'activity.created'
+  | 'finance.updated'
+  | 'delivery.updated'
   | 'notification.created'
   | 'notification.read'
   | 'chat.message.created'
@@ -18,11 +20,16 @@ export type RealtimeEventType =
   | 'chat.conversation.updated'
   | 'chat.unread.updated';
 
+export interface RealtimeEventPayload extends Record<string, unknown> {
+  /** نسخهٔ عددی epoch-ms؛ فقط این مقدار برای مقایسهٔ ترتیبدار معتبر است. */
+  dataVersion?: number;
+}
+
 export interface RealtimeEvent extends RealtimeEventLike {
   seq: number;
   id: string;
   type: RealtimeEventType;
-  payload: Record<string, unknown>;
+  payload: RealtimeEventPayload;
   createdAt: string;
 }
 
@@ -68,3 +75,4 @@ export {
   realtimeCursorKey,
   reconnectDelay,
 } from './core.mjs';
+export { businessToastFor, eventDataVersion } from './toast.mjs';
