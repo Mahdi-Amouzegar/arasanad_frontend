@@ -115,6 +115,36 @@ export function isSystemMessage(message) {
   return Boolean(message) && (message.kind === 'system' || message.senderId === null);
 }
 
+/**
+ * فاز ۱۲٫۲۰-C — کوچک‌ترین tabId میان تب‌هایی که همان مکالمه را فعال کردهاند.
+ * نتایج BroadcastChannel به‌همین ترتیب جمع می‌شوند تا `markRead` فقط یک‌بار فرستاده شود.
+ */
+export function readOwnerTabId(claims, conversationId, fallbackTabId) {
+  const ids = claims?.[conversationId];
+  if (!Array.isArray(ids) || ids.length === 0) return fallbackTabId;
+  return [...ids].filter((id) => typeof id === 'string').sort()[0] ?? fallbackTabId;
+}
+
+/** پیش‌نمایش آخرین مکالمه خوانده‌نشده برای لانچر شناور. */
+export function latestUnreadPreview(conversations) {
+  const rows = Array.isArray(conversations) ? conversations : [];
+  const candidates = rows.filter(
+    (row) => Number(row?.unreadCount) > 0 && typeof row?.lastMessagePreview === 'string' && row.lastMessagePreview,
+  );
+  if (candidates.length === 0) return null;
+  candidates.sort((a, b) => {
+    const left = Date.parse(a.lastMessageAt ?? '') || 0;
+    const right = Date.parse(b.lastMessageAt ?? '') || 0;
+    return right - left;
+  });
+  const latest = candidates[0];
+  return {
+    conversationId: latest.id,
+    peerName: peerName(latest.peer),
+    preview: truncate(latest.lastMessagePreview, 42),
+  };
+}
+
 /** برچسب خلاصه‌ی پیام برای فهرست گفتگو‌ها. */
 export function messagePreview(message) {
   if (!message) return '';

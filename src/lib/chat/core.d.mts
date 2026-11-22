@@ -77,6 +77,14 @@ export declare function initialsOf(name: string): string;
 export declare function toFaDigits(value: string | number): string;
 export declare function formatBadge(count: number): string;
 export declare function truncate(value: string, max?: number): string;
+export declare function readOwnerTabId(
+  claims: Record<string, string[]> | null | undefined,
+  conversationId: string | null,
+  fallbackTabId: string,
+): string;
+export declare function latestUnreadPreview(
+  conversations: readonly ChatConversation[] | null | undefined,
+): { conversationId: string; peerName: string; preview: string } | null;
 export declare function validateDraft(text: string): { ok: boolean; value: string; reason?: string };
 export declare function pollDelayFor(input?: {
   hidden?: boolean;

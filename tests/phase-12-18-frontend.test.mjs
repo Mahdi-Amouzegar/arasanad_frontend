@@ -27,7 +27,8 @@ test('P1218-F1: chat consumes only the two published events', () => {
 test('P1218-F2: notification read is consumed by the notification provider', () => {
   const provider = read('src/components/chat/NotificationProvider.tsx');
   assert.match(provider, /'notification\.created', 'notification\.read'/);
-  assert.match(provider, /void syncUnread\(\)/);
+  assert.match(provider, /applyBadgeEvent\(badgeRef\.current, event\)/);
+  assert.match(provider, /void reconcileUnread\(\)/);
 });
 
 test('P1218-F3: realtime event contract is unchanged', () => {

@@ -19,6 +19,7 @@ export interface NotificationItem {
 export interface NotificationPage {
   notifications: NotificationItem[];
   unreadCount: number;
+  dataVersion: number;
   hasMore: boolean;
   offset: number;
   limit: number;
@@ -35,17 +36,27 @@ export interface TelegramStatus {
 
 export function createNotificationsApi(request: AuthedRequest) {
   return {
-    /** مسیر سبک — فقط یک عدد (مصرف Outbox هم در همان فراخوانی انجام می‌شود). */
-    async unreadCount(): Promise<number> {
-      const data = await request<{ count: number }>('/notifications/unread-count');
-      return Number(data.count ?? 0);
+    /** مسیر سبک — شمارنده و نسخه عددی سرور برای رد پاسخ قدیمی. */
+    async unreadCount(): Promise<{ count: number; dataVersion: number }> {
+      const data = await request<{ count: number; dataVersion?: number }>(
+        '/notifications/unread-count',
+      );
+      const version = Number(data.dataVersion ?? 0);
+      return {
+        count: Number(data.count ?? 0),
+        dataVersion: Number.isFinite(version) ? version : 0,
+      };
     },
 
     async list(limit = 20, offset = 0): Promise<NotificationPage> {
-      const data = await request<NotificationPage>(`/notifications?limit=${limit}&offset=${offset}`);
+      const data = await request<NotificationPage & { dataVersion?: number }>(
+        `/notifications?limit=${limit}&offset=${offset}`,
+      );
+      const version = Number(data.dataVersion ?? 0);
       return {
         notifications: Array.isArray(data.notifications) ? data.notifications : [],
         unreadCount: Number(data.unreadCount ?? 0),
+        dataVersion: Number.isFinite(version) ? version : 0,
         hasMore: Boolean(data.hasMore),
         offset: Number(data.offset ?? offset),
         limit: Number(data.limit ?? limit),

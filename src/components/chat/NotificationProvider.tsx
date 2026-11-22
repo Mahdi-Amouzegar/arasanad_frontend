@@ -32,6 +32,14 @@ import {
   setAppBadge,
 } from '@/lib/notifications/browser';
 import { POLL_CACHE_MS, pollDelayFor } from '@/lib/chat/core.mjs';
+import {
+  applyBadgeEvent,
+  applyOptimisticRead,
+  applyOptimisticReadAll,
+  applyReconciliation,
+  createBadgeState,
+  type BadgeState,
+} from '@/lib/notifications/badge.mjs';
 import { usePollLeader } from '@/lib/connectivity/poll-leader';
 import { useRealtimeEvent, useRealtimeStatus } from '@/components/system/RealtimeProvider';
 
@@ -83,85 +91,113 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
   const lastCountRef = useRef(0);
   const lastPollRef = useRef(0);
+  const badgeRef = useRef<BadgeState>(createBadgeState(0));
+  const reconcileSeqRef = useRef(0);
+  const refreshSeqRef = useRef(0);
+  const loadSeqRef = useRef(0);
+
+  const commitBadge = useCallback((next: BadgeState) => {
+    badgeRef.current = next;
+    const count = Math.max(0, next.count);
+    setUnreadCount(count);
+    lastCountRef.current = count;
+    void setAppBadge(count);
+    if (isLeader) {
+      publish('notifications', { unreadCount: count, dataVersion: next.lastDataVersion });
+    }
+  }, [isLeader, publish]);
 
   const refresh = useCallback(async () => {
     if (!signedIn) return;
+    const requestId = ++refreshSeqRef.current;
+    const revisionAtRequest = badgeRef.current.optimisticRevision;
     setLoading(true);
     try {
       const page = await api.list(20, 0);
+      if (requestId !== refreshSeqRef.current) return;
       setNotifications(page.notifications);
-      setUnreadCount(page.unreadCount);
       setHasMore(page.hasMore);
-      lastCountRef.current = page.unreadCount;
+      const merged = applyReconciliation(badgeRef.current, {
+        count: page.unreadCount,
+        dataVersion: page.dataVersion,
+        revisionAtRequest,
+      });
+      if (merged.accepted) commitBadge(merged.state);
       setError(null);
     } catch (err) {
-      setError(messageOf(err));
+      if (requestId === refreshSeqRef.current) setError(messageOf(err));
     } finally {
-      setLoading(false);
+      if (requestId === refreshSeqRef.current) setLoading(false);
     }
-  }, [api, signedIn]);
+  }, [api, commitBadge, signedIn]);
 
-  const syncUnread = useCallback(async () => {
-    if (!signedIn) return;
+  const reconcileUnread = useCallback(async () => {
+    if (!signedIn || !isLeader) return;
+    const requestId = ++reconcileSeqRef.current;
+    const revisionAtRequest = badgeRef.current.optimisticRevision;
     try {
-      const count = await api.unreadCount();
-      setUnreadCount(count);
-      lastCountRef.current = count;
-      publish('notifications', { unreadCount: count });
-      void setAppBadge(count);
+      const result = await api.unreadCount();
+      if (requestId !== reconcileSeqRef.current) return;
+      const merged = applyReconciliation(badgeRef.current, { ...result, revisionAtRequest });
+      if (merged.accepted) commitBadge(merged.state);
     } catch {
-      /* unread count is optional */
+      /* شمارنده اختیاری است؛ retries توسط polling بعدی انجام می‌شود. */
     }
-  }, [api, publish, signedIn]);
+  }, [api, commitBadge, isLeader, signedIn]);
 
   const loadMore = useCallback(async () => {
     if (!signedIn || loading || !hasMore) return;
+    const requestKey = ++loadSeqRef.current;
     setLoading(true);
     try {
       const page = await api.list(20, notifications.length);
+      if (requestKey !== loadSeqRef.current) return;
       setNotifications((prev) => {
         const seen = new Set(prev.map((item) => item.id));
         return [...prev, ...page.notifications.filter((item) => !seen.has(item.id))];
       });
       setHasMore(page.hasMore);
-      setUnreadCount(page.unreadCount);
+      // شمارنده جاری نباید توسط صفحهٔ قدیمی overwrite شود.
     } catch (err) {
       setError(messageOf(err));
     } finally {
-      setLoading(false);
+      if (requestKey === loadSeqRef.current) setLoading(false);
     }
   }, [api, hasMore, loading, notifications.length, signedIn]);
 
   const markRead = useCallback(
     async (id: string) => {
       if (!signedIn) return;
+      const optimistic = applyOptimisticRead(badgeRef.current, id, `read:${id}:${Date.now()}`);
+      if (optimistic.changed) commitBadge(optimistic.state);
       try {
         await api.markRead(id);
         setNotifications((prev) =>
           prev.map((item) => (item.id === id ? { ...item, readAt: new Date().toISOString() } : item)),
         );
-        setUnreadCount((value) => Math.max(0, value - 1));
-        lastCountRef.current = Math.max(0, lastCountRef.current - 1);
-        void setAppBadge(Math.max(0, lastCountRef.current));
       } catch (err) {
         setError(messageOf(err));
+      } finally {
+        badgeRef.current.pendingReads.delete(id);
+        void reconcileUnread();
       }
     },
-    [api, signedIn],
+    [api, commitBadge, reconcileUnread, signedIn],
   );
 
   const markAllRead = useCallback(async () => {
     if (!signedIn) return;
+    const optimistic = applyOptimisticReadAll(badgeRef.current, `read-all:${Date.now()}`);
+    if (optimistic.changed) commitBadge(optimistic.state);
     try {
       await api.markAllRead();
       setNotifications((prev) => prev.map((item) => ({ ...item, readAt: item.readAt ?? new Date().toISOString() })));
-      setUnreadCount(0);
-      lastCountRef.current = 0;
-      void setAppBadge(0);
     } catch (err) {
       setError(messageOf(err));
+    } finally {
+      void reconcileUnread();
     }
-  }, [api, signedIn]);
+  }, [api, commitBadge, reconcileUnread, signedIn]);
 
   const enableBrowserNotifications = useCallback(async () => {
     const result = await requestNotificationPermission();
@@ -240,18 +276,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
       lastPollRef.current = now;
       try {
-        const count = await api.unreadCount();
+        const before = lastCountRef.current;
+        await reconcileUnread();
         if (!alive) return;
-        setUnreadCount(count);
-        publish('notifications', { unreadCount: count });
-        void setAppBadge(count);
         setError(null);
-
-        // فاز ۱۲٫۲۰-B: نمایش نوتیف مرورگر به BrowserNotificationBridge سپرده شد.
-        // اینجا تنها فهرست درونسایت در صورت increase تازه می‌شود؛ `/fresh` و
-        // `/shown` توسط پل تکتب با قرارداد shownAt فراخوانی می‌شوند.
-        if (count > lastCountRef.current) void refresh();
-        lastCountRef.current = count;
+        if (lastCountRef.current > before) void refresh();
         failures = 0;
       } catch {
         failures = Math.min(failures + 1, 6);
@@ -286,28 +315,60 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         window.removeEventListener('keydown', noteInteraction);
       }
     };
-  }, [api, refresh, refreshTelegramStatus, signedIn, isLeader, online, multiplier, publish, connected]);
+  }, [refresh, reconcileUnread, refreshTelegramStatus, signedIn, isLeader, online, multiplier, connected]);
 
-  /** تب‌های پیرو شمارنده اعلان را بدون درخواست شبک‌ای می‌گیرند. */
+  /** تب‌های پیرو شمارنده، نسخه سرور و فهرست اعلان را بدون HTTP از رهبر می‌گیرند. */
   useEffect(() => {
     if (!signedIn || isLeader) return undefined;
     return subscribe((message) => {
-      if (message.channel !== 'notifications') return;
-      const count = Number((message.payload as { unreadCount?: unknown } | null)?.unreadCount ?? 0);
-      if (Number.isFinite(count)) {
-        const safe = Math.max(0, count);
-        setUnreadCount(safe);
-        lastCountRef.current = safe;
-        void setAppBadge(safe);
+      if (message.channel === 'notifications-list') {
+        const payload = message.payload as { notifications?: unknown; hasMore?: unknown } | null;
+        if (Array.isArray(payload?.notifications)) {
+          setNotifications(payload.notifications as NotificationItem[]);
+        }
+        if (typeof payload?.hasMore === 'boolean') setHasMore(payload.hasMore);
+        return;
       }
+      if (message.channel !== 'notifications') return;
+      const payload = message.payload as { unreadCount?: unknown; dataVersion?: unknown } | null;
+      const count = Number(payload?.unreadCount ?? 0);
+      const version = Number(payload?.dataVersion ?? 0);
+      if (!Number.isFinite(count)) return;
+      const safe = Math.max(0, count);
+      const state = badgeRef.current;
+      badgeRef.current = {
+        ...state,
+        count: safe,
+        lastDataVersion: Math.max(state.lastDataVersion, Number.isFinite(version) ? version : 0),
+      };
+      setUnreadCount(safe);
+      lastCountRef.current = safe;
+      void setAppBadge(safe);
     });
   }, [isLeader, signedIn, subscribe]);
 
+  /** رهبر فهرست اعلان را برای تب‌های پیرو پخش می‌کند. */
+  useEffect(() => {
+    if (!signedIn || !isLeader) return;
+    publish('notifications-list', { notifications, hasMore });
+  }, [hasMore, isLeader, notifications, publish, signedIn]);
+
+  /** ارتقای رهبر جدید با یک reconcile سبک آغاز می‌شود. */
+  useEffect(() => {
+    if (!signedIn || !isLeader) return;
+    void reconcileUnread();
+  }, [isLeader, reconcileUnread, signedIn]);
+
   // Phase 12.17: realtime events replace business polling while connected.
-  useRealtimeEvent(['notification.created', 'notification.read'], () => {
+  useRealtimeEvent(['notification.created', 'notification.read'], (event) => {
     if (!signedIn) return;
-    void syncUnread();
-    void refresh();
+    const result = applyBadgeEvent(badgeRef.current, event);
+    if (!result.changed) return;
+    commitBadge(result.state);
+    // فقط رهبر شبکه مصرف می‌کند؛ تب‌های پیرو همان نتیجه را از BroadcastChannel می‌گیرند.
+    if (!isLeader) return;
+    if (event.type === 'notification.created') void refresh();
+    else void reconcileUnread();
   });
 
   const value = useMemo<NotificationContextValue>(

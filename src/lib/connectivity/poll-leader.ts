@@ -252,6 +252,8 @@ function getHub(): PollLeaderHub {
 const SSR_STATE: LeaderState = { isLeader: false, online: true, multiplier: 1 };
 
 export interface PollLeaderApi extends LeaderState {
+  /** شناسهٔ پایدار همین تب — مبنای تعیین `readOwner` در گفتگوهای مشترک. */
+  tabId: string;
   publish: (channel: string, payload: unknown) => void;
   subscribe: (listener: MessageListener) => () => void;
 }
@@ -274,5 +276,5 @@ export function usePollLeader(): PollLeaderApi {
     [instance],
   );
 
-  return { ...state, publish, subscribe };
+  return { ...state, tabId: instance?.tabId ?? 'server', publish, subscribe };
 }

@@ -30,6 +30,7 @@ import {
   createNonce,
   mergeMessages,
   pollDelayFor,
+  readOwnerTabId,
   type ChatConversation,
   type ChatMessage,
   type ChatPeer,
@@ -114,7 +115,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const api = useMemo(() => createChatApi(authedRequest), [authedRequest]);
   const signedIn = Boolean(user && token);
   // فاز ۱۰ (O-99): فقط تب رهبر پایش پس‌زمینه می‌کند؛ بقیه از پخش تب می‌گیرند.
-  const { isLeader, online, multiplier, publish, subscribe } = usePollLeader();
+  const { isLeader, online, multiplier, tabId, publish, subscribe } = usePollLeader();
   const { connected } = useRealtimeStatus();
 
   const [open, setOpen] = useState(false);
@@ -137,6 +138,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const [unreadTotal, setUnreadTotal] = useState(0);
   const [freshMessage, setFreshMessage] = useState(false);
   const freshIdsRef = useRef<Set<string>>(new Set());
+  const activeClaimsRef = useRef<Record<string, string[]>>({});
   const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
   const [forwardOpen, setForwardOpen] = useState(false);
 
@@ -191,13 +193,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       const page = await api.listConversations();
       setConversations(page.conversations);
       setHasMoreConversations(page.hasMore);
+      if (isLeader) publish('chat', { conversations: page.conversations });
       setError(null);
     } catch (err) {
       setError(messageOf(err));
     } finally {
       setLoadingConversations(false);
     }
-  }, [api, signedIn]);
+  }, [api, isLeader, publish, signedIn]);
 
   const refreshUnread = useCallback(async () => {
     if (!signedIn) return;
@@ -220,11 +223,41 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [isLeader, publish, signedIn],
   );
 
+  /** اسنپشات پیام‌های مکالمه فعال توسط صاحب خواندن پخش می‌شود. */
+  const publishThreadSnapshot = useCallback(
+    (id: string, nextMessages: ChatMessage[]) => {
+      if (!signedIn) return;
+      publish('chat-thread', { conversationId: id, messages: nextMessages });
+    },
+    [publish, signedIn],
+  );
+
   const clearFreshConversation = useCallback((id: string | null | undefined) => {
     if (!id) return;
     freshIdsRef.current.delete(id);
     setFreshMessage(freshIdsRef.current.size > 0);
   }, []);
+
+  /** اعلام activeبودن مکالمه در همین تب تا `readOwner` مشخص شود. */
+  const publishActiveClaim = useCallback(
+    (id: string | null, active: boolean) => {
+      if (!id || !signedIn) return;
+      const claims = { ...activeClaimsRef.current };
+      const ids = new Set(claims[id] ?? []);
+      if (active) ids.add(tabId);
+      else ids.delete(tabId);
+      if (ids.size > 0) claims[id] = [...ids];
+      else delete claims[id];
+      activeClaimsRef.current = claims;
+      publish('chat-active', { conversationId: id, tabId, active });
+    },
+    [publish, signedIn, tabId],
+  );
+
+  const isReadOwner = useCallback(
+    (id: string | null) => Boolean(id && readOwnerTabId(activeClaimsRef.current, id, tabId) === tabId),
+    [tabId],
+  );
 
   const syncUnread = useCallback(async () => {
     if (!signedIn) return;
@@ -258,6 +291,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     (nextVariant: ChatVariant = 'drawer') => {
       if (!requireSession()) return;
       clearSelection();
+      publishActiveClaim(conversationId, false);
       setVariant(nextVariant);
       setView('list');
       setConversationId(null);
@@ -266,13 +300,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       setError(null);
       void refreshConversations();
     },
-    [clearSelection, requireSession, refreshConversations],
+    [clearSelection, conversationId, publishActiveClaim, requireSession, refreshConversations],
   );
 
   const openChat = useCallback(
     async (input: OpenChatInput, nextVariant: ChatVariant = 'drawer') => {
       if (!requireSession()) return;
       clearSelection();
+      publishActiveClaim(conversationId, false);
       setVariant(nextVariant);
       setOpen(true);
       setView('thread');
@@ -291,11 +326,14 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           const found = page.conversations.find((row) => row.id === directConversationId);
           if (!found) throw new Error('گفتگو یافت نشد');
           setConversationId(found.id);
+          publishActiveClaim(found.id, true);
           setActivePeer(found.peer);
           setProjectId(found.projectId);
           await loadMessages(found.id);
           clearFreshConversation(found.id);
-          void api.markRead(found.id).then(syncUnread).catch(() => undefined);
+          if (isReadOwner(found.id)) {
+            void api.markRead(found.id).then(syncUnread).catch(() => undefined);
+          }
           void refreshConversations();
           return;
         }
@@ -309,12 +347,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
         const { conversation } = await api.openConversation(peerId, contextProjectId ?? undefined);
         setConversationId(conversation.id);
+        publishActiveClaim(conversation.id, true);
         setActivePeer(conversation.peer);
         setProjectId(conversation.projectId ?? contextProjectId);
         await loadMessages(conversation.id);
         // ورود به گفتگو = خواندهشدن پیام‌ها (نه بازکردن فهرست)
         clearFreshConversation(conversation.id);
-        void api.markRead(conversation.id).then(syncUnread).catch(() => undefined);
+        if (isReadOwner(conversation.id)) {
+          void api.markRead(conversation.id).then(syncUnread).catch(() => undefined);
+        }
         void refreshConversations();
       } catch (err) {
         setError(messageOf(err));
@@ -323,15 +364,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         setBusy(false);
       }
     },
-    [api, clearFreshConversation, clearSelection, loadMessages, refreshConversations, requireSession, showToast, syncUnread],
+    [api, clearFreshConversation, clearSelection, conversationId, isReadOwner, loadMessages, publishActiveClaim, refreshConversations, requireSession, showToast, syncUnread],
   );
 
   const close = useCallback(() => {
+    publishActiveClaim(conversationId, false);
     setOpen(false);
     clearSelection();
-  }, [clearSelection]);
+  }, [clearSelection, conversationId, publishActiveClaim]);
 
   const backToList = useCallback(() => {
+    publishActiveClaim(conversationId, false);
     clearSelection();
     setView('list');
     setConversationId(null);
@@ -339,7 +382,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     setMessages([]);
     setError(null);
     void refreshConversations();
-  }, [clearSelection, refreshConversations]);
+  }, [clearSelection, conversationId, publishActiveClaim, refreshConversations]);
 
   const loadMoreConversations = useCallback(async () => {
     if (!signedIn || loadingConversations || !hasMoreConversations) return;
@@ -463,7 +506,8 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   /* ── Polling هوشمند: توقف در تب مخفی، فوراً پس از بازگشت ── */
   useEffect(() => {
     if (!signedIn) return undefined;
-    void refreshUnread();
+    // تنها رهبر شمارنده را می‌خواند؛ پیروها از اسنپشات BroadcastChannel استفاده می‌کنند.
+    if (isLeader) void refreshUnread();
     // Phase 12.17: skip business polling while realtime is connected.
     if (connected) return undefined;
     let alive = true;
@@ -502,7 +546,9 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         publishChatSnapshot(count);
         if (page) {
           setMessages((prev) => mergeMessages(prev, page.messages));
-          if (activeId) void api.markRead(activeId).then(syncUnread).catch(() => undefined);
+          if (activeId && isReadOwner(activeId)) {
+            void api.markRead(activeId).then(syncUnread).catch(() => undefined);
+          }
         }
         failures = 0;
       } catch {
@@ -534,15 +580,15 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         window.removeEventListener('keydown', noteInteraction);
       }
     };
-  }, [api, refreshUnread, signedIn, isLeader, online, multiplier, publishChatSnapshot, syncUnread, connected]);
+  }, [api, refreshUnread, signedIn, isLeader, isReadOwner, online, multiplier, publishChatSnapshot, syncUnread, connected]);
 
-  /** تب‌های پیرو شمارنده و پرچم پیام تازه را بدون درخواست شبکه‌ای از رهبر می‌گیرند. */
+  /** تب‌های پیرو شمارنده، پرچم و فهرست گفتگو‌ها را بدون HTTP از رهبر می‌گیرند. */
   useEffect(() => {
     if (!signedIn || isLeader) return undefined;
     return subscribe((message) => {
       if (message.channel !== 'chat') return;
       const payload = message.payload as
-        | { unreadTotal?: unknown; freshConversationIds?: unknown }
+        | { unreadTotal?: unknown; freshConversationIds?: unknown; conversations?: unknown }
         | null;
       const count = Number(payload?.unreadTotal ?? 0);
       if (Number.isFinite(count)) setUnreadTotal(Math.max(0, count));
@@ -551,8 +597,40 @@ export function ChatProvider({ children }: { children: ReactNode }) {
         freshIdsRef.current = new Set(ids.filter((id): id is string => typeof id === 'string'));
         setFreshMessage(freshIdsRef.current.size > 0);
       }
+      if (Array.isArray(payload?.conversations)) {
+        setConversations(payload.conversations as ChatConversation[]);
+      }
     });
   }, [isLeader, signedIn, subscribe]);
+
+  /** تمام تبها claim مکالمه فعال را می‌بینند تا کوچک‌ترین tabId مسئول markRead شود. */
+  useEffect(() => subscribe((message) => {
+    if (message.channel !== 'chat-active') return;
+    const payload = message.payload as
+      | { conversationId?: unknown; tabId?: unknown; active?: unknown }
+      | null;
+    const id = typeof payload?.conversationId === 'string' ? payload.conversationId : '';
+    const owner = typeof payload?.tabId === 'string' ? payload.tabId : '';
+    const active = Boolean(payload?.active);
+    if (!id || !owner) return;
+    const claims = { ...activeClaimsRef.current };
+    const owners = new Set(claims[id] ?? []);
+    if (active) owners.add(owner);
+    else owners.delete(owner);
+    if (owners.size > 0) claims[id] = [...owners];
+    else delete claims[id];
+    activeClaimsRef.current = claims;
+  }), [subscribe]);
+  /** پیام‌های مکالمه فعال را از صاحب markRead بدون HTTP اضافی می‌گیرند. */
+  useEffect(() => subscribe((message) => {
+    if (message.channel !== 'chat-thread') return;
+    const payload = message.payload as
+      | { conversationId?: unknown; messages?: unknown }
+      | null;
+    const id = typeof payload?.conversationId === 'string' ? payload.conversationId : '';
+    if (!openRef.current || id !== conversationRef.current || !Array.isArray(payload?.messages)) return;
+    setMessages((prev) => mergeMessages(prev, payload.messages as ChatMessage[]));
+  }), [subscribe]);
 
   /** تب رهبر اسنپشات فعلی را هنگام ارتقا و باز شدن تب پخش می‌کند. */
   useEffect(() => {
@@ -570,15 +648,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
       const activeId = openRef.current ? conversationRef.current : null;
       if (event.type === 'chat.message.created' && activeId && changedId === activeId) {
         void (async () => {
+          if (!isReadOwner(activeId)) return;
           try {
             const page = await api.listMessages(activeId);
             setMessages((prev) => mergeMessages(prev, page.messages));
+            publishThreadSnapshot(activeId, page.messages);
             void api.markRead(activeId).then(syncUnread).catch(() => undefined);
           } catch {
             /* retry on next event, visibility or reconnect */
           }
         })();
-        void syncUnread();
+        if (isLeader) void syncUnread();
         return;
       }
       if (event.type === 'chat.message.created') {
@@ -586,17 +666,21 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           freshIdsRef.current.add(changedId);
           setFreshMessage(true);
         }
-        void syncUnread();
-        void refreshConversations();
+        if (isLeader) {
+          void syncUnread();
+          void refreshConversations();
+        }
         return;
       }
       if (event.type === 'chat.message.read') {
         clearFreshConversation(changedId);
-        void syncUnread();
-        void refreshConversations();
+        if (isLeader) {
+          void syncUnread();
+          void refreshConversations();
+        }
         return;
       }
-      void refreshConversations();
+      if (isLeader) void refreshConversations();
     },
   );
 
