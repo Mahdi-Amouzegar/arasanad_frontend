@@ -181,3 +181,16 @@ export function visibleUnseenGroups(groups) {
     }))
     .sort((a, b) => String(b?.latestAt ?? '').localeCompare(String(a?.latestAt ?? '')));
 }
+
+/** Phase 12.20-D: only numeric dataVersion values are comparable. */
+export function activityDataVersion(event) {
+  const value = Number(event?.payload?.dataVersion ?? event?.dataVersion);
+  return Number.isFinite(value) ? value : 0;
+}
+
+/** A snapshot older than an applied realtime event must not move the badge back. */
+export function isStaleActivitySnapshot(snapshotVersion, latestVersion) {
+  const snapshot = Number(snapshotVersion);
+  const latest = Number(latestVersion);
+  return Number.isFinite(snapshot) && Number.isFinite(latest) && latest > 0 && snapshot < latest;
+}

@@ -23,11 +23,12 @@ import {
   type ReactNode,
 } from 'react';
 import { useAuth } from '@/lib/account';
-import { useAlert } from '@/components/ui/AlertProvider';
 import { apiConditionalGet } from '@/lib/api';
 import { createActivitiesApi, type UnseenGroup } from '@/lib/activities/api';
 import {
   ACTIVITY_POLL_MS,
+  activityDataVersion,
+  isStaleActivitySnapshot,
   shouldUseActivityCache,
   visibleUnseenGroups,
 } from '@/lib/activities/core.mjs';
@@ -56,6 +57,8 @@ interface UnseenPayload {
   total: number;
   items: Array<Record<string, unknown>>;
   etag?: string | null;
+  dataVersion?: number;
+  serverTime?: string;
 }
 
 interface BroadcastState {
@@ -63,6 +66,7 @@ interface BroadcastState {
   total: number;
   etag: string | null;
   serverTime: string;
+  dataVersion: number;
 }
 
 function messageOf(error: unknown): string {
@@ -73,7 +77,6 @@ function messageOf(error: unknown): string {
 
 export function ActivityProvider({ children }: { children: ReactNode }) {
   const { user, token, authedRequest } = useAuth();
-  const { showToast } = useAlert();
   const signedIn = Boolean(user && token);
   const role: 'admin' | 'customer' = user?.role === 'admin' ? 'admin' : 'customer';
   const api = useMemo(() => createActivitiesApi(authedRequest), [authedRequest]);
@@ -87,54 +90,37 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   const lastPollRef = useRef(0);
-  const lastTotalRef = useRef(0);
   const shownIdsRef = useRef<Set<string>>(new Set());
   const initializedRef = useRef(false);
   const etagRef = useRef<string | null>(null);
+  const dataVersionRef = useRef(0);
+  const refreshSeqRef = useRef(0);
+  const eventTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const applyState = useCallback(
-    (nextGroups: UnseenGroup[], nextTotal: number, startedAt: number, notify: boolean) => {
+    (nextGroups: UnseenGroup[], nextTotal: number, startedAt: number) => {
       setGroups(nextGroups);
       setUnseenTotal(nextTotal);
       setLastUpdated(new Date(startedAt).toISOString());
       setError(null);
       const ids = new Set(nextGroups.flatMap((group) => group.items.map((item) => item.id)));
-      if (!initializedRef.current) {
-        // نخستین بار پس از ورود، عملیات‌های قدیمی toast نمی‌دهند.
-        for (const id of ids) shownIdsRef.current.add(id);
-        initializedRef.current = true;
-      } else if (notify && nextTotal > lastTotalRef.current) {
-        const fresh = nextGroups
-          .flatMap((group) => group.items)
-          .filter((item) => !shownIdsRef.current.has(item.id));
-        for (const item of fresh) shownIdsRef.current.add(item.id);
-        const newest = fresh[0];
-        if (newest) {
-          showToast({
-            type: 'info',
-            title: newest.title || 'عملیات تازه روی سفارش',
-            message: `سفارش ${newest.code ?? ''} — ${fresh.length} عملیات تازه در سفارش‌گردانی`,
-          });
-        }
-      } else if (!notify) {
-        // تب پیرو بدون toast همگام می‌شود تا شناسه‌ها بعداً تکرار نشوند.
-        for (const id of ids) shownIdsRef.current.add(id);
-      }
+      // Toast سراسری تنها توسط BusinessToastBridge صادر می‌شود.
+      for (const id of ids) shownIdsRef.current.add(id);
       for (const id of [...shownIdsRef.current]) {
         if (!ids.has(id)) shownIdsRef.current.delete(id);
       }
-      lastTotalRef.current = nextTotal;
     },
-    [showToast],
+    [],
   );
 
   const refresh = useCallback(
-    async (force = false) => {
+    async (force = false, bypassCache = false) => {
       if (!signedIn) return;
       // پایش پس‌زمینه فقط از تب رهبر و فقط آنلاین؛ اقدام صریح کاربر مستثناست.
       if (!force && (!isLeader || !online)) return;
       if (!force && typeof document !== 'undefined' && document.hidden) return;
-      if (shouldUseActivityCache({ lastPollAt: lastPollRef.current, force })) return;
+      if (!bypassCache && shouldUseActivityCache({ lastPollAt: lastPollRef.current, force })) return;
+      const requestId = ++refreshSeqRef.current;
       const startedAt = Date.now();
       setLoading(true);
       try {
@@ -145,28 +131,50 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
         lastPollRef.current = Date.now();
         if (result.etag) etagRef.current = result.etag;
         if (result.notModified || !result.data) {
-          // ۳۰۴: هیچ بدنهای نیامد؛ وضعیت و toast دستنخورده باقی می‌ماند.
+          // ۳۰۴: هیچ بدنهای نیامد؛ وضعیت و Toast دست‌nخورده باقی می‌ماند.
           setError(null);
           return;
         }
+        if (requestId !== refreshSeqRef.current) return;
+        const responseVersion = Number(result.data.dataVersion ?? 0);
+        if (isStaleActivitySnapshot(responseVersion, dataVersionRef.current)) {
+          // پاسخ قدیمی‌تر ازEventهای دریافت‌شده نباید Badge را عقب ببرد.
+          return;
+        }
+        if (Number.isFinite(responseVersion) && responseVersion > dataVersionRef.current) {
+          dataVersionRef.current = responseVersion;
+        }
         const nextGroups = visibleUnseenGroups(result.data.groups);
         const nextTotal = nextGroups.reduce((sum, group) => sum + group.unseenCount, 0);
-        applyState(nextGroups, nextTotal, startedAt, true);
+        applyState(nextGroups, nextTotal, startedAt);
         publish('activities', {
           groups: nextGroups,
           total: nextTotal,
           etag: etagRef.current,
           serverTime: new Date(startedAt).toISOString(),
+          dataVersion: dataVersionRef.current,
         } satisfies BroadcastState);
       } catch (caught) {
-        setError(messageOf(caught));
-        throw caught;
+        if (requestId === refreshSeqRef.current) {
+          setError(messageOf(caught));
+          throw caught;
+        }
       } finally {
-        setLoading(false);
+        if (requestId === refreshSeqRef.current) setLoading(false);
       }
     },
     [applyState, isLeader, online, publish, signedIn, token],
   );
+
+  /** چند Event پشت سر هم تنها یک refetch شرطی می‌سازند. */
+  const scheduleEventRefresh = useCallback(() => {
+    if (!signedIn || !isLeader || !online) return;
+    if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
+    eventTimerRef.current = setTimeout(() => {
+      eventTimerRef.current = null;
+      void refresh(false, true);
+    }, 0);
+  }, [isLeader, online, refresh, signedIn]);
 
   /** تب‌های پیرو نتیجه را بدون هیچ درخواست شبکه‌ای از رهبر می‌گیرند. */
   useEffect(() => {
@@ -175,15 +183,26 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       if (message.channel !== 'activities' || isLeader) return;
       const state = message.payload as BroadcastState | null;
       if (!state || !Array.isArray(state.groups)) return;
+      const stateVersion = Number(state.dataVersion ?? 0);
+      if (isStaleActivitySnapshot(stateVersion, dataVersionRef.current)) return;
+      if (Number.isFinite(stateVersion) && stateVersion > dataVersionRef.current) {
+        dataVersionRef.current = stateVersion;
+      }
       if (state.etag) etagRef.current = state.etag;
       lastPollRef.current = Date.now();
-      applyState(state.groups, Number(state.total ?? 0) || 0, Date.now(), false);
+      const startedAt = Date.parse(state.serverTime ?? '') || Date.now();
+      applyState(state.groups, Number(state.total ?? 0) || 0, startedAt);
     });
   }, [applyState, isLeader, signedIn, subscribe]);
 
   // Phase 12.17: realtime events replace business polling while connected.
-  useRealtimeEvent(['activity.created', 'project.status_changed', 'project.created'], () => {
-    void refresh(false);
+  useRealtimeEvent(['activity.created', 'project.status_changed', 'project.created'], (event) => {
+    if (!signedIn || !isLeader || !online) return;
+    const version = activityDataVersion(event);
+    if (Number.isFinite(version) && version > dataVersionRef.current) {
+      dataVersionRef.current = version;
+    }
+    scheduleEventRefresh();
   });
 
   const markSeen = useCallback(
@@ -212,6 +231,10 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
       initializedRef.current = false;
       shownIdsRef.current.clear();
       etagRef.current = null;
+      dataVersionRef.current = 0;
+      refreshSeqRef.current += 1;
+      if (eventTimerRef.current) clearTimeout(eventTimerRef.current);
+      eventTimerRef.current = null;
       return undefined;
     }
     // Phase 12.17: no business timers while the realtime socket is connected.

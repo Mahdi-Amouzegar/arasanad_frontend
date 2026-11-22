@@ -294,7 +294,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
               disabled={loadingMore}
               loading={loadingMore}
             >
-              عملیات‌های قدیمیتر
+              عملیات‌های قدیمی‌تر
             </Button>
           ) : null}
         </div>

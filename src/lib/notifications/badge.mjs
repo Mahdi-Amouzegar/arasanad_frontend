@@ -109,7 +109,7 @@ export function applyOptimisticReadAll(state, nonce) {
 }
 
 /**
- * پاسخ سرور تنها زمانی اعمال می‌شود که قدیمیتر نباشد و تغییری پس از درخواست رخ نداده باشد.
+ * پاسخ سرور تنها زمانی اعمال می‌شود که قدیمی‌تر نباشد و تغییری پس از درخواست رخ نداده باشد.
  */
 export function applyReconciliation(state, { count, dataVersion, revisionAtRequest }) {
   const version = Number(dataVersion);

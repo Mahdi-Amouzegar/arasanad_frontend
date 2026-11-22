@@ -72,3 +72,5 @@ export interface UnseenGroupLike {
   items: ActivityLike[];
 }
 export declare function visibleUnseenGroups<T extends UnseenGroupLike>(groups: T[]): T[];
+export declare function activityDataVersion(event: unknown): number;
+export declare function isStaleActivitySnapshot(snapshotVersion: unknown, latestVersion: unknown): boolean;
