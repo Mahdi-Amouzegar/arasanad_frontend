@@ -38,7 +38,12 @@ import { Icon } from '@/components/ui/Icon';
 import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
-import { FileManagerModal, localFileSignature, type SelectedFile, type SelectedLink } from '@/components/files/FileManagerModal';
+import {
+  FileManagerModal,
+  localFileSignature,
+  type SelectedFile,
+  type SelectedLink,
+} from '@/components/files/FileManagerModal';
 import { UploaderBadge } from '@/components/files/UploaderBadge';
 import { cx } from '@/lib/cx';
 import { RevisionPolicyDialog } from './RevisionPolicyDialog';
@@ -50,12 +55,37 @@ import { ORDER_DESCRIPTION_MAX } from '@/lib/chat/forward-core.mjs';
 const EMPTY_RULES = { urgencyMultiplier: 1.3, depositRatio: 0.5, roundStep: 500 };
 const ATTACHMENT_ISSUE = 'حداقل یک فایل یا لینک پیوست کنید.';
 
+/** فاز ۱۲٫۲۴-C: نگاشت هر هشدار به کادری که باید اصلاح شود. */
+const ISSUE_TARGETS: Record<string, string> = {
+  name: 'prj-name',
+  serviceTypeId: 'prj-service',
+  language: 'prj-language',
+  sourceType: 'prj-source',
+  sourcePageCount: 'prj-pages',
+  deliveryHours: 'prj-deadline-value',
+  outputFormat: 'prj-format',
+  design: 'prj-design-mode',
+  'design.mode': 'prj-design-mode',
+  'design.spec': 'prj-paper',
+  'design.spec.paperSize': 'prj-paper',
+  [ATTACHMENT_ISSUE]: 'prj-files',
+};
+
+function focusIssue(target: string) {
+  const element = document.getElementById(target);
+  if (!element) return;
+  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  element.focus({ preventScroll: true });
+}
+
 /** Phase 12.8-y: removed service type must stay hidden even from a stale catalog response. */
 function isVisibleServiceType(item: ServiceType): boolean {
-  return item.isActive
-    && item.id !== 'fa-en'
-    && !['table-ar', 'table-en'].includes(item.id)
-    && !item.name.includes('فارسی-انگلیسی');
+  return (
+    item.isActive &&
+    item.id !== 'fa-en' &&
+    !['table-ar', 'table-en'].includes(item.id) &&
+    !item.name.includes('فارسی-انگلیسی')
+  );
 }
 
 /**
@@ -92,10 +122,14 @@ export function ProjectNewForm() {
   const [deliveryValue, setDeliveryValue] = useState<string>('2');
   const [deliveryUnit, setDeliveryUnit] = useState<string>('day');
   // فاز ۱۲٫۳-ج: چند فرمت خروجی قابل انتخاب است و به‌صورت «PDF, Word» ذخیره می‌شود.
-  const [outputFormats, setOutputFormats] = useState<string[]>([OUTPUT_FORMATS[0] ?? 'PDF']);
+  const [outputFormats, setOutputFormats] = useState<string[]>([
+    OUTPUT_FORMATS[0] ?? 'PDF',
+  ]);
 
   const [designMode, setDesignMode] = useState<'standard' | 'custom'>('standard');
-  const [designSubmode, setDesignSubmode] = useState<'like_original' | 'custom'>('like_original');
+  const [designSubmode, setDesignSubmode] = useState<'like_original' | 'custom'>(
+    'like_original',
+  );
   const [presetId, setPresetId] = useState('');
   const [spec, setSpec] = useState<DesignSpec>({ ...DEFAULT_DESIGN_SPEC });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -103,6 +137,19 @@ export function ProjectNewForm() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   /** فاز ۱۲٫۹-ط: تمام ایرادها یکجا بالای دکمه‌ی ثبت نمایش داده می‌شوند. */
   const [submitIssues, setSubmitIssues] = useState<string[]>([]);
+
+  /** فاز ۱۲٫۲۴-C: کلیک روی هشدار، کادر مربوط را نشانه می‌رود. */
+  function handleIssueClick(issue: string) {
+    const target = Object.entries(ISSUE_TARGETS).find(([key]) =>
+      issue.startsWith(key),
+    )?.[1];
+    if (!target) return;
+    if (target === 'prj-files') {
+      setFmOpen(true);
+      return;
+    }
+    focusIssue(target);
+  }
 
   useEffect(() => {
     let alive = true;
@@ -172,7 +219,8 @@ export function ProjectNewForm() {
   }, [showToast]);
 
   useEffect(() => {
-    if (services.length === 0 || services.some((item) => item.id === serviceTypeId)) return;
+    if (services.length === 0 || services.some((item) => item.id === serviceTypeId))
+      return;
     setServiceTypeId(services[0]?.id ?? '');
   }, [services, serviceTypeId]);
 
@@ -223,18 +271,30 @@ export function ProjectNewForm() {
       sourcePageCount: Number(pageCount),
       deliveryHours: hours,
       outputFormat: outputFormats,
-      design: { mode: designMode, submode: designSubmode, presetId: presetId || null, spec },
+      design: {
+        mode: designMode,
+        submode: designSubmode,
+        presetId: presetId || null,
+        spec,
+      },
     };
     const result = validateProjectDraft(draft);
     const noAttachment = attachedFiles.length === 0 && attachedLinks.length === 0;
-    const issues = [...Object.values(result.errors), ...(noAttachment ? [ATTACHMENT_ISSUE] : [])];
+    const issues = [
+      ...Object.values(result.errors),
+      ...(noAttachment ? [ATTACHMENT_ISSUE] : []),
+    ];
     setSubmitIssues(issues);
     if (issues.length > 0) {
       setErrors(result.errors);
       // فاز ۱۲٫۱۰-ب: پیام نبود پیوست فقط در prj-submit-issues نمایش داده
       // می‌شود؛ تنظیم جداگانه‌ی submitError باعث تکرار هشدار می‌شد.
       setSubmitError(null);
-      showToast({ type: 'error', title: 'فرم ناقص است', message: 'موارد مشخصشده را اصلاح کنید.' });
+      showToast({
+        type: 'error',
+        title: 'فرم ناقص است',
+        message: 'موارد مشخص‌شده را اصلاح کنید.',
+      });
       return;
     }
     setErrors({});
@@ -275,7 +335,8 @@ export function ProjectNewForm() {
         message: `کد سفارش: ${project.code}`,
       });
       // فاز ۱۲٫۳-هـ: صفحهٔ جزئیات کامل (فایل‌ها، لینکها و تحویل) نه نمای‌عمومی.
-      const detailBase = user?.role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
+      const detailBase =
+        user?.role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
       router.push(`${detailBase}?id=${encodeURIComponent(project.id)}`);
     } catch (caught) {
       const message = errorText(caught, 'ثبت سفارش انجام نشد');
@@ -334,450 +395,520 @@ export function ProjectNewForm() {
       {/* فاز ۱۲٫۹-ی: مودال بیرون از <form> است تا Enter داخل پنجره‌ی فایل،
           فرم اصلی «ثبت سفارش» را بهاشتباه ارسال نکند. */}
       <form className="prj-form" onSubmit={submit} noValidate>
-      {catalogError ? (
-        <div className="prj-alert" role="alert">
-          <Icon name="alert" size={18} />
-          <span>{catalogError}</span>
-          <Link className="btn btn--ghost btn--sm" href="/services/">
-            مشاهده‌ی خدمت‌ها
-          </Link>
-        </div>
-      ) : null}
+        {catalogError ? (
+          <div className="prj-alert" role="alert">
+            <Icon name="alert" size={18} />
+            <span>{catalogError}</span>
+            <Link className="btn btn--ghost btn--sm" href="/services/">
+              مشاهده‌ی خدمت‌ها
+            </Link>
+          </div>
+        ) : null}
 
-      <Card>
-        <CardHeader title="مشخصات سفارش" />
-        <CardBody>
-          <div className="prj-grid">
-            <FormField label="عنوان سفارش" htmlFor="prj-name" required error={errors.name}>
-              <Input
-                id="prj-name"
-                value={name}
-                invalid={Boolean(errors.name)}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="مثلاً تایپ پایان‌نامه"
-              />
-            </FormField>
-
-            <FormField
-              label="نوع خدمت"
-              htmlFor="prj-service"
-              required
-              error={errors.serviceTypeId}
-            >
-              <Select
-                id="prj-service"
-                value={serviceTypeId}
-                disabled={catalogLoading}
-                invalid={Boolean(errors.serviceTypeId)}
-                onChange={(event) => setServiceTypeId(event.target.value)}
+        <Card>
+          <CardHeader title="مشخصات سفارش" />
+          <CardBody>
+            <div className="prj-grid">
+              <FormField
+                label="عنوان سفارش"
+                htmlFor="prj-name"
+                required
+                error={errors.name}
               >
-                <option value="">انتخاب کنید</option>
-                {services.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </Select>
-            </FormField>
-
-            <FormField label="زبان سند" htmlFor="prj-language" required error={errors.language}>
-              <Select
-                id="prj-language"
-                value={language}
-                onChange={(event) => setLanguage(event.target.value)}
-              >
-                {LANGUAGES.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </Select>
-            </FormField>
-
-            <FormField label="نوع منبع" htmlFor="prj-source" required error={errors.sourceType}>
-              <Select
-                id="prj-source"
-                value={sourceType}
-                onChange={(event) => setSourceType(event.target.value)}
-              >
-                {SOURCE_TYPES.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </Select>
-            </FormField>
-
-            <FormField
-              label="تعداد صفحه‌ی منبع"
-              htmlFor="prj-pages"
-              required
-              error={errors.sourcePageCount}
-            >
-              <Input
-                id="prj-pages"
-                type="number"
-                min={1}
-                inputMode="numeric"
-                value={pageCount}
-                invalid={Boolean(errors.sourcePageCount)}
-                onChange={(event) => setPageCount(event.target.value)}
-              />
-            </FormField>
-
-            <FormField
-              label="مهلت تحویل"
-              htmlFor="prj-deadline-value"
-              required
-              error={errors.deliveryHours}
-              hint="عددی از ۱ تا ۲۴ همراه با واحد ساعت، روز یا هفته انتخاب کنید. مهلت از زمان تأیید بیعانه محاسبه می‌شود، نه از زمان ثبت."
-            >
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8 }}>
                 <Input
-                  id="prj-deadline-value"
-                  type="number"
-                  min={DELIVERY_VALUE_MIN}
-                  max={DELIVERY_VALUE_MAX}
-                  inputMode="numeric"
-                  value={deliveryValue}
-                  invalid={Boolean(errors.deliveryHours)}
-                  onChange={(event) => setDeliveryValue(event.target.value)}
+                  id="prj-name"
+                  value={name}
+                  invalid={Boolean(errors.name)}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="مثلاً تایپ پایان‌نامه"
                 />
+              </FormField>
+
+              <FormField
+                label="نوع خدمت"
+                htmlFor="prj-service"
+                required
+                error={errors.serviceTypeId}
+              >
                 <Select
-                  id="prj-deadline-unit"
-                  aria-label="واحد مهلت تحویل"
-                  value={deliveryUnit}
-                  invalid={Boolean(errors.deliveryHours)}
-                  onChange={(event) => setDeliveryUnit(event.target.value)}
+                  id="prj-service"
+                  value={serviceTypeId}
+                  disabled={catalogLoading}
+                  invalid={Boolean(errors.serviceTypeId)}
+                  onChange={(event) => setServiceTypeId(event.target.value)}
                 >
-                  {DELIVERY_UNITS.map((unit) => (
-                    <option key={unit.value} value={unit.value}>{unit.label}</option>
+                  <option value="">انتخاب کنید</option>
+                  {services.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
                   ))}
                 </Select>
-              </div>
-            </FormField>
+              </FormField>
 
-            <FormField label="فرمت خروجی" required error={errors.outputFormat}>
-              <div className="prj-format-options" role="group" aria-label="فرمت خروجی">
-                {OUTPUT_FORMATS.map((item) => (
-                  <label key={item} className="prj-format-option">
-                    <input
-                      type="checkbox"
-                      checked={outputFormats.includes(item)}
-                      onChange={(event) => setOutputFormats((current) => (
-                        event.target.checked
-                          ? Array.from(new Set([...current, item]))
-                          : current.filter((value) => value !== item)
-                      ))}
-                    />
-                    {item}
-                  </label>
-                ))}
-              </div>
-            </FormField>
-          </div>
-
-          <div className="prj-grid prj-grid--one">
-            <FormField label="توضیحات" htmlFor="prj-desc">
-              <Textarea
-                id="prj-desc"
-                rows={3}
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="توضیح کوتاه درباره‌ی سند"
-              />
-            </FormField>
-            <FormField label="نیازمندی‌های ویژه" htmlFor="prj-special">
-              <Textarea
-                id="prj-special"
-                rows={2}
-                value={specialRequirements}
-                onChange={(event) => setSpecialRequirements(event.target.value)}
-              />
-            </FormField>
-          </div>
-
-          <div
-            className={cx(
-              'prj-grid prj-grid--one',
-              submitIssues.includes(ATTACHMENT_ISSUE) && 'prj-attachment-field--warning',
-            )}
-          >
-            <FormField label="فایل‌های ضمیمه" htmlFor="prj-files">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setFmOpen(true)}
-                  leadingIcon={<Icon name="paperclip" size={14} />}
-                >
-                  افزودن فایل یا لینک
-                </Button>
-                {attachedFiles.length > 0 && (
-                  <div className="fm-list">
-                    {attachedFiles.map((file) => (
-                      <div key={file.id} className="fm-item fm-item--uploaded">
-                        <div className="fm-item__icon">
-                          <Icon name="fileText" size={20} />
-                        </div>
-                        <div className="fm-item__body">
-                          <FileName name={file.originalName} className="fm-item__name" />
-                          <div className="fm-item__meta">
-                            <span>{file.fileCode || 'جدید'}</span>
-                            <UploaderBadge username={user?.username} avatarUrl={user?.avatarUrl} sizeBytes={file.sizeBytes} />
-                          </div>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          iconOnly
-                          onClick={() => setAttachedFiles((prev) => prev.filter((f) => f.id !== file.id))}
-                        >
-                          <Icon name="x" size={16} />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {attachedLinks.length > 0 && (
-                  <div className="fm-list">
-                    {attachedLinks.map((link) => (
-                      <div key={link.id} className="fm-link-item">
-                        <div className="fm-link-item__icon">
-                          <Icon name="link" size={20} />
-                        </div>
-                        <div className="fm-link-item__body">
-                          <div className="fm-link-item__url">{link.url}</div>
-                          {link.description && (
-                            <div className="fm-link-item__desc">{link.description}</div>
-                          )}
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          iconOnly
-                          onClick={() => setAttachedLinks((prev) => prev.filter((l) => l.id !== link.id))}
-                        >
-                          <Icon name="x" size={16} />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </FormField>
-          </div>
-        </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader title="استاندارد طراحی" />
-        <CardBody>
-          <div className="prj-grid">
-            <FormField label="حالت طراحی" htmlFor="prj-design-mode" error={errors['design.mode']}>
-              <Select
-                id="prj-design-mode"
-                value={designMode}
-                onChange={(event) => {
-                  const next = event.target.value as 'standard' | 'custom';
-                  setDesignMode(next);
-                  // فاز ۱۲٫۲-و: حالت سفارشی از همان مقادیر استاندارد آغاز می‌شود.
-                  if (next === 'custom') {
-                    setPresetId('');
-                    setSpec({ ...DEFAULT_DESIGN_SPEC });
-                  }
-                }}
+              <FormField
+                label="زبان سند"
+                htmlFor="prj-language"
+                required
+                error={errors.language}
               >
-                <option value="standard">استاندارد</option>
-                <option value="custom">سفارشی</option>
-              </Select>
-            </FormField>
-
-            <FormField label="الگوی آماده" htmlFor="prj-preset">
-              <Select id="prj-preset" value={presetId} onChange={(event) => setPresetId(event.target.value)}>
-                <option value="">پیش‌فرض سامانه</option>
-                {presets.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </Select>
-            </FormField>
-
-            {designMode === 'custom' ? (
-              <FormField label="زیرحالت" htmlFor="prj-submode">
                 <Select
-                  id="prj-submode"
-                  value={designSubmode}
-                  onChange={(event) =>
-                    setDesignSubmode(event.target.value as 'like_original' | 'custom')
-                  }
+                  id="prj-language"
+                  value={language}
+                  onChange={(event) => setLanguage(event.target.value)}
                 >
-                  <option value="like_original">مانند فایل اصلی</option>
-                  <option value="custom">تنظیمات دلخواه</option>
+                  {LANGUAGES.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
                 </Select>
               </FormField>
+
+              <FormField
+                label="نوع منبع"
+                htmlFor="prj-source"
+                required
+                error={errors.sourceType}
+              >
+                <Select
+                  id="prj-source"
+                  value={sourceType}
+                  onChange={(event) => setSourceType(event.target.value)}
+                >
+                  {SOURCE_TYPES.map((item) => (
+                    <option key={item} value={item}>
+                      {item}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
+
+              <FormField
+                label="تعداد صفحه‌ی منبع"
+                htmlFor="prj-pages"
+                required
+                error={errors.sourcePageCount}
+              >
+                <Input
+                  id="prj-pages"
+                  type="number"
+                  min={1}
+                  inputMode="numeric"
+                  value={pageCount}
+                  invalid={Boolean(errors.sourcePageCount)}
+                  onChange={(event) => setPageCount(event.target.value)}
+                />
+              </FormField>
+
+              <FormField
+                label="مهلت تحویل"
+                htmlFor="prj-deadline-value"
+                required
+                error={errors.deliveryHours}
+                hint="عددی از ۱ تا ۲۴ همراه با واحد ساعت، روز یا هفته انتخاب کنید. مهلت از زمان تأیید بیعانه محاسبه می‌شود، نه از زمان ثبت."
+              >
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                    gap: 8,
+                  }}
+                >
+                  <Input
+                    id="prj-deadline-value"
+                    type="number"
+                    min={DELIVERY_VALUE_MIN}
+                    max={DELIVERY_VALUE_MAX}
+                    inputMode="numeric"
+                    value={deliveryValue}
+                    invalid={Boolean(errors.deliveryHours)}
+                    onChange={(event) => setDeliveryValue(event.target.value)}
+                  />
+                  <Select
+                    id="prj-deadline-unit"
+                    aria-label="واحد مهلت تحویل"
+                    value={deliveryUnit}
+                    invalid={Boolean(errors.deliveryHours)}
+                    onChange={(event) => setDeliveryUnit(event.target.value)}
+                  >
+                    {DELIVERY_UNITS.map((unit) => (
+                      <option key={unit.value} value={unit.value}>
+                        {unit.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </FormField>
+
+              <FormField label="فرمت خروجی" required error={errors.outputFormat}>
+                <div
+                  id="prj-format"
+                  className="prj-format-options"
+                  role="group"
+                  aria-label="فرمت خروجی"
+                  tabIndex={-1}
+                >
+                  {OUTPUT_FORMATS.map((item) => (
+                    <label key={item} className="prj-format-option">
+                      <input
+                        type="checkbox"
+                        checked={outputFormats.includes(item)}
+                        onChange={(event) =>
+                          setOutputFormats((current) =>
+                            event.target.checked
+                              ? Array.from(new Set([...current, item]))
+                              : current.filter((value) => value !== item),
+                          )
+                        }
+                      />
+                      {item}
+                    </label>
+                  ))}
+                </div>
+              </FormField>
+            </div>
+
+            <div className="prj-grid prj-grid--one">
+              <FormField label="توضیحات" htmlFor="prj-desc">
+                <Textarea
+                  id="prj-desc"
+                  rows={3}
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  placeholder="توضیح کوتاه درباره‌ی سند"
+                />
+              </FormField>
+              <FormField label="نیازمندی‌های ویژه" htmlFor="prj-special">
+                <Textarea
+                  id="prj-special"
+                  rows={2}
+                  value={specialRequirements}
+                  onChange={(event) => setSpecialRequirements(event.target.value)}
+                />
+              </FormField>
+            </div>
+
+            <div
+              className={cx(
+                'prj-grid prj-grid--one',
+                submitIssues.includes(ATTACHMENT_ISSUE) &&
+                  'prj-attachment-field--warning',
+              )}
+            >
+              <FormField label="فایل‌های ضمیمه" htmlFor="prj-files">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <Button
+                    id="prj-files"
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFmOpen(true)}
+                    leadingIcon={<Icon name="paperclip" size={14} />}
+                  >
+                    افزودن فایل یا لینک
+                  </Button>
+                  {attachedFiles.length > 0 && (
+                    <div className="fm-list">
+                      {attachedFiles.map((file) => (
+                        <div key={file.id} className="fm-item fm-item--uploaded">
+                          <div className="fm-item__icon">
+                            <Icon name="fileText" size={20} />
+                          </div>
+                          <div className="fm-item__body">
+                            <FileName
+                              name={file.originalName}
+                              className="fm-item__name"
+                            />
+                            <div className="fm-item__meta">
+                              <span>{file.fileCode || 'جدید'}</span>
+                              <UploaderBadge
+                                username={user?.username}
+                                avatarUrl={user?.avatarUrl}
+                                sizeBytes={file.sizeBytes}
+                              />
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            iconOnly
+                            onClick={() =>
+                              setAttachedFiles((prev) =>
+                                prev.filter((f) => f.id !== file.id),
+                              )
+                            }
+                          >
+                            <Icon name="x" size={16} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {attachedLinks.length > 0 && (
+                    <div className="fm-list">
+                      {attachedLinks.map((link) => (
+                        <div key={link.id} className="fm-link-item">
+                          <div className="fm-link-item__icon">
+                            <Icon name="link" size={20} />
+                          </div>
+                          <div className="fm-link-item__body">
+                            <div className="fm-link-item__url">{link.url}</div>
+                            {link.description && (
+                              <div className="fm-link-item__desc">{link.description}</div>
+                            )}
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            iconOnly
+                            onClick={() =>
+                              setAttachedLinks((prev) =>
+                                prev.filter((l) => l.id !== link.id),
+                              )
+                            }
+                          >
+                            <Icon name="x" size={16} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </FormField>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="استاندارد طراحی" />
+          <CardBody>
+            <div className="prj-grid">
+              <FormField
+                label="حالت طراحی"
+                htmlFor="prj-design-mode"
+                error={errors['design.mode']}
+              >
+                <Select
+                  id="prj-design-mode"
+                  value={designMode}
+                  onChange={(event) => {
+                    const next = event.target.value as 'standard' | 'custom';
+                    setDesignMode(next);
+                    // فاز ۱۲٫۲-و: حالت سفارشی از همان مقادیر استاندارد آغاز می‌شود.
+                    if (next === 'custom') {
+                      setPresetId('');
+                      setSpec({ ...DEFAULT_DESIGN_SPEC });
+                    }
+                  }}
+                >
+                  <option value="standard">استاندارد</option>
+                  <option value="custom">سفارشی</option>
+                </Select>
+              </FormField>
+
+              <FormField label="الگوی آماده" htmlFor="prj-preset">
+                <Select
+                  id="prj-preset"
+                  value={presetId}
+                  onChange={(event) => setPresetId(event.target.value)}
+                >
+                  <option value="">پیش‌فرض سامانه</option>
+                  {presets.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </Select>
+              </FormField>
+
+              {designMode === 'custom' ? (
+                <FormField label="زیرحالت" htmlFor="prj-submode">
+                  <Select
+                    id="prj-submode"
+                    value={designSubmode}
+                    onChange={(event) =>
+                      setDesignSubmode(event.target.value as 'like_original' | 'custom')
+                    }
+                  >
+                    <option value="like_original">مانند فایل اصلی</option>
+                    <option value="custom">تنظیمات دلخواه</option>
+                  </Select>
+                </FormField>
               ) : null}
               {likeOriginal ? (
                 <div className="prj-submode-notice" role="note">
                   <Icon name="sparkles" size={17} />
                   <p>
-                    فایل نهایی تا جای ممکن مطابق فایل اصلی تهیه‌شود، ولی یکسان بودن دقیق آن تضمین‌شود.
-                    اگر پس از بررسی اولیه اجرای این درخواست ممکن نباشد، سفارش توسط مدیریت لغو‌شود.
+                    فایل نهایی تا جای ممکن مطابق فایل اصلی تهیه‌شود، ولی یکسان بودن دقیق
+                    آن تضمین‌شود. اگر پس از بررسی اولیه اجرای این درخواست ممکن نباشد،
+                    سفارش توسط مدیریت لغو‌شود.
                   </p>
                 </div>
               ) : null}
-          </div>
-
-          <div className="prj-grid prj-spec">
-            <FormField label="قلم فارسی" htmlFor="prj-font">
-              <Input
-                disabled={likeOriginal}
-                id="prj-font"
-                value={String(spec.fontFa ?? '')}
-                onChange={(event) => updateSpec('fontFa', event.target.value)}
-              />
-            </FormField>
-            <FormField label="اندازه‌ی متن" htmlFor="prj-size">
-              <Input
-                disabled={likeOriginal}
-                id="prj-size"
-                type="number"
-                min={8}
-                max={24}
-                value={String(spec.bodySize ?? 14)}
-                onChange={(event) => updateSpec('bodySize', Number(event.target.value))}
-              />
-            </FormField>
-            <FormField label="فاصله‌ی خطوط" htmlFor="prj-spacing">
-              <Input
-                disabled={likeOriginal}
-                id="prj-spacing"
-                type="number"
-                step="0.1"
-                min={1}
-                max={3}
-                value={String(spec.lineSpacing ?? 1.5)}
-                onChange={(event) => updateSpec('lineSpacing', Number(event.target.value))}
-              />
-            </FormField>
-            <FormField label="اندازه کاغذ" htmlFor="prj-paper">
-              <Select
-                disabled={likeOriginal}
-                id="prj-paper"
-                value={String(spec.paperSize ?? 'A4')}
-                onChange={(event) => updateSpec('paperSize', event.target.value)}
-              >
-                {PAPER_SIZES.map((size) => (
-                  <option key={size} value={size}>{size}</option>
-                ))}
-              </Select>
-            </FormField>
-            <FormField label="حاشیه‌ی بالا (cm)" htmlFor="prj-mt">
-              <Input
-                disabled={likeOriginal}
-                id="prj-mt"
-                type="number"
-                step="0.1"
-                value={String(spec.margins?.top ?? 2.5)}
-                onChange={(event) => updateSpec('margins.top', Number(event.target.value))}
-              />
-            </FormField>
-            <FormField label="حاشیه‌ی چپ (cm)" htmlFor="prj-ml">
-              <Input
-                disabled={likeOriginal}
-                id="prj-ml"
-                type="number"
-                step="0.1"
-                value={String(spec.margins?.left ?? 3)}
-                onChange={(event) => updateSpec('margins.left', Number(event.target.value))}
-              />
-            </FormField>
-          </div>
-
-                            </CardBody>
-      </Card>
-
-      <Card>
-        <CardHeader title="برآورد هزینه" />
-        <CardBody>
-          <div className="prj-summary">
-            <div>
-              <span>نرخ پایه‌ی هر صفحه</span>
-              <strong>
-                <Money value={service?.pricePerPage ?? 0} />
-              </strong>
             </div>
-            <div>
-              <span>هزینه‌ی برآوردی</span>
-              <strong>
-                <Money value={estimate} />
-              </strong>
-            </div>
-            <div>
-              <span>بیعانه‌ی تقریبی</span>
-              <strong>
-                <Money value={deposit} />
-              </strong>
-            </div>
-          </div>
-          <p className="prj-note">
-            {isUrgent(hours)
-              ? `مهلت ${formatHours(hours)} فوری محسوب می‌شود و ضریب فوریت اعمال شده است.`
-              : 'برآورد بر اساس نرخ پایه است؛ نرخ نهایی توسط مدیر و پیش از شروع کار اعلام می‌شود.'}
-          </p>
-          <p className="prj-note">
-            مبالغ فقط در سرور محاسبه و ذخیره می‌شوند؛ این فرم هیچ مبلغی ارسال
-            نمی‌کند.
-          </p>
 
-          {submitError ? (
-            <div className="prj-alert" role="alert">
-              <Icon name="alert" size={18} />
-              <span>{submitError}</span>
-            </div>
-          ) : null}
-
-          <p className="prj-note">
-            پیش از ثبت سفارش می‌توانید سیاست اصلاح را مطالعه کنید؛ درخواست اصلاح
-            وضعیت سفارش و مهلت تحویل را تغییر نمی‌دهد.
-          </p>
-          {submitIssues.length > 0 ? (
-            <div className="prj-submit-issues" role="alert">
-              <Icon name="alert" size={18} />
-              <div>
-                <strong>پیش از ثبت سفارش، موارد زیر را اصلاح کنید:</strong>
-                <ol>
-                  {submitIssues.map((issue, index) => (
-                    <li key={`${index}-${issue}`}>{issue}</li>
+            <div className="prj-grid prj-spec">
+              <FormField label="قلم فارسی" htmlFor="prj-font">
+                <Input
+                  disabled={likeOriginal}
+                  id="prj-font"
+                  value={String(spec.fontFa ?? '')}
+                  onChange={(event) => updateSpec('fontFa', event.target.value)}
+                />
+              </FormField>
+              <FormField label="اندازه‌ی متن" htmlFor="prj-size">
+                <Input
+                  disabled={likeOriginal}
+                  id="prj-size"
+                  type="number"
+                  min={8}
+                  max={24}
+                  value={String(spec.bodySize ?? 14)}
+                  onChange={(event) => updateSpec('bodySize', Number(event.target.value))}
+                />
+              </FormField>
+              <FormField label="فاصله‌ی خطوط" htmlFor="prj-spacing">
+                <Input
+                  disabled={likeOriginal}
+                  id="prj-spacing"
+                  type="number"
+                  step="0.1"
+                  min={1}
+                  max={3}
+                  value={String(spec.lineSpacing ?? 1.5)}
+                  onChange={(event) =>
+                    updateSpec('lineSpacing', Number(event.target.value))
+                  }
+                />
+              </FormField>
+              <FormField label="اندازه کاغذ" htmlFor="prj-paper">
+                <Select
+                  disabled={likeOriginal}
+                  id="prj-paper"
+                  value={String(spec.paperSize ?? 'A4')}
+                  onChange={(event) => updateSpec('paperSize', event.target.value)}
+                >
+                  {PAPER_SIZES.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
                   ))}
-                </ol>
+                </Select>
+              </FormField>
+              <FormField label="حاشیه‌ی بالا (cm)" htmlFor="prj-mt">
+                <Input
+                  disabled={likeOriginal}
+                  id="prj-mt"
+                  type="number"
+                  step="0.1"
+                  value={String(spec.margins?.top ?? 2.5)}
+                  onChange={(event) =>
+                    updateSpec('margins.top', Number(event.target.value))
+                  }
+                />
+              </FormField>
+              <FormField label="حاشیه‌ی چپ (cm)" htmlFor="prj-ml">
+                <Input
+                  disabled={likeOriginal}
+                  id="prj-ml"
+                  type="number"
+                  step="0.1"
+                  value={String(spec.margins?.left ?? 3)}
+                  onChange={(event) =>
+                    updateSpec('margins.left', Number(event.target.value))
+                  }
+                />
+              </FormField>
+            </div>
+          </CardBody>
+        </Card>
+
+        <Card>
+          <CardHeader title="برآورد هزینه" />
+          <CardBody>
+            <div className="prj-summary">
+              <div>
+                <span>نرخ پایه‌ی هر صفحه</span>
+                <strong>
+                  <Money value={service?.pricePerPage ?? 0} />
+                </strong>
+              </div>
+              <div>
+                <span>هزینه‌ی برآوردی</span>
+                <strong>
+                  <Money value={estimate} />
+                </strong>
+              </div>
+              <div>
+                <span>بیعانه‌ی تقریبی</span>
+                <strong>
+                  <Money value={deposit} />
+                </strong>
               </div>
             </div>
-          ) : null}
+            <p className="prj-note">
+              {isUrgent(hours)
+                ? `مهلت ${formatHours(hours)} فوری محسوب می‌شود و ضریب فوریت اعمال شده است.`
+                : 'برآورد بر اساس نرخ پایه است؛ نرخ نهایی توسط مدیر و پیش از شروع کار اعلام می‌شود.'}
+            </p>
+            <p className="prj-note">
+              مبالغ فقط در سرور محاسبه و ذخیره می‌شوند؛ این فرم هیچ مبلغی ارسال نمی‌کند.
+            </p>
 
-          <div className="prj-actions">
-            <Button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={() => setPolicyOpen(true)}
-            >
-              <Icon name="shield" size={15} />
-              سیاست اصلاح
-            </Button>
-            <Button type="submit" loading={submitting} disabled={catalogLoading}>
-              ثبت سفارش
-            </Button>
-            <Link className="btn btn--ghost btn--sm" href="/panel/projects/">
-              انصراف
-            </Link>
-          </div>
-        </CardBody>
-      </Card>
+            {submitError ? (
+              <div className="prj-alert" role="alert">
+                <Icon name="alert" size={18} />
+                <span>{submitError}</span>
+              </div>
+            ) : null}
 
+            <p className="prj-note">
+              پیش از ثبت سفارش می‌توانید سیاست اصلاح را مطالعه کنید؛ درخواست اصلاح وضعیت
+              سفارش و مهلت تحویل را تغییر نمی‌دهد.
+            </p>
+            {submitIssues.length > 0 ? (
+              <div className="prj-submit-issues" role="alert">
+                <Icon name="alert" size={18} />
+                <div>
+                  <strong>پیش از ثبت سفارش، موارد زیر را اصلاح کنید:</strong>
+                  <ol>
+                    {submitIssues.map((issue, index) => (
+                      <li key={`${index}-${issue}`}>
+                        <button
+                          type="button"
+                          className="prj-issue-link"
+                          onClick={() => handleIssueClick(issue)}
+                        >
+                          {issue}
+                        </button>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="prj-actions">
+              <Button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => setPolicyOpen(true)}
+              >
+                <Icon name="shield" size={15} />
+                سیاست اصلاح
+              </Button>
+              <Button type="submit" loading={submitting} disabled={catalogLoading}>
+                ثبت سفارش
+              </Button>
+              <Link className="btn btn--ghost btn--sm" href="/panel/projects/">
+                انصراف
+              </Link>
+            </div>
+          </CardBody>
+        </Card>
       </form>
 
       {/* Phase 8: File Manager Modal — بیرون از فرم (توضیح بالا) */}
@@ -788,9 +919,11 @@ export function ProjectNewForm() {
           role: user?.role === 'admin' ? 'admin' : 'customer',
           defaultTab: 'upload',
           title: 'فایل‌های ضمیمه سفارش',
-        
+
           excludeIds: attachedFiles.map((file) => file.id),
-          excludeSignatures: attachedFiles.map((file) => localFileSignature(file.originalName, file.sizeBytes)),
+          excludeSignatures: attachedFiles.map((file) =>
+            localFileSignature(file.originalName, file.sizeBytes),
+          ),
         }}
         onSelect={(result) => {
           setAttachedFiles((prev) => [...prev, ...result.files]);

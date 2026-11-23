@@ -13,6 +13,7 @@ import { Input, Select } from '@/components/ui/Field';
 import { RelativeTime } from '@/components/ui/JalaliDate';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { ShowMoreButton, useVisibleSlice } from '@/components/ui/ShowMore';
 import { Avatar } from '@/components/ui/Avatar';
 import { formatNumberFa } from '@/lib/datetime';
 import { DisputeFlag } from '@/components/activities/DisputeFlag';
@@ -43,9 +44,12 @@ function ProjectActionsCell({
   role: 'admin' | 'customer';
   onDone: () => void;
 }) {
-  const detailPath = role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
+  const detailPath =
+    role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
   const fallback = `${detailPath}?id=${encodeURIComponent(project.id)}`;
-  const actions = (Array.isArray(project.availableActions) ? project.availableActions : [])
+  const actions = (
+    Array.isArray(project.availableActions) ? project.availableActions : []
+  )
     // Phase 12.8-k: details are opened from the code/title cells, not a second button.
     .filter((action) => action.id !== 'view_detail' && action.label !== 'جزئیات سفارش');
   const [active, setActive] = useState<ProjectAction | null>(null);
@@ -67,7 +71,7 @@ function ProjectActionsCell({
   return (
     <>
       <div className="prj-action-cell">
-        {interactive.map((action: ProjectAction, index) => (
+        {interactive.map((action: ProjectAction, index) =>
           action.kind === 'link' ? (
             <Link
               key={action.id}
@@ -87,10 +91,14 @@ function ProjectActionsCell({
             >
               {action.label}
             </button>
-          )
-        ))}
+          ),
+        )}
         {future.map((action) => (
-          <span key={action.id} className="prj-action-future" title={action.hint ?? undefined}>
+          <span
+            key={action.id}
+            className="prj-action-future"
+            title={action.hint ?? undefined}
+          >
             {action.label} <small>(فاز {action.phase ?? 10})</small>
           </span>
         ))}
@@ -129,8 +137,10 @@ function ProjectActionsCell({
 /** Shared list for the customer panel and the admin queue. */
 export function ProjectList({ admin = false }: { admin?: boolean }) {
   const { authedRequest, user } = useAuth();
-  const role: 'admin' | 'customer' = admin || user?.role === 'admin' ? 'admin' : 'customer';
-  const detailPath = role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
+  const role: 'admin' | 'customer' =
+    admin || user?.role === 'admin' ? 'admin' : 'customer';
+  const detailPath =
+    role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
   const api = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
 
   const [projects, setProjects] = useState<Project[]>([]);
@@ -143,9 +153,21 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
   const [reloadKey, setReloadKey] = useState(0);
   const [financeFor, setFinanceFor] = useState<Project | null>(null);
   const [specsFor, setSpecsFor] = useState<Project | null>(null);
+  const {
+    visible: pagedProjects,
+    remaining: moreProjects,
+    showMore: showMoreProjects,
+  } = useVisibleSlice(projects);
 
   const resourceKey = useMemo(
-    () => projectListResourceKey({ scope: role, view: 'project-list', status, q: query, sort }),
+    () =>
+      projectListResourceKey({
+        scope: role,
+        view: 'project-list',
+        status,
+        q: query,
+        sort,
+      }),
     [role, status, query, sort],
   );
   const refresh = useCallback(() => setReloadKey((value) => value + 1), []);
@@ -185,7 +207,16 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
     return () => {
       alive = false;
     };
-  }, [acceptServerRows, api, isStaleResponse, query, sort, status, versionAtRequest, reloadKey]);
+  }, [
+    acceptServerRows,
+    api,
+    isStaleResponse,
+    query,
+    sort,
+    status,
+    versionAtRequest,
+    reloadKey,
+  ]);
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -285,33 +316,45 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
               </tr>
             </thead>
             <tbody>
-              {projects.map((project) => {
+              {pagedProjects.map((project) => {
                 const detailHref = `${detailPath}?id=${encodeURIComponent(project.id)}`;
                 const deliveryAt = project.deliveredAt ?? project.deadlineAt;
                 // فاز ۱۲٫۱۶-بندهای ۹ و ۲۱: عنوان نشان مشخصات پس از اعلام واریز،
                 // متن کوتاه‌تر و متناسب با وضعیت فعلی می‌گیرد.
                 const pendingStage = project.finance?.pendingPayment?.stage ?? null;
                 const hasPending = (project.finance?.pendingCount ?? 0) > 0;
-                const badgeLabel = hasPending && project.status === 'awaiting_deposit' && pendingStage === 'deposit'
-                  ? 'در انتظار تأیید بیعانه'
-                  : hasPending && project.status === 'awaiting_final_payment' && pendingStage === 'final'
-                    ? 'در انتظار تأیید پرداخت'
-                    : undefined;
-                const badgeTitle = badgeLabel === 'در انتظار تأیید بیعانه'
-                  ? 'بیعانه توسط سفارش‌دهنده اعلام شد؛ منتظر تأیید پرداخت توسط مدیر است.'
-                  : badgeLabel === 'در انتظار تأیید پرداخت'
-                    ? 'مانده توسط سفارش‌دهنده اعلام شد؛ منتظر تأیید پرداخت نهایی توسط مدیر است.'
-                    : undefined;
+                const badgeLabel =
+                  hasPending &&
+                  project.status === 'awaiting_deposit' &&
+                  pendingStage === 'deposit'
+                    ? 'در انتظار تأیید بیعانه'
+                    : hasPending &&
+                        project.status === 'awaiting_final_payment' &&
+                        pendingStage === 'final'
+                      ? 'در انتظار تأیید پرداخت'
+                      : undefined;
+                const badgeTitle =
+                  badgeLabel === 'در انتظار تأیید بیعانه'
+                    ? 'بیعانه توسط سفارش‌دهنده اعلام شد؛ منتظر تأیید پرداخت توسط مدیر است.'
+                    : badgeLabel === 'در انتظار تأیید پرداخت'
+                      ? 'مانده توسط سفارش‌دهنده اعلام شد؛ منتظر تأیید پرداخت نهایی توسط مدیر است.'
+                      : undefined;
                 return (
                   <tr key={project.id}>
                     <td data-label="نام سفارش">
                       {/* فاز ۱۲٫۹-ی: کد و نام، یک دکمه‌ی واحداند؛ فلگ بازبینی
                           بیرون از دکمه می‌ماند تا کلیک مستقل خود را حفظ کند. */}
                       <div className="prj-name-wrap">
-                      <Link className="prj-name-cell prj-name-cell--button" href={detailHref}>
-                        <CopyableCode value={formatProjectCodeSafe(project.code)} label="کد سفارش" />
-                        <span className="prj-name">{project.name}</span>
-                      </Link>
+                        <Link
+                          className="prj-name-cell prj-name-cell--button"
+                          href={detailHref}
+                        >
+                          <CopyableCode
+                            value={formatProjectCodeSafe(project.code)}
+                            label="کد سفارش"
+                          />
+                          <span className="prj-name">{project.name}</span>
+                        </Link>
                       </div>
                     </td>
                     {admin ? (
@@ -319,15 +362,23 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                         <div className="ord-customer">
                           <Avatar
                             src={project.customerAvatarUrl ?? null}
-                            name={project.customerDisplayName ?? project.customerUsername ?? '—'}
+                            name={
+                              project.customerDisplayName ??
+                              project.customerUsername ??
+                              '—'
+                            }
                             size="sm"
                           />
                           <div className="ord-name">
                             <span className="ord-customer__name">
-                              {project.customerDisplayName ?? project.customerUsername ?? '—'}
+                              {project.customerDisplayName ??
+                                project.customerUsername ??
+                                '—'}
                             </span>
                             {project.customerUsername ? (
-                              <span className="ord-customer__username">@{project.customerUsername}</span>
+                              <span className="ord-customer__username">
+                                @{project.customerUsername}
+                              </span>
                             ) : null}
                           </div>
                         </div>
@@ -350,7 +401,8 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                             title={badgeTitle}
                           />
                           <span className="prj-muted">
-                            {formatNumberFa(project.sourcePageCount)} صفحه · {formatHours(project.deliveryHours)}
+                            {formatNumberFa(project.sourcePageCount)} صفحه ·{' '}
+                            {formatHours(project.deliveryHours)}
                           </span>
                           <Icon name="chevronLeft" size={14} />
                         </div>
@@ -363,12 +415,20 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                       {deliveryAt ? <RelativeTime value={deliveryAt} /> : '—'}
                     </td>
                     <td data-label="تراکنش‌ها">
-                      <Button size="sm" variant="outline" onClick={() => setFinanceFor(project)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setFinanceFor(project)}
+                      >
                         تراکنش‌ها
                       </Button>
                     </td>
                     <td data-label="اقدام">
-                      <ProjectActionsCell project={project} role={role} onDone={refresh} />
+                      <ProjectActionsCell
+                        project={project}
+                        role={role}
+                        onDone={refresh}
+                      />
                     </td>
                   </tr>
                 );
@@ -377,7 +437,10 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
           </table>
         </div>
       )}
-      {financeFor ? <FinanceDialog project={financeFor} onClose={() => setFinanceFor(null)} /> : null}
+      <ShowMoreButton remaining={moreProjects} onClick={showMoreProjects} />
+      {financeFor ? (
+        <FinanceDialog project={financeFor} onClose={() => setFinanceFor(null)} />
+      ) : null}
       <ProjectSpecsDialog project={specsFor} onClose={() => setSpecsFor(null)} />
     </div>
   );

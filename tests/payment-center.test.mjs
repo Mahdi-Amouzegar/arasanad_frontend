@@ -1,6 +1,6 @@
 /**
  * فاز ۱۰٫۵ — تست هسته‌ی مرکز پرداخت در فرانت‌اند.
- * هیچ شبکه و هیچ DOMای لازم نیست؛ فقط قرارداد ماتریس و لینکهای عمیق.
+ * هیچ شبکه و هیچ DOMای لازم نیست؛ فقط قرارداد ماتریس و لینک‌های عمیق.
  */
 
 import test from 'node:test';
@@ -22,7 +22,7 @@ test('P105-F01: مرکز پرداخت سه مقصد و دو ریل را پوشش
   assert.ok(PAYMENT_MATRIX.some((item) => item.purpose === 'order_final' && item.rail === 'online'));
 });
 
-test('P105-F02: لینکهای عمیق wallet و order به درستی تجزیه می‌شوند', () => {
+test('P105-F02: لینک‌های عمیق wallet و order به درستی تجزیه می‌شوند', () => {
   assert.deepEqual(parsePaymentQuery('?purpose=wallet'), {
     purpose: 'wallet_topup', projectId: null, stage: null,
   });

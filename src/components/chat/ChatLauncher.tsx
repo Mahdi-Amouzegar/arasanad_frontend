@@ -11,11 +11,13 @@
  */
 
 import { Icon } from '@/components/ui/Icon';
+import { PeerAvatar } from './PeerAvatar';
 import { useChat } from './ChatProvider';
 import { formatBadge, latestUnreadPreview } from '@/lib/chat/core.mjs';
 
 export function ChatLauncher() {
-  const { open, variant, signedIn, openList, unreadTotal, freshMessage, conversations } = useChat();
+  const { open, variant, signedIn, openList, unreadTotal, freshMessage, conversations } =
+    useChat();
   if (!signedIn || (open && variant === 'popover')) return null;
   const preview = latestUnreadPreview(conversations);
 
@@ -27,9 +29,19 @@ export function ChatLauncher() {
       aria-label={`باز کردن گفتگو‌ها${unreadTotal > 0 ? `، ${unreadTotal} پیام خوانده‌نشده` : ''}${freshMessage ? '، پیام خوانده‌نشده تازه' : ''}`}
       title="گفتگو‌ها"
     >
-      <Icon name="phone" size={22} />
-      <span className="chat-launcher__pulse" aria-hidden="true"><Icon name="chat" size={12} /></span>
-      {unreadTotal > 0 ? <span className="chat-launcher__badge">{formatBadge(unreadTotal)}</span> : null}
+      {preview ? (
+        <span className="chat-launcher__avatar">
+          <PeerAvatar name={preview.peerName} userId={preview.peerId} small />
+        </span>
+      ) : (
+        <Icon name="phone" size={22} />
+      )}
+      <span className="chat-launcher__pulse" aria-hidden="true">
+        <Icon name="chat" size={12} />
+      </span>
+      {unreadTotal > 0 ? (
+        <span className="chat-launcher__badge">{formatBadge(unreadTotal)}</span>
+      ) : null}
       {preview ? (
         <span className="chat-launcher__preview" aria-hidden="true">
           <strong>{preview.peerName}</strong>

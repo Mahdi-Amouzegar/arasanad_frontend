@@ -9,7 +9,14 @@
  * - فاز ۱۲٫۱۱: انتخاب تک‌کلیکی و درگ روی پیام‌ها (مانند تلگرام) و فوروارد
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react';
 import { Icon } from '@/components/ui/Icon';
 import { RelativeTime } from '@/components/ui/JalaliDate';
 import { Tooltip } from '@/components/ui/Tooltip';
@@ -20,7 +27,6 @@ import type { FileItem } from '@/lib/files/api';
 import { useAuth } from '@/lib/account';
 import { cx } from '@/lib/cx';
 import {
-  initialsOf,
   isOwn,
   isSystemMessage,
   peerName,
@@ -30,6 +36,7 @@ import {
 } from '@/lib/chat/core.mjs';
 import { rangeIds } from '@/lib/chat/forward-core.mjs';
 import { useChat } from './ChatProvider';
+import { PeerAvatar } from './PeerAvatar';
 
 function toFileItem(file: ChatFile): FileItem {
   return {
@@ -66,10 +73,13 @@ function bodyWithoutForwardPrefix(message: ChatMessage, origin: string | null): 
 function MessageBubble({
   message,
   currentUserId,
+  peerId,
   onOpenFile,
 }: {
   message: ChatMessage;
   currentUserId: string | null;
+  /** فاز ۱۲٫۲۴-A: شناسه مخاطب برای بارگیری آواتار واقعی. */
+  peerId?: string | null;
   onOpenFile: (file: ChatFile) => void;
 }) {
   if (isSystemMessage(message)) {
@@ -85,11 +95,7 @@ function MessageBubble({
   const origin = forwardedFrom(message);
   return (
     <div className={`chat-msg ${mine ? 'chat-msg--mine' : 'chat-msg--theirs'}`}>
-      {!mine ? (
-        <span className="chat-avatar chat-avatar--sm" aria-hidden="true">
-          {initialsOf(message.senderName)}
-        </span>
-      ) : null}
+      {!mine ? <PeerAvatar name={message.senderName} userId={peerId} small /> : null}
       <div className="chat-msg__stack">
         <div className="chat-bubble">
           {origin ? (
@@ -99,7 +105,9 @@ function MessageBubble({
             </span>
           ) : null}
           {bodyWithoutForwardPrefix(message, origin) ? (
-            <p className="chat-bubble__text">{bodyWithoutForwardPrefix(message, origin)}</p>
+            <p className="chat-bubble__text">
+              {bodyWithoutForwardPrefix(message, origin)}
+            </p>
           ) : null}
 
           {message.files.length > 0 ? (
@@ -125,7 +133,9 @@ function MessageBubble({
                   rel="noopener noreferrer"
                 >
                   <Icon name="link" size={16} />
-                  <span className="chat-file-btn__name">{link.description || link.url}</span>
+                  <span className="chat-file-btn__name">
+                    {link.description || link.url}
+                  </span>
                   <Icon name="chevronLeft" size={15} />
                 </a>
               ))}
@@ -137,7 +147,14 @@ function MessageBubble({
           <span aria-hidden="true">·</span>
           <RelativeTime value={message.createdAt} />
           {mine ? (
-            <Tooltip label={message.readAt ? `دیده‌شده — ${formatDateFull(message.readAt)}` : 'دیده نشده'} pinnable>
+            <Tooltip
+              label={
+                message.readAt
+                  ? `دیده‌شده — ${formatDateFull(message.readAt)}`
+                  : 'دیده نشده'
+              }
+              pinnable
+            >
               <span className={`chat-seen ${message.readAt ? 'chat-seen--yes' : ''}`}>
                 <Icon name={message.readAt ? 'checkDouble' : 'check'} size={14} />
               </span>
@@ -190,23 +207,37 @@ export function MessageThread() {
     }
   }, [messages.length]);
 
-  const onMessagePointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>, id: string) => {
-    if (event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
-    if (event.button !== 0) return;
-    if ((event.target as HTMLElement).closest('button, a, input, textarea, select')) return;
-    dragRef.current = { anchorId: id, startX: event.clientX, startY: event.clientY, moved: false };
-    setDragAnchor(id);
-  }, []);
+  const onMessagePointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLDivElement>, id: string) => {
+      if (event.pointerType !== 'mouse' && event.pointerType !== 'pen') return;
+      if (event.button !== 0) return;
+      if ((event.target as HTMLElement).closest('button, a, input, textarea, select'))
+        return;
+      dragRef.current = {
+        anchorId: id,
+        startX: event.clientX,
+        startY: event.clientY,
+        moved: false,
+      };
+      setDragAnchor(id);
+    },
+    [],
+  );
 
   useEffect(() => {
     const onMove = (event: PointerEvent) => {
       const drag = dragRef.current;
       if (!drag) return;
-      if (!drag.moved
-        && Math.abs(event.clientX - drag.startX) + Math.abs(event.clientY - drag.startY) < 8) return;
+      if (
+        !drag.moved &&
+        Math.abs(event.clientX - drag.startX) + Math.abs(event.clientY - drag.startY) < 8
+      )
+        return;
       drag.moved = true;
       const element = document.elementFromPoint(event.clientX, event.clientY);
-      const targetId = element?.closest('[data-message-id]')?.getAttribute('data-message-id');
+      const targetId = element
+        ?.closest('[data-message-id]')
+        ?.getAttribute('data-message-id');
       // داخل همان پیام، کشیدن متن باید آزاد بماند؛ تنها عبور به پیام دیگر
       // انتخاب محدودهای پیام‌ها را آغاز می‌کند.
       if (!targetId || targetId === drag.anchorId) return;
@@ -246,20 +277,31 @@ export function MessageThread() {
               <Icon name="x" size={18} />
             </button>
             <strong>انتخاب {toFaDigits(selectedMessageIds.length)} پیام</strong>
-            <button type="button" className="chat-forward-btn" onClick={openForwardDialog}>
+            <button
+              type="button"
+              className="chat-forward-btn"
+              onClick={openForwardDialog}
+            >
               <Icon name="forward" size={16} />
               فوروارد
             </button>
           </div>
         ) : (
           <>
-            <button type="button" className="chat-icon-btn" aria-label="بازگشت به فهرست گفتگو‌ها" onClick={backToList}>
+            <button
+              type="button"
+              className="chat-icon-btn"
+              aria-label="بازگشت به فهرست گفتگو‌ها"
+              onClick={backToList}
+            >
               <Icon name="chevronRight" size={18} />
             </button>
-            <span className="chat-avatar chat-avatar--sm" aria-hidden="true">{initialsOf(title)}</span>
+            <PeerAvatar name={title} userId={activePeer?.id} small />
             <div className="chat-thread__who">
               <strong>{title}</strong>
-              <span>{projectLabel ?? (activePeer?.role === 'admin' ? 'مدیر سامانه' : 'مخاطب')}</span>
+              <span>
+                {projectLabel ?? (activePeer?.role === 'admin' ? 'مدیر سامانه' : 'مخاطب')}
+              </span>
             </div>
           </>
         )}
@@ -279,12 +321,18 @@ export function MessageThread() {
         ) : null}
 
         {loadingMessages && messages.length === 0 ? (
-          <div className="chat-skeleton" aria-hidden="true"><span /><span /><span /></div>
+          <div className="chat-skeleton" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </div>
         ) : null}
 
         {!loadingMessages && messages.length === 0 ? (
           <div className="chat-empty">
-            <span className="chat-empty__icon"><Icon name="chat" size={26} /></span>
+            <span className="chat-empty__icon">
+              <Icon name="chat" size={26} />
+            </span>
             <p className="chat-empty__title">گفتگو را آغاز کنید</p>
             <p className="chat-empty__text">
               نخستین پیام خود را بنویسید یا با دکمه‌ی «ارسال فایل» فایلی ضمیمه کنید.
@@ -294,7 +342,15 @@ export function MessageThread() {
 
         {messages.map((message) => {
           if (isSystemMessage(message)) {
-            return <MessageBubble key={message.id} message={message} currentUserId={user?.id ?? null} onOpenFile={() => undefined} />;
+            return (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                currentUserId={user?.id ?? null}
+                peerId={activePeer?.id}
+                onOpenFile={() => undefined}
+              />
+            );
           }
           const selected = selectedMessageIds.includes(message.id);
           return (
@@ -320,6 +376,7 @@ export function MessageThread() {
               <MessageBubble
                 message={message}
                 currentUserId={user?.id ?? null}
+                peerId={activePeer?.id}
                 onOpenFile={(file) => {
                   setPreview(file);
                   setPreviewOpen(true);
@@ -330,7 +387,11 @@ export function MessageThread() {
         })}
 
         {busy ? <p className="chat-hint chat-hint--center">در حال ارسال…</p> : null}
-        {error ? <div className="chat-error" role="alert">{error}</div> : null}
+        {error ? (
+          <div className="chat-error" role="alert">
+            {error}
+          </div>
+        ) : null}
         <div ref={bottomRef} />
       </div>
 
@@ -340,7 +401,6 @@ export function MessageThread() {
         file={preview ? toFileItem(preview) : null}
         canDownload
       />
-
     </div>
   );
 }

@@ -120,8 +120,8 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
               فهرست سفارش‌ها
             </Link>
           ) : view === 'new' ? (
-            <Link href="/panel/projects/" className="btn btn--ghost btn--sm">
-              سفارش‌های من
+            <Link href="/panel/projects/" className="btn btn--cta-panel btn--sm">
+              سفارشات من
             </Link>
           ) : view === 'files' ? (
             <Link href="/panel/projects/delivery/" className="btn btn--ghost btn--sm">
@@ -140,12 +140,12 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
               پرداخت تازه
             </Link>
           ) : view === 'dashboard' ? (
-            <Link href="/panel/projects/new/" className="btn btn--primary btn--sm">
-              ثبت سفارش تازه
+            <Link href="/panel/projects/new/" className="btn btn--cta-panel btn--sm">
+              ثبت سفارش جدید
             </Link>
           ) : (
-            <Link href="/panel/projects/new/" className="btn btn--primary btn--sm">
-              ثبت سفارش تازه
+            <Link href="/panel/projects/new/" className="btn btn--cta-panel btn--sm">
+              ثبت سفارش جدید
             </Link>
           )
         }

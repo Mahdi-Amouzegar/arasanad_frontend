@@ -18,7 +18,12 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { errorText, formatProjectCodeSafe } from '@/components/projects/ui-utils';
-import { createActivitiesApi, type ActivityItem, type ActivityPage, type ActivityProjectSummary } from '@/lib/activities/api';
+import {
+  createActivitiesApi,
+  type ActivityItem,
+  type ActivityPage,
+  type ActivityProjectSummary,
+} from '@/lib/activities/api';
 import {
   ACTIVITY_PAGE_SIZE,
   mergeActivities,
@@ -49,11 +54,13 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
   const projectsApi = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
   const { refresh: refreshBell } = useActivities();
 
-  const role: 'admin' | 'customer' = admin || user?.role === 'admin' ? 'admin' : 'customer';
+  const role: 'admin' | 'customer' =
+    admin || user?.role === 'admin' ? 'admin' : 'customer';
   const [id, setId] = useState('');
   const [focusActivity, setFocusActivity] = useState('');
   const [openDispute, setOpenDispute] = useState<string | null>(null);
-  const [pendingPayment, setPendingPayment] = useState<ActivityPage['pendingPayment']>(null);
+  const [pendingPayment, setPendingPayment] =
+    useState<ActivityPage['pendingPayment']>(null);
   const [approveOpen, setApproveOpen] = useState(false);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [project, setProject] = useState<ActivityProjectSummary | null>(null);
@@ -63,7 +70,10 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<ActivityItem | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
-  const [cardAction, setCardAction] = useState<{ action: ProjectAction; project: Project } | null>(null);
+  const [cardAction, setCardAction] = useState<{
+    action: ProjectAction;
+    project: Project;
+  } | null>(null);
   const markedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -81,7 +91,9 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
         setProject(page.project);
         setOpenDispute(page.openDispute);
         setPendingPayment(page.pendingPayment ?? null);
-        setActivities((prev) => newestFirst(mergeActivities(more ? prev : [], page.activities)));
+        setActivities((prev) =>
+          newestFirst(mergeActivities(more ? prev : [], page.activities)),
+        );
         setHasMore(page.hasMore);
         setError(null);
 
@@ -102,7 +114,10 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
                           ...item,
                           seenAt: page.serverTime,
                           // فاز ۱۲٫۹: تیک مربوط به نقش بیننده بدون بازخوانی صفحه به‌روز شود.
-                          seenBy: { ...item.seenBy, [role]: page.serverTime } as ActivityItem['seenBy'],
+                          seenBy: {
+                            ...item.seenBy,
+                            [role]: page.serverTime,
+                          } as ActivityItem['seenBy'],
                         }
                       : item,
                   ),
@@ -137,7 +152,10 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
     if (!target) return;
     target.scrollIntoView({ behavior: 'smooth', block: 'center' });
     target.classList.add('act-card--focus');
-    const timer = window.setTimeout(() => target.classList.remove('act-card--focus'), 4000);
+    const timer = window.setTimeout(
+      () => target.classList.remove('act-card--focus'),
+      4000,
+    );
     return () => window.clearTimeout(timer);
   }, [focusActivity, loading, activities]);
 
@@ -155,7 +173,9 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
       void projectsApi
         .getProject(id)
         .then((detail) => {
-          const action = (detail.project.availableActions ?? []).find((item) => item.intent === intent);
+          const action = (detail.project.availableActions ?? []).find(
+            (item) => item.intent === intent,
+          );
           if (action) setCardAction({ action, project: detail.project });
         })
         .catch((caught) => {
@@ -182,7 +202,10 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
         title="سفارشی انتخاب نشده است"
         description="برای دیدن ثبت عملیات، از فهرست سفارش‌ها وارد این صفحه شوید."
         action={
-          <Link className="btn btn--primary btn--sm" href={admin ? '/admin/projects/' : '/panel/projects/'}>
+          <Link
+            className="btn btn--primary btn--sm"
+            href={admin ? '/admin/projects/' : '/panel/projects/'}
+          >
             فهرست سفارش‌ها
           </Link>
         }
@@ -196,7 +219,11 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
         icon={<Icon name="shield" size={28} />}
         title="ورود لازم است"
         description="برای دیدن سابقه‌ی عملیات سفارش وارد حساب خود شوید."
-        action={<Link className="btn btn--primary btn--sm" href="/login/">ورود</Link>}
+        action={
+          <Link className="btn btn--primary btn--sm" href="/login/">
+            ورود
+          </Link>
+        }
       />
     );
   }
@@ -205,10 +232,13 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
     <div className="act-page">
       <header className="act-page__head">
         <div>
-          <span className="act-page__code">{formatProjectCodeSafe(project?.code ?? '')}</span>
+          <span className="act-page__code">
+            {formatProjectCodeSafe(project?.code ?? '')}
+          </span>
           <h2 className="act-page__title">{project?.name ?? 'سفارش‌گردانی'}</h2>
           <p className="act-page__hint">
-            سابقه‌ی فقط الحاقی عملیات‌ها، جدیدترین در بالا. اصلاح فقط با ثبت ردیف تازه انجام می‌شود.
+            سابقه‌ی فقط الحاقی عملیات‌ها، جدیدترین در بالا. اصلاح فقط با ثبت ردیف تازه
+            انجام می‌شود.
           </p>
         </div>
         <div className="act-page__actions">
@@ -239,7 +269,10 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
           >
             جزئیات سفارش
           </Link>
-          <Link className="btn btn--ghost btn--sm" href={admin ? '/admin/projects/' : '/panel/projects/'}>
+          <Link
+            className="btn btn--ghost btn--sm"
+            href={admin ? '/admin/projects/' : '/panel/projects/'}
+          >
             فهرست سفارش‌ها
           </Link>
         </div>
@@ -258,7 +291,9 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
         <div className="prj-alert" role="alert">
           <Icon name="alert" size={18} />
           <span>{error}</span>
-          <Button variant="ghost" size="sm" onClick={reload}>تلاش دوباره</Button>
+          <Button variant="ghost" size="sm" onClick={reload}>
+            تلاش دوباره
+          </Button>
         </div>
       ) : null}
 
@@ -296,7 +331,7 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
               disabled={loadingMore}
               loading={loadingMore}
             >
-              عملیات‌های قدیمی‌تر
+              دیدن بیشتر
             </Button>
           ) : null}
         </div>
@@ -320,9 +355,11 @@ export function ProjectOperations({ admin = false }: { admin?: boolean }) {
           defaultAmount={pendingPayment.amount}
           projectId={id}
           role={role}
-          title={pendingPayment.stage === 'final'
-            ? 'تأیید مبلغ اعلامی واریزی نهایی توسط مشتری'
-            : 'تأیید مبلغ اعلامی واریزی بیعانه توسط مشتری'}
+          title={
+            pendingPayment.stage === 'final'
+              ? 'تأیید مبلغ اعلامی واریزی نهایی توسط مشتری'
+              : 'تأیید مبلغ اعلامی واریزی بیعانه توسط مشتری'
+          }
           onClose={() => setApproveOpen(false)}
           onDone={async () => {
             setApproveOpen(false);

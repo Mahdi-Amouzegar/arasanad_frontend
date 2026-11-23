@@ -13,8 +13,9 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
+import { PeerAvatar } from './PeerAvatar';
 import { RelativeTime } from '@/components/ui/JalaliDate';
-import { formatBadge, initialsOf, peerName, truncate } from '@/lib/chat/core.mjs';
+import { formatBadge, peerName, truncate } from '@/lib/chat/core.mjs';
 import { useChat } from './ChatProvider';
 
 export function PanelMessages() {
@@ -64,9 +65,11 @@ export function PanelMessages() {
         />
         <CardBody>
           <p className="chat-page__lead">
-            گفتگو با مدیر یا سفارش‌دهنده سفارش، بدون خروج از صفحه و در یک دراور کنار
-            صفحه انجام می‌شود.
-            {unreadTotal > 0 ? ` اکنون ${formatBadge(unreadTotal)} پیام خوانده‌نشده دارید.` : ''}
+            گفتگو با مدیر یا سفارش‌دهنده سفارش، بدون خروج از صفحه و در یک دراور کنار صفحه
+            انجام می‌شود.
+            {unreadTotal > 0
+              ? ` اکنون ${formatBadge(unreadTotal)} پیام خوانده‌نشده دارید.`
+              : ''}
           </p>
         </CardBody>
       </Card>
@@ -107,28 +110,42 @@ export function PanelMessages() {
                 key={conversation.id}
                 className="chat-conv"
                 onClick={() =>
-                  void openChat({
-                    peerUserId: conversation.peer.id,
-                    ...(conversation.projectId ? { projectId: conversation.projectId } : {}),
-                  }, 'drawer')
+                  void openChat(
+                    {
+                      peerUserId: conversation.peer.id,
+                      ...(conversation.projectId
+                        ? { projectId: conversation.projectId }
+                        : {}),
+                    },
+                    'drawer',
+                  )
                 }
               >
-                <span className="chat-avatar" aria-hidden="true">
-                  {initialsOf(peerName(conversation.peer))}
-                </span>
+                <PeerAvatar
+                  name={peerName(conversation.peer)}
+                  userId={conversation.peer.id}
+                />
                 <span className="chat-conv__body">
                   <span className="chat-conv__top">
                     <span className="chat-conv__name">{peerName(conversation.peer)}</span>
                     {conversation.lastMessageAt ? (
-                      <RelativeTime value={conversation.lastMessageAt} className="chat-conv__time" />
+                      <RelativeTime
+                        value={conversation.lastMessageAt}
+                        className="chat-conv__time"
+                      />
                     ) : null}
                   </span>
                   <span className="chat-conv__preview">
-                    {truncate(conversation.lastMessagePreview ?? 'گفتگو را آغاز کنید', 80)}
+                    {truncate(
+                      conversation.lastMessagePreview ?? 'گفتگو را آغاز کنید',
+                      80,
+                    )}
                   </span>
                 </span>
                 {conversation.unreadCount > 0 ? (
-                  <span className="chat-unread">{formatBadge(conversation.unreadCount)}</span>
+                  <span className="chat-unread">
+                    {formatBadge(conversation.unreadCount)}
+                  </span>
                 ) : null}
               </button>
             ))}

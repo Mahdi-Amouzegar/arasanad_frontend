@@ -107,6 +107,29 @@
   color: var(--c-text);
 }
 
+/* فاز ۱۲٫۲۴-A: فراخوان پنل سفارش‌دهنده — سبز، متمایز از آبی-active سایدبار. */
+.btn--cta-panel {
+  background: var(--c-success);
+  color: #fff;
+  box-shadow: var(--sh-xs);
+  font-weight: var(--fw-semibold);
+}
+
+.btn--cta-panel:hover:not(:disabled) {
+  background: #0f8a58;
+}
+
+.btn--cta-panel:active:not(:disabled) {
+  background: #0b6f47;
+}
+
+/* فاز ۱۲٫۲۴-B: ردیف دکمهٔ «دیدن بیشتر» در انتهای لیستها. */
+.show-more-row {
+  display: flex;
+  justify-content: center;
+  padding-block: var(--sp-3);
+}
+
 /* Danger */
 .btn--danger {
   background: var(--c-danger);
@@ -373,7 +396,8 @@ a.badge--link:focus-visible {
 
 .select {
   appearance: none;
-  background-image: linear-gradient(45deg, transparent 50%, var(--c-text-secondary) 50%),
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--c-text-secondary) 50%),
     linear-gradient(135deg, var(--c-text-secondary) 50%, transparent 50%);
   background-position:
     calc(0% + 14px) calc(50% + 1px),
@@ -1289,7 +1313,6 @@ a.badge--link:focus-visible {
     opacity: 0.6;
   }
 }
-
 
 /* فاز ۱۲٫۸-د: میزبان toast به‌عنوان popover وارد «لایهٔ بالا»ی مرورگر می‌شود
    تا بر روی دیالوگهای بومی (`showModal`) هم دیده شود. استایل پیش‌فرض popover

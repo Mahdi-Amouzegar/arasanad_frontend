@@ -139,6 +139,14 @@ export function ProjectDetail() {
     if (typeof window === 'undefined') return undefined;
     const params = new URLSearchParams(window.location.search);
     const wantsForm = params.get('deliver') === '1';
+    // فاز ۱۲٫۲۴-D: لینک «تأیید لغو مشتری» مستقیماً کادر تصمیم لغو را نشانه می‌رود.
+    if (params.get('cancel') === '1' && user?.role === 'admin') {
+      window.setTimeout(() => {
+        document
+          .getElementById('prj-cancel-decision')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
     if (window.location.hash !== '#final-files' && !wantsForm) return undefined;
     if (wantsForm) setDeliveryOpen(true);
 
@@ -308,7 +316,9 @@ export function ProjectDetail() {
       type: 'danger-confirm',
       title: 'لغو سفارش',
       message:
-        'پیش از پرداخت بیعانه، سفارش مستقیم لغو می‌شود؛ پس از آن، درخواست لغو برای مدیر ارسال می‌شود.',
+        'پیش از پرداخت بیعانه، سفارش مستقیم لغو می‌شود؛ پس از آن، درخواست لغو برای مدیر ارسال می‌شود. ' +
+        'پس از لغو، مبلغ بیعانه به حساب سفارش‌دهنده برگشت داده نمی‌شود و تنها مازاد پرداختی ' +
+        'پس از تأیید مدیر به کیف پول وی بازگردانده می‌شود.',
       confirmText: 'درخواست لغو',
     });
     if (!confirmed) return;
@@ -320,6 +330,17 @@ export function ProjectDetail() {
   }
 
   async function decideCancel(approve: boolean) {
+    if (approve) {
+      const confirmed = await showAlert({
+        type: 'danger-confirm',
+        title: 'تأیید لغو مشتری',
+        message:
+          'با تأیید این درخواست، سفارش لغو می‌شود. مبلغ بیعانه طبق هدف تعیین‌شده به حساب مجازی مدیر ' +
+          'منتقل و مازاد امانی به کیف پول سفارش‌دهنده بازگردانده می‌شود. این عملیات قابل بازگشت نیست.',
+        confirmText: 'تأیید لغو',
+      });
+      if (!confirmed) return;
+    }
     await run(
       approve ? 'تأیید لغو' : 'رد لغو',
       () => api.decideCancel(id, approve, reason.trim()),
@@ -740,7 +761,7 @@ export function ProjectDetail() {
         </CardBody>
       </Card>
 
-      {/* ── فاز ۸: فایل‌ها و لینکهای اولیه ── */}
+      {/* ── فاز ۸: فایل‌ها و لینک‌های اولیه ── */}
       <Card>
         <CardHeader title="فایل‌های پیوست‌شده به سفارش" />
         <CardBody>
@@ -1011,7 +1032,8 @@ export function ProjectDetail() {
                   درخواست بازبینی نرخ
                 </Button>
               ) : null}
-              {!['cancelled', 'cancel_requested'].includes(project.status) ? (
+              {!['cancelled', 'cancel_requested'].includes(project.status) &&
+              !projectSettled ? (
                 <Button
                   variant="danger"
                   disabled={busy}
@@ -1029,6 +1051,11 @@ export function ProjectDetail() {
                 <p className="prj-note" role="status">
                   نرخ و مبلغ بیعانه تعیین شد؛ اکنون منتظر اعلام پرداخت توسط سفارش‌دهنده
                   است.
+                </p>
+              ) : project.status === 'cancel_requested' ? (
+                <p className="prj-note" role="status">
+                  درخواست لغو مشتری در انتظار تصمیم مدیر است؛ تغییر نرخ تا تصمیمٔ نهایی
+                  متوقف شده است.
                 </p>
               ) : (
                 <form className="prj-actions" onSubmit={submitQuote}>
@@ -1078,7 +1105,7 @@ export function ProjectDetail() {
               </form>
 
               {project.status === 'cancel_requested' ? (
-                <div className="prj-actions">
+                <div id="prj-cancel-decision" className="prj-actions">
                   <Button
                     variant="danger"
                     disabled={busy}

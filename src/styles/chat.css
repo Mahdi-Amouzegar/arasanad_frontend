@@ -121,7 +121,9 @@
   background: transparent;
   color: var(--c-text-secondary);
   cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast);
+  transition:
+    background var(--t-fast),
+    color var(--t-fast);
 }
 
 .chat-icon-btn:hover {
@@ -768,12 +770,30 @@
   color: #fff;
   box-shadow: var(--sh-lg);
   cursor: pointer;
-  transition: transform var(--t-normal), background var(--t-fast);
+  transition:
+    transform var(--t-normal),
+    background var(--t-fast);
 }
 
 .chat-launcher:hover {
   transform: translateY(-3px);
   background: var(--c-primary-hover);
+}
+
+/* فاز ۱۲٫۲۴-A: آواتار مخاطب در لانچر شناور. */
+.chat-launcher__avatar {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--r-full);
+}
+
+.chat-launcher__avatar .avatar {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
 }
 
 .chat-launcher__pulse {
@@ -857,7 +877,9 @@
   font-weight: var(--fw-medium);
   text-align: start;
   cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast);
+  transition:
+    background var(--t-fast),
+    color var(--t-fast);
 }
 
 .chat-sidebar-btn:hover {
@@ -922,7 +944,9 @@ button.public-side__link:hover {
   background: transparent;
   color: var(--c-text-secondary);
   cursor: pointer;
-  transition: background var(--t-fast), color var(--t-fast);
+  transition:
+    background var(--t-fast),
+    color var(--t-fast);
 }
 
 .notif-trigger:hover {
@@ -1123,23 +1147,43 @@ button.public-side__link:hover {
 /* ─── انیمیشن‌ها ─── */
 
 @keyframes chat-fade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes chat-slide-in {
-  from { transform: translateX(24px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 @keyframes chat-pop-in {
-  from { transform: translateY(8px) scale(0.98); opacity: 0; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+  from {
+    transform: translateY(8px) scale(0.98);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes chat-shimmer {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
 }
 
 /* ─── responsive ─── */
@@ -1220,7 +1264,9 @@ button.public-side__link:hover {
 }
 
 .chat-msg-select .chat-bubble {
-  transition: box-shadow var(--t-fast), background var(--t-fast);
+  transition:
+    box-shadow var(--t-fast),
+    background var(--t-fast);
 }
 
 .chat-msg-select:hover .chat-bubble {
@@ -1249,7 +1295,10 @@ button.public-side__link:hover {
   color: transparent;
   cursor: pointer;
   opacity: 0;
-  transition: opacity var(--t-fast), background var(--t-fast), color var(--t-fast);
+  transition:
+    opacity var(--t-fast),
+    background var(--t-fast),
+    color var(--t-fast);
 }
 
 .chat-msg-select:hover .chat-select-check,

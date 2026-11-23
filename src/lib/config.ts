@@ -23,7 +23,7 @@ export const SITE_ORIGIN = 'https://arasanad.ir';
  */
 export const DEFAULT_API_BASE_URL = 'https://api.arasanad.ir/api/v1';
 
-/** آدرس کامل صفحه‌ای از سایت (برای canonical / OG / لینکهای مطلق). */
+/** آدرس کامل صفحه‌ای از سایت (برای canonical / OG / لینک‌های مطلق). */
 export function absoluteUrl(path = '/'): string {
   const clean = path.startsWith('/') ? path : `/${path}`;
   return `${SITE_ORIGIN}${BASE_PATH}${clean}`;

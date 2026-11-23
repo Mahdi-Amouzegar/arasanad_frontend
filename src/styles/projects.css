@@ -189,7 +189,9 @@
   font: inherit;
   text-align: start;
   cursor: pointer;
-  transition: border-color 140ms ease, background 140ms ease;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
 }
 
 .prj-specs-cell:hover {
@@ -832,6 +834,18 @@
   margin-top: 2px;
 }
 
+/* فاز ۱۲٫۲۴-C: هشدار قابلکلیک به همان کادر هدایت می‌شود. */
+.prj-issue-link {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--c-danger);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 /* فاز ۱۲٫۹-ی: سلول «کد / نام» به‌صورت یک دکمه */
 .prj-name-wrap {
   display: flex;
@@ -843,7 +857,9 @@
   color: inherit;
   text-decoration: none;
   border-radius: var(--r-xs);
-  transition: background var(--t-fast), color var(--t-fast);
+  transition:
+    background var(--t-fast),
+    color var(--t-fast);
 }
 
 .prj-name-cell--button:hover {
@@ -887,7 +903,10 @@
   background: var(--c-surface);
   color: var(--c-text-secondary);
   cursor: pointer;
-  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease;
 }
 
 .prj-code--copy:hover {

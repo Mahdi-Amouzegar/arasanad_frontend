@@ -46,7 +46,7 @@ test('P1223-F3: مرجع pp: هرگز به‌عنوان آدرس تصویر اس
 test('P1223-F4: پنجرهٔ تسویه سه خط دارد و کیف پول اختیاری است', () => {
   const dialog = read('components/projects/ProjectActionDialog.tsx');
   assert.match(dialog, /مبلغ کل سفارش/);
-  assert.match(dialog, /جمع پرداختیهای پیشین این سفارش/);
+  assert.match(dialog, /جمع پرداختی‌های پیشین این سفارش/);
   assert.match(dialog, /موجودی کیف پول/);
   assert.match(dialog, /type="radio"/);
   assert.match(dialog, /useWallet/);

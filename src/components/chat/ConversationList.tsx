@@ -11,29 +11,26 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '@/components/ui/Icon';
+import { PeerAvatar } from './PeerAvatar';
 import { RelativeTime } from '@/components/ui/JalaliDate';
 import { useChat } from './ChatProvider';
 import {
   formatBadge,
-  initialsOf,
   peerName,
   SEARCH_MIN_LENGTH,
   truncate,
   type ChatPeer,
 } from '@/lib/chat/core.mjs';
 
-function Avatar({ name }: { name: string }) {
-  return (
-    <span className="chat-avatar" aria-hidden="true">
-      {initialsOf(name)}
-    </span>
-  );
+/** فاز ۱۲٫۲۴-A: آواتار واقعی مخاطب در فهرست گفتگو‌ها و نتایج جستجو. */
+function Avatar({ name, userId }: { name: string; userId?: string }) {
+  return <PeerAvatar name={name} userId={userId} />;
 }
 
 function UserRow({ user, onClick }: { user: ChatPeer; onClick: () => void }) {
   return (
     <button type="button" className="chat-conv" onClick={onClick}>
-      <Avatar name={peerName(user)} />
+      <Avatar name={peerName(user)} userId={user.id} />
       <span className="chat-conv__body">
         <span className="chat-conv__top">
           <span className="chat-conv__name">{peerName(user)}</span>
@@ -92,7 +89,12 @@ export function ConversationList() {
           aria-label="جستجوی مخاطب"
         />
         {query ? (
-          <button type="button" className="chat-icon-btn" aria-label="پاک کردن جستجو" onClick={() => setQuery('')}>
+          <button
+            type="button"
+            className="chat-icon-btn"
+            aria-label="پاک کردن جستجو"
+            onClick={() => setQuery('')}
+          >
             <Icon name="x" size={15} />
           </button>
         ) : null}
@@ -107,7 +109,11 @@ export function ConversationList() {
               <p className="chat-hint">کاربری با این مشخصات یافت نشد.</p>
             ) : null}
             {searchResults.map((user) => (
-              <UserRow key={user.id} user={user} onClick={() => void openWithUser(user)} />
+              <UserRow
+                key={user.id}
+                user={user}
+                onClick={() => void openWithUser(user)}
+              />
             ))}
           </>
         ) : (
@@ -115,16 +121,20 @@ export function ConversationList() {
             <p className="chat-list__label">گفتگوهای اخیر</p>
             {loadingConversations && conversations.length === 0 ? (
               <div className="chat-skeleton" aria-hidden="true">
-                <span /><span /><span />
+                <span />
+                <span />
+                <span />
               </div>
             ) : null}
             {!loadingConversations && conversations.length === 0 ? (
               <div className="chat-empty">
-                <span className="chat-empty__icon"><Icon name="chat" size={26} /></span>
+                <span className="chat-empty__icon">
+                  <Icon name="chat" size={26} />
+                </span>
                 <p className="chat-empty__title">هنوز گفتگویی ندارید</p>
                 <p className="chat-empty__text">
-                  نام مخاطب را در کادر بالا جستجو کنید، یا از صفحه‌ی جزئیات سفارش
-                  دکمه‌ی «گفتگو با مخاطب» را بزنید.
+                  نام مخاطب را در کادر بالا جستجو کنید، یا از صفحه‌ی جزئیات سفارش دکمه‌ی
+                  «گفتگو با مخاطب» را بزنید.
                 </p>
               </div>
             ) : null}
@@ -136,24 +146,38 @@ export function ConversationList() {
                 onClick={() =>
                   void openChat({
                     peerUserId: conversation.peer.id,
-                    ...(conversation.projectId ? { projectId: conversation.projectId } : {}),
+                    ...(conversation.projectId
+                      ? { projectId: conversation.projectId }
+                      : {}),
                   })
                 }
               >
-                <Avatar name={peerName(conversation.peer)} />
+                <Avatar
+                  name={peerName(conversation.peer)}
+                  userId={conversation.peer.id}
+                />
                 <span className="chat-conv__body">
                   <span className="chat-conv__top">
                     <span className="chat-conv__name">{peerName(conversation.peer)}</span>
                     {conversation.lastMessageAt ? (
-                      <RelativeTime value={conversation.lastMessageAt} className="chat-conv__time" />
+                      <RelativeTime
+                        value={conversation.lastMessageAt}
+                        className="chat-conv__time"
+                      />
                     ) : null}
                   </span>
                   <span className="chat-conv__preview">
-                    {truncate(conversation.lastMessagePreview ?? 'گفتگو را آغاز کنید', 60)}
+                    {truncate(
+                      conversation.lastMessagePreview ?? 'گفتگو را آغاز کنید',
+                      60,
+                    )}
                   </span>
                 </span>
                 {conversation.unreadCount > 0 ? (
-                  <span className="chat-unread" aria-label={`${conversation.unreadCount} پیام خوانده‌نشده`}>
+                  <span
+                    className="chat-unread"
+                    aria-label={`${conversation.unreadCount} پیام خوانده‌نشده`}
+                  >
                     {formatBadge(conversation.unreadCount)}
                   </span>
                 ) : null}
@@ -176,7 +200,11 @@ export function ConversationList() {
         {error ? (
           <div className="chat-error" role="alert">
             <span>{error}</span>
-            <button type="button" className="chat-link-btn" onClick={() => void refreshConversations()}>
+            <button
+              type="button"
+              className="chat-link-btn"
+              onClick={() => void refreshConversations()}
+            >
               تلاش دوباره
             </button>
           </div>

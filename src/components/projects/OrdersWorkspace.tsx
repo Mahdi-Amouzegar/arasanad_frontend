@@ -24,6 +24,7 @@ import { RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { ShowMoreButton, useVisibleSlice } from '@/components/ui/ShowMore';
 import { useProjectListController } from './ProjectListController';
 import { projectListResourceKey } from '@/lib/projects/list-sync.mjs';
 
@@ -393,6 +394,12 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
     [projects, statuses, serviceTypes],
   );
 
+  const {
+    visible: pagedRows,
+    remaining: moreRows,
+    showMore: showMoreRows,
+  } = useVisibleSlice(visible);
+
   const columns: Column<Project>[] = useMemo(() => {
     const list: Column<Project>[] = [];
     if (admin) {
@@ -516,13 +523,14 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
       ) : (
         <DataTable
           columns={columns}
-          rows={visible}
+          rows={pagedRows}
           rowKey={(row) => row.id}
           emptyTitle="سفارشی یافت نشد"
           emptyDescription="با فیلتر فعلی سفارشی پیدا نشد."
           caption={admin ? 'جدول تمام سفارشات' : 'جدول سفارشات من'}
         />
       )}
+      <ShowMoreButton remaining={moreRows} onClick={showMoreRows} />
       {financeFor ? (
         <FinanceDialog project={financeFor} onClose={() => setFinanceFor(null)} />
       ) : null}

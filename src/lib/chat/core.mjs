@@ -22,7 +22,8 @@ export const POLL_CACHE_MS = 15_000;
 /** شناسه‌ی بایدپتانسی سمت کلاینت؛ تکرار همان درخواست پیام دوباره نمی‌سازد. */
 export function createNonce() {
   const random =
-    typeof globalThis.crypto !== 'undefined' && typeof globalThis.crypto.randomUUID === 'function'
+    typeof globalThis.crypto !== 'undefined' &&
+    typeof globalThis.crypto.randomUUID === 'function'
       ? globalThis.crypto.randomUUID().replace(/-/g, '')
       : Math.random().toString(36).slice(2) + Date.now().toString(36);
   return `n_${random.slice(0, 40)}`;
@@ -49,7 +50,10 @@ export function sortBySeq(messages) {
 /** ادغام پاسخ تازه با پیام‌های قبلی، بدون تکرار و بدون بههمریختن ترتیب. */
 export function mergeMessages(existing, incoming) {
   const byId = new Map();
-  for (const item of [...(Array.isArray(existing) ? existing : []), ...(Array.isArray(incoming) ? incoming : [])]) {
+  for (const item of [
+    ...(Array.isArray(existing) ? existing : []),
+    ...(Array.isArray(incoming) ? incoming : []),
+  ]) {
     if (item && item.id) byId.set(item.id, item);
   }
   return sortBySeq([...byId.values()]);
@@ -64,9 +68,15 @@ export function peerName(peer) {
 
 /** حروف اول نام برای نشانAvatar بدون تصویر. */
 export function initialsOf(name) {
-  const parts = String(name ?? '').trim().split(/\s+/).filter(Boolean);
+  const parts = String(name ?? '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
   if (parts.length === 0) return 'آ';
-  return parts.slice(0, 2).map((part) => part[0]).join('');
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('');
 }
 
 export function toFaDigits(value) {
@@ -81,7 +91,9 @@ export function formatBadge(count) {
 }
 
 export function truncate(value, max = 120) {
-  const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+  const text = String(value ?? '')
+    .replace(/\s+/g, ' ')
+    .trim();
   if (text.length <= max) return text;
   return `${text.slice(0, max)}…`;
 }
@@ -91,7 +103,11 @@ export function validateDraft(text) {
   const value = String(text ?? '').trim();
   if (!value) return { ok: true, value: '' };
   if (value.length > MAX_MESSAGE_LENGTH) {
-    return { ok: false, value, reason: `متن پیام نمی‌تواند بیش از ${toFaDigits(MAX_MESSAGE_LENGTH)} نویسه باشد` };
+    return {
+      ok: false,
+      value,
+      reason: `متن پیام نمی‌تواند بیش از ${toFaDigits(MAX_MESSAGE_LENGTH)} نویسه باشد`,
+    };
   }
   return { ok: true, value };
 }
@@ -104,10 +120,16 @@ export function validateDraft(text) {
 export function pollDelayFor({ hidden = false, idleMs = 0, failures = 0 } = {}) {
   if (hidden) return { delay: null, stop: true };
   if (failures > 0) {
-    const backoff = Math.min(POLL_ACTIVE_MS * 2 ** Math.min(failures, 4), POLL_MAX_BACKOFF_MS);
+    const backoff = Math.min(
+      POLL_ACTIVE_MS * 2 ** Math.min(failures, 4),
+      POLL_MAX_BACKOFF_MS,
+    );
     return { delay: backoff, stop: false };
   }
-  return { delay: idleMs >= POLL_IDLE_AFTER_MS ? POLL_IDLE_MS : POLL_ACTIVE_MS, stop: false };
+  return {
+    delay: idleMs >= POLL_IDLE_AFTER_MS ? POLL_IDLE_MS : POLL_ACTIVE_MS,
+    stop: false,
+  };
 }
 
 /** آیا پیام از نوع سیستمی است؟ (نمایش متمایز، بدون ویرایش/حذف) */
@@ -129,7 +151,10 @@ export function readOwnerTabId(claims, conversationId, fallbackTabId) {
 export function latestUnreadPreview(conversations) {
   const rows = Array.isArray(conversations) ? conversations : [];
   const candidates = rows.filter(
-    (row) => Number(row?.unreadCount) > 0 && typeof row?.lastMessagePreview === 'string' && row.lastMessagePreview,
+    (row) =>
+      Number(row?.unreadCount) > 0 &&
+      typeof row?.lastMessagePreview === 'string' &&
+      row.lastMessagePreview,
   );
   if (candidates.length === 0) return null;
   candidates.sort((a, b) => {
@@ -140,6 +165,7 @@ export function latestUnreadPreview(conversations) {
   const latest = candidates[0];
   return {
     conversationId: latest.id,
+    peerId: latest.peer?.id ?? null,
     peerName: peerName(latest.peer),
     preview: truncate(latest.lastMessagePreview, 42),
   };

@@ -320,7 +320,7 @@ export function ProjectActionDialog({
                 </strong>
               </div>
               <div className="pad-dialog__breakdown-row">
-                <span>جمع پرداختیهای پیشین این سفارش</span>
+                <span>جمع پرداختی‌های پیشین این سفارش</span>
                 <strong>
                   <Money value={settlementPaid} />
                 </strong>

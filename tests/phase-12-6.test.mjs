@@ -155,7 +155,7 @@ test('P126-01: منوهای مهمان به صفحات واقعی ختم می‌
   assert.ok(header.includes('<SiteSidebar onNavigate='), 'همان سایدبار در Drawer موبایل سوار نشده است');
   assert.ok(layout.includes('<PublicBottomNav />'), 'ناوبری پایین موبایل سوار نشده است');
 
-  // تمام لینکهای داخلی کامپوننت‌ها و صفحات عمومی هم باید معتبر باشند.
+  // تمام لینک‌های داخلی کامپوننت‌ها و صفحات عمومی هم باید معتبر باشند.
   const publicFiles = [
     ...walk('src/components/public'),
     ...walk('src/app').filter((path) => !path.startsWith('src/app/panel/') && !path.startsWith('src/app/admin/')),

@@ -69,9 +69,15 @@ export interface ChatConversation {
 
 export declare function createNonce(): string;
 export declare function isValidNonce(value: unknown): value is string;
-export declare function isOwn(message: ChatMessage | null, currentUserId: string | null): boolean;
+export declare function isOwn(
+  message: ChatMessage | null,
+  currentUserId: string | null,
+): boolean;
 export declare function sortBySeq(messages: ChatMessage[]): ChatMessage[];
-export declare function mergeMessages(existing: ChatMessage[], incoming: ChatMessage[]): ChatMessage[];
+export declare function mergeMessages(
+  existing: ChatMessage[],
+  incoming: ChatMessage[],
+): ChatMessage[];
 export declare function peerName(peer: ChatPeer | null | undefined): string;
 export declare function initialsOf(name: string): string;
 export declare function toFaDigits(value: string | number): string;
@@ -84,8 +90,17 @@ export declare function readOwnerTabId(
 ): string;
 export declare function latestUnreadPreview(
   conversations: readonly ChatConversation[] | null | undefined,
-): { conversationId: string; peerName: string; preview: string } | null;
-export declare function validateDraft(text: string): { ok: boolean; value: string; reason?: string };
+): {
+  conversationId: string;
+  peerId: string | null;
+  peerName: string;
+  preview: string;
+} | null;
+export declare function validateDraft(text: string): {
+  ok: boolean;
+  value: string;
+  reason?: string;
+};
 export declare function pollDelayFor(input?: {
   hidden?: boolean;
   idleMs?: number;

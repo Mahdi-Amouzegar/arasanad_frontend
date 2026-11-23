@@ -126,11 +126,11 @@ export const PROJECT_STATUS: Record<ProjectStatus, StatusMeta> = {
     description: 'سفارش به پایان رسیده است.',
   },
   cancel_requested: {
-    label: 'درخواست لغو — در انتظار مدیر',
+    label: 'در انتظار لغو',
     tone: 'warning',
     icon: 'alert',
     description:
-      'شما درخواست لغو ثبت کرده‌اید. پس از واریز بیعانه، لغو فقط با تأیید مدیر انجام می‌شود.',
+      'شما درخواست لغو ثبت کرده‌اید. پس از واریز بیعانه، لغو فقط با تأیید مدیر انجام می‌شود و مبلغ بیعانه به کیف پول شما برگشت داده نمی‌شود.',
   },
   cancelled: {
     label: 'لغوشده',
