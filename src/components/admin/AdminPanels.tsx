@@ -279,7 +279,7 @@ export function AdminUsers() {
               <div><span>رزروشده</span><strong><Money value={selected.wallet?.reserved ?? 0} /></strong></div>
               <div><span>تعداد سفارش‌ها</span><strong>{selected.projects.length.toLocaleString('fa-IR')}</strong></div>
             </div>
-            <p className="prj-note">موجودی فقطخواندنی است؛ تغییر مستقیم موجودی کیف پول ممنوع است و تنها از طریق سند مالی مجاز است.</p>
+            <p className="prj-note">موجودی فقط‌خواندنی است؛ تغییر مستقیم موجودی کیف پول ممنوع است و تنها از طریق سند مالی مجاز است.</p>
             {selected.transactions.length > 0 ? (
               <div className="prj-table-wrap">
                 <table className="prj-table">

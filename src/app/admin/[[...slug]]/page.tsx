@@ -8,7 +8,6 @@ import { AdminRatingsPanel } from '@/components/admin/AdminRatingsPanel';
 import { AdminFiles } from '@/components/admin/AdminFiles';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { AdminPaymentsPanel, AdminWalletsPanel, AdminRefundsPanel, AdminReconciliationPanel } from '@/components/finance/FinancePanels';
-import { DeliveryWorkspace } from '@/components/delivery/DeliveryWorkspace';
 import { RevisionPolicySettings } from '@/components/delivery/RevisionPolicySettings';
 import {
   AdminDashboard,
@@ -110,7 +109,7 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
 
   // فاز ۱۱: تحویل، نسخه‌ها، اصلاح و تکمیل.
   if (href === '/admin/projects/delivery') {
-    return shell(info.title, backToProjects, <DeliveryWorkspace admin />, '/admin/projects');
+    return shell('جزئیات سفارش', backToProjects, <ProjectDetail />, '/admin/projects');
   }
 
   // فاز ۱۰: پنلهای مالی واقعی.

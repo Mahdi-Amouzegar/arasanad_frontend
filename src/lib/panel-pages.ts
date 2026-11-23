@@ -45,7 +45,7 @@ export const ADMIN_PAGES: Record<string, PanelPageInfo> = {
   '/admin/reconciliation': { title: 'گزارش مغایرت', phase: 10, note: 'معادله بنیادی و مغایرت مالی' },
   '/admin/files': { title: 'فایل‌های موجود', phase: 12.13, note: 'تمام فایل‌های کاربران' },
   '/admin/users': { title: 'کاربران', phase: 12, note: 'فهرست کاربران و نقشها' },
-  '/admin/messages': { title: 'پیام‌ها', phase: 12, note: 'گفتگوهای اخیر با سفارش‌دهندهان' },
+  '/admin/messages': { title: 'پیام‌ها', phase: 12, note: 'گفتگوهای اخیر با سفارش‌دهندگان' },
   '/admin/audit': { title: 'سوابق حسابرسی', phase: 12, note: 'رویدادهای مدیریتی با فیلتر و قبل/بعد' },
   '/admin/settings': { title: 'تنظیمات', phase: 12, note: 'اطلاعات سایت، بانک مقصد، متنها و سیاست اصلاح' },
 };

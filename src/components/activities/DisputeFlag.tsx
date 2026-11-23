@@ -122,7 +122,7 @@ export function DisputeFlag({
 
   const caption = label ?? (hasReply
     ? 'پاسخ بازبینی'
-    : role === 'admin' ? 'بازبینی ثبت شده — پاسخ دهید' : 'بازبینی ثبت شده');
+    : role === 'admin' ? 'پاسخ به بازبینی' : 'بازبینی ثبت شده');
   const targetId = activityId ?? (hasReply ? reply?.activityId : openDispute?.activityId) ?? null;
   const href = operationsHref(role, projectId, targetId);
 

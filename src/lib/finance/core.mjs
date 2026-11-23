@@ -95,7 +95,7 @@ export function stageLabel(stage) {
 /** Compact money label used in the action column and finance cards. */
 export function financeStatusText({ status, stage, remaining, pendingCount }) {
   if (Number(pendingCount) > 0) return 'در انتظار تأیید واریز توسط مدیر';
-  if (status === 'pending_review') return 'در انتظار بررسی مدیر';
+  if (status === 'pending_review') return 'در انتظار بررسی';
   if (status === 'awaiting_deposit') return 'در انتظار پرداخت بیعانه';
   if (status === 'awaiting_final_quote') return 'در انتظار ثبت مبلغ نهایی';
   if (status === 'awaiting_final_payment') return 'در انتظار پرداخت نهایی';

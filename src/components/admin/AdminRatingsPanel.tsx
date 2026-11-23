@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * فاز ۱۲٫۵-ج-۱ — نمای فقطخواندنی امتیازها در `/admin/projects`.
+ * فاز ۱۲٫۵-ج-۱ — نمای فقط‌خواندنی امتیازها در `/admin/projects`.
  *
- * ⚠️ هیچ دکمه ویرایش/حذفی وجود ندارد؛ مدیر فقط میانگین و نظرات سفارش‌دهندهان
+ * ⚠️ هیچ دکمه ویرایش/حذفی وجود ندارد؛ مدیر فقط میانگین و نظرات سفارش‌دهندگان
  *    را می‌بیند. تمام داده‌ها از `/admin/ratings` می‌آیند.
  */
 
@@ -56,7 +56,7 @@ export function AdminRatingsPanel() {
   return (
     <Card>
       <CardHeader
-        title="امتیاز و نظرات سفارش‌دهندهان"
+        title="امتیاز و نظرات سفارش‌دهندگان"
         actions={
           view.summary.count > 0 ? (
             <Badge tone="info">
@@ -98,7 +98,7 @@ export function AdminRatingsPanel() {
             </table>
           </div>
         )}
-        <p className="prj-note">این فهرست فقطخواندنی است؛ امتیازها قابل ویرایش توسط مدیر نیستند.</p>
+        <p className="prj-note">این فهرست فقط‌خواندنی است؛ امتیازها قابل ویرایش توسط مدیر نیستند.</p>
       </CardBody>
     </Card>
   );

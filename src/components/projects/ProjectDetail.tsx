@@ -168,11 +168,12 @@ export function ProjectDetail() {
       setError(null);
       setQuoteRate(String(data.project.quotedPricePerPage ?? data.project.basePricePerPage));
       setQuoteDeposit(String(data.project.finance?.depositTarget ?? data.project.depositAmount));
-      // فاز ۱۲٫۲۱: پیش\u200cفرض فرم تحویل از همان نرخی که در بیعانه ثبت شد می\u200cآید.
+      // فاز ۱۲٫۲۲: پیش‌فرض دقیقاً نرخی است که مدیر هنگام تعیین بیعانه ثبت کرد،
+      // نه نرخ نهایی بعدی؛ در حالت «مبلغ کل» همان هدف بیعانه پیش‌فرض است.
       const totalMode = data.project.quoteMode === 'total';
       const suggestedRate = totalMode
-        ? (data.project.quoteTotal ?? data.project.finalPricePerPage ?? data.project.quotedPricePerPage ?? 0)
-        : (data.project.finalPricePerPage ?? data.project.quotedPricePerPage ?? data.project.basePricePerPage ?? 0);
+        ? Number(data.project.finance?.depositTarget ?? data.project.depositAmount ?? data.project.quoteTotal ?? 0)
+        : Number(data.project.quotedPricePerPage ?? data.project.basePricePerPage ?? 0);
       setDeliveryAmount(suggestedRate > 0 ? String(suggestedRate) : '');
       setDeliveryPageCount(totalMode ? '1' : String(data.project.finalPages ?? data.project.sourcePageCount ?? 1));
       setNextStatus('');

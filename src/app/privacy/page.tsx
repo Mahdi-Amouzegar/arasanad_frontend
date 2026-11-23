@@ -4,7 +4,7 @@ import { SectionHeading } from '@/components/public/SectionHeading';
 
 export const metadata: Metadata = {
   title: 'حریم خصوصی',
-  description: 'سیاست آراسند در نگهداری و حفاظت از اطلاعات سفارش‌دهندهان.',
+  description: 'سیاست آراسند در نگهداری و حفاظت از اطلاعات سفارش‌دهندگان.',
   alternates: { canonical: '/privacy/' },
 };
 

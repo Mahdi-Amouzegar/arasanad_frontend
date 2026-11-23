@@ -322,12 +322,14 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                             name={project.customerDisplayName ?? project.customerUsername ?? '—'}
                             size="sm"
                           />
-                          <span className="ord-customer__name">
-                            {project.customerDisplayName ?? project.customerUsername ?? '—'}
-                          </span>
-                          {project.customerUsername ? (
-                            <span className="ord-customer__username">@{project.customerUsername}</span>
-                          ) : null}
+                          <div className="ord-name">
+                            <span className="ord-customer__name">
+                              {project.customerDisplayName ?? project.customerUsername ?? '—'}
+                            </span>
+                            {project.customerUsername ? (
+                              <span className="ord-customer__username">@{project.customerUsername}</span>
+                            ) : null}
+                          </div>
                         </div>
                       </td>
                     ) : null}

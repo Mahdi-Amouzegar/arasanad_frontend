@@ -47,7 +47,6 @@ export const ADMIN_NAV: NavGroup[] = [
     items: [
       { href: '/admin', label: 'داشبورد', icon: 'activity' },
       { href: '/admin/projects', label: 'سفارشات سامانه', icon: 'file' },
-      { href: '/admin/projects/delivery', label: 'تحویل و اصلاح', icon: 'package' },
       { href: '/admin/payments', label: 'بررسی پرداخت‌ها', icon: 'card' },
       { href: '/admin/messages', label: 'پیام‌ها', icon: 'message' },
     ],

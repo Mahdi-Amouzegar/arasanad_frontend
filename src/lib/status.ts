@@ -57,7 +57,7 @@ export const PROJECT_STATUS: Record<ProjectStatus, StatusMeta> = {
     description: 'ثبت نشده است و فقط برای شما قابل مشاهده است.',
   },
   pending_review: {
-    label: 'در انتظار بررسی مدیر',
+    label: 'در انتظار بررسی',
     tone: 'warning',
     icon: 'hourglass',
     description: 'سفارش ثبت شده و منتظر تعیین نرخ توسط مدیر است.',

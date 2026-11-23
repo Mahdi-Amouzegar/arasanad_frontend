@@ -89,9 +89,14 @@ export function ProjectActionDialog({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // فاز ۱۲٫۲۲: در تسویه نهایی عنوان پنجره «تأیید واریز تسویه» است.
   const title = useMemo(
     () => intent === 'approve_payment'
-      ? (project.status === 'awaiting_final_payment' ? 'تأیید واریز نهایی' : 'تأیید واریز بیعانه')
+      ? (project.status === 'awaiting_settlement_confirmation'
+        ? 'تأیید واریز تسویه'
+        : project.status === 'awaiting_final_payment'
+          ? 'تأیید واریز نهایی'
+          : 'تأیید واریز بیعانه')
       : action.label ?? TITLES[intent] ?? 'اقدام مالی',
     [intent, action.label, project.status],
   );
