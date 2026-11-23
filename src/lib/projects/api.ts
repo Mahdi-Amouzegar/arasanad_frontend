@@ -1,5 +1,5 @@
 /** Typed client for the Phase 7 projects API. Public calls use `apiRequest`;
- *  authenticated calls are bound to `authedRequest` from `useAuth()`. */
+ * authenticated calls are bound to `authedRequest` from `useAuth()`. */
 
 import { apiRequest } from '@/lib/api';
 import { publicProjectFields } from './core.mjs';
@@ -170,6 +170,8 @@ export interface Project {
   disputeReply?: ProjectDisputeReply | null;
   /** فاز ۱۰: خلاصه مالی سرورمحور همان سفارش. */
   finance?: ProjectFinanceSummary | null;
+  /** فاز ۱۲٫۲۳-C: موجودی آزاد کیف پول بیننده، فقط برای پیش‌فرض پنجرهٔ تسویه. */
+  walletAvailable?: number;
 }
 
 export interface ProjectDetail {
@@ -243,7 +245,8 @@ export async function getPublicProjects(): Promise<PublicProject[]> {
 }
 
 function pickPublicProject(value: unknown): PublicProject {
-  const source = value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  const source =
+    value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
   const view: Record<string, unknown> = {};
   for (const key of publicProjectFields) {
     if (Object.hasOwn(source, key)) view[key] = source[key];
@@ -253,7 +256,11 @@ function pickPublicProject(value: unknown): PublicProject {
 
 /** فاز ۱۲٫۶-ت: نمای عمومی یک سفارش — همان کامپوننت فیلتر فهرست. */
 export async function getPublicProject(id: string): Promise<PublicProject> {
-  const safeId = encodeURIComponent(String(id).replace(/[^A-Za-z0-9_-]/g, '').slice(0, 64));
+  const safeId = encodeURIComponent(
+    String(id)
+      .replace(/[^A-Za-z0-9_-]/g, '')
+      .slice(0, 64),
+  );
   const data = await apiRequest<{ project: unknown }>(`/projects/public/${safeId}`);
   return pickPublicProject(data.project);
 }
@@ -292,8 +299,11 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
       if (filters.q) params.set('q', filters.q);
       params.set('sort', filters.sort ?? 'new');
       if (typeof filters.limit === 'number') params.set('limit', String(filters.limit));
-      if (typeof filters.offset === 'number') params.set('offset', String(filters.offset));
-      const data = await request<{ projects: Project[] }>(`/projects?${params.toString()}`);
+      if (typeof filters.offset === 'number')
+        params.set('offset', String(filters.offset));
+      const data = await request<{ projects: Project[] }>(
+        `/projects?${params.toString()}`,
+      );
       return Array.isArray(data.projects) ? data.projects : [];
     },
 
@@ -307,7 +317,9 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
     },
 
     async getHistory(id) {
-      const data = await request<{ history: ProjectHistoryItem[] }>(projectPath(id, '/history'));
+      const data = await request<{ history: ProjectHistoryItem[] }>(
+        projectPath(id, '/history'),
+      );
       return Array.isArray(data.history) ? data.history : [];
     },
 
@@ -330,7 +342,12 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
     async submitQuote(id, quotedPricePerPage, reason, depositAmount, pricingMode) {
       const data = await request<{ project: Project }>(projectPath(id, '/quote'), {
         method: 'POST',
-        body: { quotedPricePerPage, reason, depositAmount, pricingMode: pricingMode ?? 'per_page' },
+        body: {
+          quotedPricePerPage,
+          reason,
+          depositAmount,
+          pricingMode: pricingMode ?? 'per_page',
+        },
       });
       return data.project;
     },
@@ -358,10 +375,13 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
     },
 
     async decideCancel(id, approve, reason) {
-      const data = await request<{ project: Project }>(projectPath(id, '/cancel/decision'), {
-        method: 'POST',
-        body: { approve, reason },
-      });
+      const data = await request<{ project: Project }>(
+        projectPath(id, '/cancel/decision'),
+        {
+          method: 'POST',
+          body: { approve, reason },
+        },
+      );
       return data.project;
     },
 

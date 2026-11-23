@@ -18,6 +18,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { Input, Select } from '@/components/ui/Field';
+import { AmountInput } from '@/components/ui/AmountInput';
 import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { JalaliDate } from '@/components/ui/JalaliDate';
@@ -132,7 +133,7 @@ export function WalletPanel() {
         <CardBody>
           <form className="fin-form" onSubmit={(event) => void submitRefund(event)}>
             <Input aria-label="شناسه سفارش" placeholder="شناسه سفارش" value={projectId} onChange={(e) => setProjectId(e.target.value)} />
-            <Input aria-label="مبلغ برگشت" type="number" min={1} step={1} inputMode="numeric" placeholder="مبلغ (تومان)" value={amount} onChange={(e) => setAmount(e.target.value)} />
+            <AmountInput aria-label="مبلغ برگشت" placeholder="مبلغ (تومان)" value={amount} onChange={setAmount} />
             <Select aria-label="نوع برگشت" value={kind} onChange={(e) => setKind(e.target.value === 'wallet' ? 'wallet' : 'bank')}>
               <option value="bank">واریز به حساب بانکی</option>
               <option value="wallet">برگشت به کیف پول</option>
@@ -263,11 +264,10 @@ export function AdminPaymentsPanel() {
                       <td><Money value={Number(row.declaredAmount ?? 0)} /></td>
                       <td>{Number(row.agingDays ?? 0)} روز</td>
                       <td>
-                        <Input
-                          type="number" min={1} step={1} inputMode="numeric"
+                        <AmountInput
                           aria-label={`مبلغ واقعی ${row.id}`}
                           value={drafts[row.id] ?? ''}
-                          onChange={(e) => setDrafts((prev) => ({ ...prev, [row.id]: e.target.value }))}
+                          onChange={(digits) => setDrafts((prev) => ({ ...prev, [row.id]: digits }))}
                         />
                       </td>
                       <td>

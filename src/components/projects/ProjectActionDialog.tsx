@@ -14,7 +14,9 @@ import { useAuth } from '@/lib/account';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
+import { Money } from '@/components/ui/Money';
 import { Input, Select, Textarea } from '@/components/ui/Field';
+import { AmountInput } from '@/components/ui/AmountInput';
 import type { Project, ProjectAction } from '@/lib/projects/api';
 import {
   FileManagerModal,
@@ -50,7 +52,9 @@ function needsReceipt(intent: string): boolean {
 }
 
 function needsNote(intent: string): boolean {
-  return intent === 'declare_payment' || intent === 'request_refund' || intent === 'set_quote';
+  return (
+    intent === 'declare_payment' || intent === 'request_refund' || intent === 'set_quote'
+  );
 }
 
 export function ProjectActionDialog({
@@ -65,25 +69,36 @@ export function ProjectActionDialog({
   const { showToast } = useAlert();
   const intent = action.intent ?? '';
   const projectsApi = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
-  const [pricingMode, setPricingMode] = useState<'total' | 'per_page'>(project.quoteMode ?? 'per_page');
+  const [pricingMode, setPricingMode] = useState<'total' | 'per_page'>(
+    project.quoteMode ?? 'per_page',
+  );
   const [pages, setPages] = useState(String(project.finalPages ?? 1));
-  const [amount, setAmount] = useState(intent === 'set_quote'
-    ? String(
-        (project.quoteMode === 'total'
-          ? project.quoteTotal ?? project.estimateAmount
-          : project.quotedPricePerPage ?? project.basePricePerPage) ?? '',
-      )
-    : intent === 'set_final_amount'
+  const [amount, setAmount] = useState(
+    intent === 'set_quote'
       ? String(
-          project.quoteMode === 'total'
-            ? project.quoteTotal ?? action.amount ?? ''
-            : project.finalPricePerPage ?? project.quotedPricePerPage ?? action.amount ?? '',
+          (project.quoteMode === 'total'
+            ? (project.quoteTotal ?? project.estimateAmount)
+            : (project.quotedPricePerPage ?? project.basePricePerPage)) ?? '',
         )
-      : String(action.amount ?? ''));
-  const [depositAmount, setDepositAmount] = useState(String(
-    action.amount ?? project.finance?.depositTarget ?? project.depositAmount ?? '',
-  ));
+      : intent === 'set_final_amount'
+        ? String(
+            project.quoteMode === 'total'
+              ? (project.quoteTotal ?? action.amount ?? '')
+              : (project.finalPricePerPage ??
+                  project.quotedPricePerPage ??
+                  action.amount ??
+                  ''),
+          )
+        : String(action.amount ?? ''),
+  );
+  const [depositAmount, setDepositAmount] = useState(
+    String(
+      action.amount ?? project.finance?.depositTarget ?? project.depositAmount ?? '',
+    ),
+  );
   const [note, setNote] = useState('');
+  // فاز ۱۲٫۲۳-C: در تسویهٔ نهایی کاربر می‌پذیرد یا نپذیرد که از کیف پولش کسر شود.
+  const [useWallet, setUseWallet] = useState(false);
   const [fileIds, setFileIds] = useState<string[]>([]);
   const [fmOpen, setFmOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -91,16 +106,37 @@ export function ProjectActionDialog({
 
   // فاز ۱۲٫۲۲: در تسویه نهایی عنوان پنجره «تأیید واریز تسویه» است.
   const title = useMemo(
-    () => intent === 'approve_payment'
-      ? (project.status === 'awaiting_settlement_confirmation'
-        ? 'تأیید واریز تسویه'
-        : project.status === 'awaiting_final_payment'
-          ? 'تأیید واریز نهایی'
-          : 'تأیید واریز بیعانه')
-      : action.label ?? TITLES[intent] ?? 'اقدام مالی',
+    () =>
+      intent === 'approve_payment'
+        ? project.status === 'awaiting_settlement_confirmation'
+          ? 'تأیید واریز تسویه'
+          : project.status === 'awaiting_final_payment'
+            ? 'تأیید واریز نهایی'
+            : 'تأیید واریز بیعانه'
+        : (action.label ?? TITLES[intent] ?? 'اقدام مالی'),
     [intent, action.label, project.status],
   );
   const isFinalAmount = intent === 'set_final_amount';
+  const isSettlement =
+    intent === 'declare_payment' && project.status === 'awaiting_settlement';
+  const settlementTotal = Number(project.finance?.finalTarget ?? 0);
+  const settlementPaid = Number(project.finance?.approvedTotal ?? 0);
+  const settlementWallet = Math.max(0, Number(project.walletAvailable ?? 0));
+  const settlementCashRemainder = Math.max(0, settlementTotal - settlementPaid);
+
+  function toggleWallet(next: boolean) {
+    setUseWallet(next);
+    if (isSettlement)
+      setAmount(
+        String(
+          Math.max(
+            0,
+            settlementCashRemainder -
+              (next ? Math.min(settlementWallet, settlementCashRemainder) : 0),
+          ),
+        ),
+      );
+  }
 
   // فاز ۱۲٫۱۵-ج: تأیید مبلغ از هر محل همان پنجره‌ی مشترک را باز می‌کند.
   if (intent === 'approve_payment') {
@@ -146,12 +182,22 @@ export function ProjectActionDialog({
       setError(null);
       try {
         await projectsApi.submitQuote(
-          project.id, checkedRate.value, note.trim(), checkedDeposit.value, pricingMode,
+          project.id,
+          checkedRate.value,
+          note.trim(),
+          checkedDeposit.value,
+          pricingMode,
         );
-        showToast({ type: 'success', title, message: 'نرخ و مبلغ بیعانه ثبت شد؛ سفارش در انتظار پرداخت بیعانه است.' });
+        showToast({
+          type: 'success',
+          title,
+          message: 'نرخ و مبلغ بیعانه ثبت شد؛ سفارش در انتظار پرداخت بیعانه است.',
+        });
         onClose();
         await onDone();
-        router.push(`/${role === 'admin' ? 'admin' : 'panel'}/projects/detail/?id=${encodeURIComponent(project.id)}`);
+        router.push(
+          `/${role === 'admin' ? 'admin' : 'panel'}/projects/detail/?id=${encodeURIComponent(project.id)}`,
+        );
       } catch (caught) {
         const message = caught instanceof Error ? caught.message : 'ثبت نرخ انجام نشد';
         setError(message);
@@ -164,12 +210,19 @@ export function ProjectActionDialog({
     // پرداخت آنلاین وارد مرکز پرداخت واحد می‌شود؛ مبلغ و مرجع توسط سرور محاسبه می‌گردد.
     if (intent === 'pay_online') {
       const stage = project.status === 'awaiting_final_payment' ? 'final' : 'deposit';
-      const query = new URLSearchParams({ purpose: 'order', projectId: project.id, stage });
+      const query = new URLSearchParams({
+        purpose: 'order',
+        projectId: project.id,
+        stage,
+      });
       onClose();
       router.push(`/panel/pay/?${query.toString()}`);
       return;
     }
-    const checked = validateAmount(amount);
+    const checked =
+      isSettlement && useWallet && amount === '0'
+        ? { ok: true as const, value: 0, reason: null as string | null }
+        : validateAmount(amount);
     if (!checked.ok) {
       setError(checked.reason);
       return;
@@ -188,6 +241,7 @@ export function ProjectActionDialog({
           note,
           fileIds,
           clientNonce: createNonce(),
+          ...(isSettlement ? { useWallet } : {}),
         };
       } else if (intent === 'approve_payment') {
         if (!action.paymentRequestId) throw new Error('شناسه درخواست پرداخت یافت نشد');
@@ -204,7 +258,9 @@ export function ProjectActionDialog({
         path = `/projects/${encodeURIComponent(project.id)}/refunds`;
         body = { amount: checked.value, kind: 'bank' };
       } else if (intent === 'pay_online') {
-        throw new Error('پرداخت آنلاین تا اتصال درگاه غیرفعال است؛ از ریل دستی یا کیف پول استفاده کنید.');
+        throw new Error(
+          'پرداخت آنلاین تا اتصال درگاه غیرفعال است؛ از ریل دستی یا کیف پول استفاده کنید.',
+        );
       } else {
         throw new Error('اقدام ناشناخته است');
       }
@@ -226,7 +282,13 @@ export function ProjectActionDialog({
   }
 
   return (
-    <div className="pad-backdrop" role="presentation" onMouseDown={() => { if (!fmOpen) onClose(); }}>
+    <div
+      className="pad-backdrop"
+      role="presentation"
+      onMouseDown={() => {
+        if (!fmOpen) onClose();
+      }}
+    >
       <div
         className="pad-dialog"
         role="dialog"
@@ -236,7 +298,12 @@ export function ProjectActionDialog({
       >
         <div className="pad-dialog__head">
           <h2 id="pad-title">{title}</h2>
-          <button type="button" className="pad-dialog__close" onClick={onClose} aria-label="بستن">
+          <button
+            type="button"
+            className="pad-dialog__close"
+            onClick={onClose}
+            aria-label="بستن"
+          >
             <Icon name="x" size={18} />
           </button>
         </div>
@@ -244,20 +311,58 @@ export function ProjectActionDialog({
           {project.code} — {project.name}
         </p>
         <form onSubmit={(event) => void submit(event)}>
+          {isSettlement ? (
+            <div className="pad-dialog__breakdown">
+              <div className="pad-dialog__breakdown-row">
+                <span>مبلغ کل سفارش</span>
+                <strong>
+                  <Money value={settlementTotal} />
+                </strong>
+              </div>
+              <div className="pad-dialog__breakdown-row">
+                <span>جمع پرداختیهای پیشین این سفارش</span>
+                <strong>
+                  <Money value={settlementPaid} />
+                </strong>
+              </div>
+              <label className="pad-dialog__breakdown-row pad-dialog__wallet-option">
+                <span>
+                  <input
+                    type="radio"
+                    name="settlement-wallet"
+                    checked={useWallet}
+                    onChange={() => toggleWallet(true)}
+                    onClick={() => {
+                      if (useWallet) toggleWallet(false);
+                    }}
+                    disabled={busy}
+                  />
+                  موجودی کیف پول
+                </span>
+                <strong>
+                  <Money value={settlementWallet} />
+                </strong>
+              </label>
+            </div>
+          ) : null}
           {intent === 'set_quote' ? (
             <>
-              <label className="pad-dialog__label" htmlFor="pad-mode">نوع نرخ‌گذاری</label>
+              <label className="pad-dialog__label" htmlFor="pad-mode">
+                نوع نرخ‌گذاری
+              </label>
               <Select
                 id="pad-mode"
                 value={pricingMode}
                 onChange={(event) => {
                   const next = event.target.value === 'total' ? 'total' : 'per_page';
                   setPricingMode(next);
-                  setAmount(String(
-                    next === 'total'
-                      ? project.quoteTotal ?? project.estimateAmount ?? ''
-                      : project.quotedPricePerPage ?? project.basePricePerPage ?? '',
-                  ));
+                  setAmount(
+                    String(
+                      next === 'total'
+                        ? (project.quoteTotal ?? project.estimateAmount ?? '')
+                        : (project.quotedPricePerPage ?? project.basePricePerPage ?? ''),
+                    ),
+                  );
                 }}
                 disabled={busy}
               >
@@ -268,14 +373,20 @@ export function ProjectActionDialog({
           ) : null}
           <label className="pad-dialog__label" htmlFor="pad-amount">
             {intent === 'set_quote'
-              ? (pricingMode === 'total' ? 'مبلغ کل (تومان)' : 'قیمت هر صفحه (تومان)')
+              ? pricingMode === 'total'
+                ? 'مبلغ کل (تومان)'
+                : 'قیمت هر صفحه (تومان)'
               : isFinalAmount
-                ? (project.quoteMode === 'total' ? 'مبلغ کل (تومان)' : 'قیمت هر صفحه (تومان)')
+                ? project.quoteMode === 'total'
+                  ? 'مبلغ کل (تومان)'
+                  : 'قیمت هر صفحه (تومان)'
                 : 'مبلغ (تومان)'}
           </label>
           {isFinalAmount && project.quoteMode !== 'total' ? (
             <>
-              <label className="pad-dialog__label" htmlFor="pad-pages">تعداد صفحات فایل نهایی</label>
+              <label className="pad-dialog__label" htmlFor="pad-pages">
+                تعداد صفحات فایل نهایی
+              </label>
               <Input
                 id="pad-pages"
                 type="number"
@@ -289,14 +400,10 @@ export function ProjectActionDialog({
               />
             </>
           ) : null}
-          <Input
+          <AmountInput
             id="pad-amount"
-            type="number"
-            min={1}
-            step={1}
-            inputMode="numeric"
             value={amount}
-            onChange={(event) => setAmount(event.target.value)}
+            onChange={setAmount}
             disabled={busy}
             required
           />
@@ -305,14 +412,10 @@ export function ProjectActionDialog({
               <label className="pad-dialog__label" htmlFor="pad-deposit">
                 مبلغ بیعانه (تومان) — مستقل از نوع نرخ‌گذاری
               </label>
-              <Input
+              <AmountInput
                 id="pad-deposit"
-                type="number"
-                min={1}
-                step={1}
-                inputMode="numeric"
                 value={depositAmount}
-                onChange={(event) => setDepositAmount(event.target.value)}
+                onChange={setDepositAmount}
                 disabled={busy}
                 required
               />
@@ -320,7 +423,9 @@ export function ProjectActionDialog({
           ) : null}
           {needsNote(intent) ? (
             <>
-              <label className="pad-dialog__label" htmlFor="pad-note">توضیح</label>
+              <label className="pad-dialog__label" htmlFor="pad-note">
+                توضیح
+              </label>
               <Textarea
                 id="pad-note"
                 rows={3}
@@ -343,12 +448,26 @@ export function ProjectActionDialog({
                 <Icon name="paperclip" size={16} />
                 پیوست فایل
               </Button>
-              <span>{fileIds.length > 0 ? `${fileIds.length} رسید انتخاب شد` : 'بدون رسید تازه'}</span>
+              <span>
+                {fileIds.length > 0
+                  ? `${fileIds.length} رسید انتخاب شد`
+                  : 'بدون رسید تازه'}
+              </span>
             </div>
           ) : null}
-          {error ? <p className="pad-dialog__error" role="alert">{error}</p> : null}
+          {error ? (
+            <p className="pad-dialog__error" role="alert">
+              {error}
+            </p>
+          ) : null}
           <div className="pad-dialog__actions">
-            <Button type="button" variant="ghost" size="sm" onClick={onClose} disabled={busy}>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              disabled={busy}
+            >
               انصراف
             </Button>
             <Button type="submit" variant="primary" size="sm" disabled={busy || !amount}>

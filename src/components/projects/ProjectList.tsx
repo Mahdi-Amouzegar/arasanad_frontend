@@ -318,7 +318,7 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                       <td data-label="سفارش‌دهنده">
                         <div className="ord-customer">
                           <Avatar
-                            src={project.customerAvatarUrl ?? project.customerAvatarFileId ?? null}
+                            src={project.customerAvatarUrl ?? null}
                             name={project.customerDisplayName ?? project.customerUsername ?? '—'}
                             size="sm"
                           />

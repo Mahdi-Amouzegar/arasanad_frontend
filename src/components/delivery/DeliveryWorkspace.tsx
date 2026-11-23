@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input, Textarea } from '@/components/ui/Field';
+import { AmountInput } from '@/components/ui/AmountInput';
 import { Icon } from '@/components/ui/Icon';
 import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -344,9 +345,10 @@ export function DeliveryWorkspace({ admin = false }: { admin?: boolean }) {
                     required
                   />
                   <label htmlFor="dlv-amount">مبلغ تحویل (تومان)</label>
-                  <Input
-                    id="dlv-amount" type="number" min={0} step={1} inputMode="numeric"
-                    value={amount} onChange={(event) => setAmount(event.target.value)}
+                  <AmountInput
+                    id="dlv-amount"
+                    value={amount}
+                    onChange={setAmount}
                     required
                   />
                   <label htmlFor="dlv-note">توضیح (اختیاری)</label>

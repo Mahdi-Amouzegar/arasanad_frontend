@@ -33,9 +33,9 @@ export function ProjectSpecsDialog({ project, onClose }: ProjectSpecsDialogProps
   if (!project) return null;
 
   const registrantName = project.customerDisplayName ?? 'ثبت‌کننده';
-  const avatarSrc = project.customerAvatarUrl ?? (
-    project.customerAvatarFileId ? `/media/avatar/${project.customerId}` : null
-  );
+  // فاز ۱۲٫۲۳-A: بکند تنها مسیر عمومی آواتار را می‌دهد؛ مرجع `pp:` در
+  // هیچ کجای رابط کاربری نباید به‌عنوان آدرس تصویر استفاده شود.
+  const avatarSrc = project.customerAvatarUrl ?? null;
 
   return (
     <dialog
@@ -43,12 +43,21 @@ export function ProjectSpecsDialog({ project, onClose }: ProjectSpecsDialogProps
       className="fm-modal prj-specs-dialog"
       aria-labelledby="prj-specs-title"
       onCancel={onClose}
-      onClick={(e) => { if (e.target === dialogRef.current) onClose(); }}
+      onClick={(e) => {
+        if (e.target === dialogRef.current) onClose();
+      }}
     >
       <div className="fm-modal__shell" style={{ maxWidth: '560px' }}>
         <div className="fm-modal__header">
-          <h2 id="prj-specs-title" className="fm-modal__title">مشخصات سفارش</h2>
-          <button type="button" className="fm-modal__close" aria-label="بستن" onClick={onClose}>
+          <h2 id="prj-specs-title" className="fm-modal__title">
+            مشخصات سفارش
+          </h2>
+          <button
+            type="button"
+            className="fm-modal__close"
+            aria-label="بستن"
+            onClick={onClose}
+          >
             <Icon name="x" size={20} />
           </button>
         </div>
@@ -59,7 +68,9 @@ export function ProjectSpecsDialog({ project, onClose }: ProjectSpecsDialogProps
             <div className="prj-specs-dialog__who">
               <strong>{registrantName}</strong>
               {project.customerUsername ? (
-                <span dir="ltr" className="prj-specs-dialog__username">@{project.customerUsername}</span>
+                <span dir="ltr" className="prj-specs-dialog__username">
+                  @{project.customerUsername}
+                </span>
               ) : null}
             </div>
             <div className="prj-specs-dialog__order">
@@ -88,7 +99,9 @@ export function ProjectSpecsDialog({ project, onClose }: ProjectSpecsDialogProps
         </div>
 
         <div className="fm-modal__footer">
-          <Button variant="outline" onClick={onClose}>بستن</Button>
+          <Button variant="outline" onClick={onClose}>
+            بستن
+          </Button>
         </div>
       </div>
     </dialog>

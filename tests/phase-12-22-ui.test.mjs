@@ -36,7 +36,7 @@ test('P1222-F2: سلول سفارش‌دهندهمدیر دو ستون است', 
 
 test('P1222-F3: پیش‌فرض تحویل از نرخ بیعانه می‌آید', () => {
   const detail = read('components/projects/ProjectDetail.tsx');
-  assert.match(detail, /finance\?\.depositTarget \?\? data\.project\.depositAmount \?\? data\.project\.quoteTotal/);
+  assert.match(detail, /finance\?\.depositTarget\s*\?\?\s*data\.project\.depositAmount\s*\?\?\s*data\.project\.quoteTotal/);
   assert.match(detail, /quotedPricePerPage \?\? data\.project\.basePricePerPage/);
   assert.ok(!/finalPricePerPage \?\? data\.project\.quotedPricePerPage/.test(detail));
 });

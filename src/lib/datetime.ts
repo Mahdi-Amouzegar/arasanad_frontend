@@ -25,10 +25,18 @@ export function toFaDigits(value: string): string {
   return value.replace(/[0-9]/g, (d) => FA_DIGITS[Number(d)] ?? d);
 }
 
-/** عدد با جداکننده‌ی هزارگان و رقم فارسی. */
+/** جداکننده‌ی هزارگان استاندارد فارسی (U+066C). */
+export const FA_THOUSANDS_SEPARATOR = '٬';
+
+/** عدد با جداکننده‌ی هزارگان فارسی و رقم فارسی. */
 export function formatNumberFa(value: number): string {
   if (!Number.isFinite(value)) return '—';
-  return toFaDigits(value.toLocaleString('en-US'));
+  const rounded = Math.round(value);
+  const sign = rounded < 0 ? '-' : '';
+  const digits = Math.abs(rounded)
+    .toLocaleString('en-US')
+    .replace(/,/g, FA_THOUSANDS_SEPARATOR);
+  return sign + toFaDigits(digits);
 }
 
 /** مبلغ به تومان با رقم فارسی و جداکننده‌ی هزارگان. */

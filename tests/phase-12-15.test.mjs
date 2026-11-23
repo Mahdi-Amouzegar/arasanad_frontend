@@ -35,7 +35,7 @@ test('P1215-02: پنجره تأیید و مدیریت فایل مشترک', () =
   ]) {
     assert.ok(approve.includes(token), token);
   }
-  assert.match(approve, /authedRequest\(`\/payment-requests\//);
+  assert.match(approve, /authedRequest\(\s*`\/payment-requests\//);
   assert.doesNotMatch(approve, /الزامی است/);
 });
 

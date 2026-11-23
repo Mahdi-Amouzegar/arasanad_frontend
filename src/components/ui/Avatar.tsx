@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element --
-   آواتار از مسیر مجاز Backend (لینک موقت Parspack) می‌آید و دامنه‌اش در زمان build
-   معلوم نیست. بهینه‌سازی تصویر Next با `images.unoptimized` در خروجی استاتیک
-   غیرفعال است، پس <img> با ابعاد صریح و lazy انتخاب درست است. */
+  آواتار از مسیر مجاز Backend (لینک موقت Parspack) می‌آید و دامنه‌اش در زمان build
+  معلوم نیست. بهینه‌سازی تصویر Next با `images.unoptimized` در خروجی استاتیک
+  غیرفعال است، پس <img> با ابعاد صریح و lazy انتخاب درست است. */
 
 import { cx } from '@/lib/cx';
 import { API_BASE } from '@/lib/api';
@@ -17,6 +17,9 @@ export type AvatarSize = 'sm' | 'md' | 'lg';
  */
 export function resolveAvatarSrc(src?: string | null): string | null {
   if (!src) return null;
+  // فاز ۱۲٫۲۳-A: مرجعهای داخلی (`pp:`/`tg:`) نباید هرگز به‌عنوان URL مرورگر
+  // استفاده شوند (خطای ERR_UNKNOWN_URL_SCHEME). بکند مسیر عمومی می‌دهد.
+  if (!/^(https?:\/\/|\/)/i.test(src)) return null;
   if (src.startsWith('/media/avatar/')) return `${API_BASE}${src}`;
   return src;
 }

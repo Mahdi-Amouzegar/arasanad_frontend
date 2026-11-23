@@ -4,10 +4,10 @@
  * فاز ۱۲٫۱ (ح/ط) — جدول جامع سفارشات.
  *
  * ⚠️ یک کامپوننت واحد برای پنل مدیر و پنل سفارش‌دهنده: بکند براساس نقش، یا تمام
- *    سفارش‌ها را برمی‌گرداند یا فقط سفارش‌های همان کاربر. فرانت هیچ تصمیم
- *    دسترسیش نمی‌گیرد.
+ *  سفارش‌ها را برمی‌گرداند یا فقط سفارش‌های همان کاربر. فرانت هیچ تصمیم
+ *  دسترسیش نمی‌گیرد.
  * ⚠️ تمام اعداد مالی از `/projects/:id/finance` خوانده می‌شوند؛ هیچ مبلغی
- *    محاسبه یا حدس زده نمی‌شود.
+ *  محاسبه یا حدس زده نمی‌شود.
  */
 
 import { CopyableCode } from '@/components/projects/CopyableCode';
@@ -20,7 +20,7 @@ import { useChat } from '@/components/chat/ChatProvider';
 import { DataTable, type Column } from '@/components/ui/DataTable';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
-import { JalaliDate, RelativeTime } from '@/components/ui/JalaliDate';
+import { RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -43,6 +43,8 @@ interface FinancePayment {
 
 interface FinanceView {
   targets: { depositTarget: number | null; finalTarget: number | null };
+  /** فاز ۱۲٫۲۳-D: تاریخ تعیین نرخ‌ها توسط مدیر. */
+  targetDates?: { depositAt: string | null; finalAt: string | null } | null;
   approvedDeposit: number;
   approvedFinal: number;
   escrow: { balance: number; settledAmount: number; status: string };
@@ -54,13 +56,7 @@ function errorText(error: unknown): string {
   return error instanceof Error ? error.message : 'دریافت اطلاعات انجام نشد';
 }
 
-function CustomerCell({
-  project,
-  admin,
-}: {
-  project: Project;
-  admin: boolean;
-}) {
+function CustomerCell({ project, admin }: { project: Project; admin: boolean }) {
   const { openChat } = useChat();
   const [menuOpen, setMenuOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -75,9 +71,10 @@ function CustomerCell({
   }, [menuOpen]);
 
   const name = project.customerDisplayName || 'سفارش‌دهنده';
-  const href = admin && project.customerId
-    ? `/admin/users/?q=${encodeURIComponent(name)}`
-    : '/profile/';
+  const href =
+    admin && project.customerId
+      ? `/admin/users/?q=${encodeURIComponent(name)}`
+      : '/profile/';
 
   return (
     <div className="ord-customer" ref={ref}>
@@ -106,7 +103,11 @@ function CustomerCell({
                 onClick={() => {
                   setMenuOpen(false);
                   void openChat(
-                    { peerUserId: project.customerId, projectId: project.id, projectLabel: project.name },
+                    {
+                      peerUserId: project.customerId,
+                      projectId: project.id,
+                      projectLabel: project.name,
+                    },
                     'drawer',
                   );
                 }}
@@ -141,26 +142,43 @@ export function FinanceDialog({
   useEffect(() => {
     let alive = true;
     void authedRequest<FinanceView>(`/projects/${encodeURIComponent(project.id)}/finance`)
-      .then((data) => { if (alive) { setView(data); setError(null); } })
-      .catch((caught) => { if (alive) setError(errorText(caught)); })
-      .finally(() => { if (alive) setLoading(false); });
-    return () => { alive = false; };
+      .then((data) => {
+        if (alive) {
+          setView(data);
+          setError(null);
+        }
+      })
+      .catch((caught) => {
+        if (alive) setError(errorText(caught));
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
   }, [authedRequest, project.id]);
 
   const payments = view?.payments ?? [];
-  const deposits = payments.filter((p) => p.stage === 'deposit' && p.status === 'approved');
+  const deposits = payments.filter(
+    (p) => p.stage === 'deposit' && p.status === 'approved',
+  );
   const finals = payments.filter((p) => p.stage === 'final' && p.status === 'approved');
   // فاز ۱۲٫۱۹: پیش از بررسی مدیر، مبالغ تنها برآورد سامانهاند و نباید
   // به‌عنوان تصمیم مدیر نمایش داده شوند.
   const unreviewed = project.status === 'pending_review';
-  const depositLabel = unreviewed ? 'بیعانه حدودی محاسبه شده' : 'بیعانه تعیین‌شده توسط مدیر';
-  const finalLabel = unreviewed ? 'مبلغ نهایی حدودی محاسبه شده' : 'مبلغ نهایی تعیین‌شده توسط مدیر';
+  const depositLabel = unreviewed
+    ? 'بیعانه حدودی محاسبه شده'
+    : 'بیعانه تعیین‌شده توسط مدیر';
+  const finalLabel = unreviewed
+    ? 'مبلغ نهایی حدودی محاسبه شده'
+    : 'مبلغ نهایی تعیین‌شده توسط مدیر';
 
   const row = (label: string, value: ReactNode, date?: string | null) => (
     <tr>
       <td data-label="مورد">{label}</td>
       <td data-label="مبلغ">{value}</td>
-      <td data-label="تاریخ">{date ? <JalaliDate value={date} variant="short" /> : '—'}</td>
+      <td data-label="تاریخ">{date ? <RelativeTime value={date} /> : '—'}</td>
       <td data-label="روش">—</td>
     </tr>
   );
@@ -169,8 +187,13 @@ export function FinanceDialog({
     <dialog
       ref={dialogRef}
       className="ord-dialog"
-      onCancel={(event) => { event.preventDefault(); onClose(); }}
-      onClick={(event) => { if (event.target === dialogRef.current) onClose(); }}
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onClick={(event) => {
+        if (event.target === dialogRef.current) onClose();
+      }}
     >
       <div className="ord-dialog__head">
         <h3>گزارش مالی سفارش {project.code}</h3>
@@ -179,18 +202,53 @@ export function FinanceDialog({
         </Button>
       </div>
       {loading ? (
-        <div className="prj-stack" aria-busy="true"><Skeleton height={60} /><Skeleton height={180} /></div>
+        <div className="prj-stack" aria-busy="true">
+          <Skeleton height={60} />
+          <Skeleton height={180} />
+        </div>
       ) : error ? (
-        <p className="prj-alert" role="alert">{error}</p>
+        <p className="prj-alert" role="alert">
+          {error}
+        </p>
       ) : (
         <div className="prj-stack">
           <div className="fin-stats">
-            <div><span>بیعانه تعیین‌شده</span><strong><Money value={view?.targets?.depositTarget ?? 0} /></strong></div>
-            <div><span>مبلغ نهایی تعیین‌شده</span><strong><Money value={view?.targets?.finalTarget ?? 0} /></strong></div>
-            <div><span>واریز بیعانه تأییدشده</span><strong><Money value={view?.approvedDeposit ?? 0} /></strong></div>
-            <div><span>تسویه نهایی تأییدشده</span><strong><Money value={view?.approvedFinal ?? 0} /></strong></div>
-            <div><span>مانده امانی</span><strong><Money value={view?.escrow?.balance ?? 0} /></strong></div>
-            <div><span>تسویه‌شده</span><strong><Money value={view?.escrow?.settledAmount ?? 0} /></strong></div>
+            <div>
+              <span>بیعانه تعیین‌شده</span>
+              <strong>
+                <Money value={view?.targets?.depositTarget ?? 0} />
+              </strong>
+            </div>
+            <div>
+              <span>مبلغ نهایی تعیین‌شده</span>
+              <strong>
+                <Money value={view?.targets?.finalTarget ?? 0} />
+              </strong>
+            </div>
+            <div>
+              <span>واریز بیعانه تأییدشده</span>
+              <strong>
+                <Money value={view?.approvedDeposit ?? 0} />
+              </strong>
+            </div>
+            <div>
+              <span>تسویه نهایی تأییدشده</span>
+              <strong>
+                <Money value={view?.approvedFinal ?? 0} />
+              </strong>
+            </div>
+            <div>
+              <span>مانده امانی</span>
+              <strong>
+                <Money value={view?.escrow?.balance ?? 0} />
+              </strong>
+            </div>
+            <div>
+              <span>تسویه‌شده</span>
+              <strong>
+                <Money value={view?.escrow?.settledAmount ?? 0} />
+              </strong>
+            </div>
           </div>
           <div className="table-wrap">
             <table className="table table--stack">
@@ -203,29 +261,53 @@ export function FinanceDialog({
                 </tr>
               </thead>
               <tbody>
-                {row(depositLabel, <Money value={view?.targets?.depositTarget ?? 0} />, null)}
+                {row(
+                  depositLabel,
+                  <Money value={view?.targets?.depositTarget ?? 0} />,
+                  view?.targetDates?.depositAt ?? null,
+                )}
                 {deposits.map((p) => (
                   <tr key={p.id}>
                     <td data-label="مورد">واریز بیعانه {p.code ?? ''}</td>
-                    <td data-label="مبلغ"><Money value={p.approvedAmount} /></td>
-                    <td data-label="تاریخ"><JalaliDate value={p.verifiedAt ?? p.decidedAt ?? p.createdAt} variant="short" /></td>
-                    <td data-label="روش پرداخت">{p.rail === 'online' ? 'آنلاین' : 'دستی'}</td>
+                    <td data-label="مبلغ">
+                      <Money value={p.approvedAmount} />
+                    </td>
+                    <td data-label="تاریخ">
+                      <RelativeTime value={p.verifiedAt ?? p.decidedAt ?? p.createdAt} />
+                    </td>
+                    <td data-label="روش پرداخت">
+                      {p.rail === 'online' ? 'آنلاین' : 'دستی'}
+                    </td>
                   </tr>
                 ))}
-                {row(finalLabel, <Money value={view?.targets?.finalTarget ?? 0} />, null)}
+                {row(
+                  finalLabel,
+                  <Money value={view?.targets?.finalTarget ?? 0} />,
+                  view?.targetDates?.finalAt ?? null,
+                )}
                 {finals.map((p) => (
                   <tr key={p.id}>
                     <td data-label="مورد">واریز تسویه نهایی {p.code ?? ''}</td>
-                    <td data-label="مبلغ"><Money value={p.approvedAmount} /></td>
-                    <td data-label="تاریخ"><JalaliDate value={p.verifiedAt ?? p.decidedAt ?? p.createdAt} variant="short" /></td>
-                    <td data-label="روش پرداخت">{p.rail === 'online' ? 'آنلاین' : 'دستی'}</td>
+                    <td data-label="مبلغ">
+                      <Money value={p.approvedAmount} />
+                    </td>
+                    <td data-label="تاریخ">
+                      <RelativeTime value={p.verifiedAt ?? p.decidedAt ?? p.createdAt} />
+                    </td>
+                    <td data-label="روش پرداخت">
+                      {p.rail === 'online' ? 'آنلاین' : 'دستی'}
+                    </td>
                   </tr>
                 ))}
                 {(view?.refunds ?? []).map((refund) => (
                   <tr key={refund.id}>
                     <td data-label="مورد">برگشت وجه ({refund.status})</td>
-                    <td data-label="مبلغ"><Money value={refund.amount} /></td>
-                    <td data-label="تاریخ"><JalaliDate value={refund.createdAt} variant="short" /></td>
+                    <td data-label="مبلغ">
+                      <Money value={refund.amount} />
+                    </td>
+                    <td data-label="تاریخ">
+                      <RelativeTime value={refund.createdAt} />
+                    </td>
                     <td data-label="روش پرداخت">—</td>
                   </tr>
                 ))}
@@ -252,12 +334,13 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
   const [reloadKey, setReloadKey] = useState(0);
   const reload = useCallback(() => setReloadKey((value) => value + 1), []);
   const resourceKey = useMemo(
-    () => projectListResourceKey({
-      scope: admin ? 'admin' : 'customer',
-      view: 'orders-workspace',
-      sort: 'new',
-      limit: 200,
-    }),
+    () =>
+      projectListResourceKey({
+        scope: admin ? 'admin' : 'customer',
+        view: 'orders-workspace',
+        sort: 'new',
+        limit: 200,
+      }),
     [admin],
   );
   const requestSeqRef = useRef(0);
@@ -273,7 +356,8 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
     const requestId = ++requestSeqRef.current;
     const versionWhenRequested = versionAtRequest();
     setLoading(true);
-    void api.listProjects({ sort: 'new', limit: 200 })
+    void api
+      .listProjects({ sort: 'new', limit: 200 })
       .then((rows) => {
         if (!alive || requestId !== requestSeqRef.current) return;
         if (isStaleResponse(versionWhenRequested)) return;
@@ -286,19 +370,26 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
       .finally(() => {
         if (alive && requestId === requestSeqRef.current) setLoading(false);
       });
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, [acceptServerRows, api, isStaleResponse, reloadKey, versionAtRequest]);
 
   const serviceOptions = useMemo(
-    () => Array.from(new Set(projects.map((p) => p.serviceName).filter(Boolean)))
-      .sort((a, b) => a.localeCompare(b, 'fa')),
+    () =>
+      Array.from(new Set(projects.map((p) => p.serviceName).filter(Boolean))).sort(
+        (a, b) => a.localeCompare(b, 'fa'),
+      ),
     [projects],
   );
 
   const visible = useMemo(
-    () => projects.filter((p) =>
-      (statuses.length === 0 || statuses.includes(p.status))
-      && (serviceTypes.length === 0 || serviceTypes.includes(p.serviceName))),
+    () =>
+      projects.filter(
+        (p) =>
+          (statuses.length === 0 || statuses.includes(p.status)) &&
+          (serviceTypes.length === 0 || serviceTypes.includes(p.serviceName)),
+      ),
     [projects, statuses, serviceTypes],
   );
 
@@ -319,7 +410,9 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
         render: (row) => (
           <div className="ord-name">
             <CopyableCode value={row.code} label="کد سفارش" />
-            <Link href={`${admin ? '/admin/projects/detail/' : '/panel/projects/detail/'}?id=${encodeURIComponent(row.id)}`}>
+            <Link
+              href={`${admin ? '/admin/projects/detail/' : '/panel/projects/detail/'}?id=${encodeURIComponent(row.id)}`}
+            >
               {row.name}
             </Link>
           </div>
@@ -350,7 +443,10 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
         render: (row) => <ProjectStatusBadge status={row.status as ProjectStatus} />,
         sortValue: (row) => PROJECT_STATUS_FLOW.indexOf(row.status as ProjectStatus),
         filter: {
-          options: PROJECT_STATUS_FLOW.map((s) => ({ value: s, label: PROJECT_STATUS[s].label })),
+          options: PROJECT_STATUS_FLOW.map((s) => ({
+            value: s,
+            label: PROJECT_STATUS[s].label,
+          })),
           selected: statuses,
           onChange: setStatuses,
           label: 'فیلتر وضعیت سفارش',
@@ -365,13 +461,14 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
       {
         key: 'delivery',
         header: 'تاریخ تحویل',
-        render: (row) => (
-          row.deliveredAt
-            ? <RelativeTime value={row.deliveredAt} />
-            : row.deadlineAt
-              ? <RelativeTime value={row.deadlineAt} />
-              : '—'
-        ),
+        render: (row) =>
+          row.deliveredAt ? (
+            <RelativeTime value={row.deliveredAt} />
+          ) : row.deadlineAt ? (
+            <RelativeTime value={row.deadlineAt} />
+          ) : (
+            '—'
+          ),
         sortValue: (row) => row.deliveredAt ?? '',
       },
       {
@@ -397,15 +494,25 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => { setStatuses([]); setServiceTypes([]); }}
+            onClick={() => {
+              setStatuses([]);
+              setServiceTypes([]);
+            }}
           >
             پاک کردن فیلتر ({statuses.length + serviceTypes.length})
           </Button>
         ) : null}
       </div>
-      {error ? <div className="prj-alert" role="alert">{error}</div> : null}
+      {error ? (
+        <div className="prj-alert" role="alert">
+          {error}
+        </div>
+      ) : null}
       {loading ? (
-        <div className="prj-stack" aria-busy="true"><Skeleton height={72} /><Skeleton height={72} /></div>
+        <div className="prj-stack" aria-busy="true">
+          <Skeleton height={72} />
+          <Skeleton height={72} />
+        </div>
       ) : (
         <DataTable
           columns={columns}
@@ -416,7 +523,9 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
           caption={admin ? 'جدول تمام سفارشات' : 'جدول سفارشات من'}
         />
       )}
-      {financeFor ? <FinanceDialog project={financeFor} onClose={() => setFinanceFor(null)} /> : null}
+      {financeFor ? (
+        <FinanceDialog project={financeFor} onClose={() => setFinanceFor(null)} />
+      ) : null}
     </div>
   );
 }

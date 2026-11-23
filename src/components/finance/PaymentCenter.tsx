@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Icon } from '@/components/ui/Icon';
 import { Input, Select } from '@/components/ui/Field';
+import { AmountInput } from '@/components/ui/AmountInput';
 import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
 import {
@@ -234,9 +235,10 @@ export function PaymentCenter() {
           {purpose === 'wallet_topup' ? (
             <div className="fin-form">
               <label htmlFor="pay-amount">مبلغ شارژ (تومان)</label>
-              <Input
-                id="pay-amount" type="number" min={1000} step={1000} inputMode="numeric"
-                value={topupAmount} onChange={(event) => setTopupAmount(event.target.value)}
+              <AmountInput
+                id="pay-amount"
+                value={topupAmount}
+                onChange={setTopupAmount}
               />
             </div>
           ) : (
