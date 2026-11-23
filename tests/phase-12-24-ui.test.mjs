@@ -21,8 +21,16 @@ test('P1224-F1: غلطهای املایی اعلام‌شده با نیمفاص�
   assert.ok(sources.includes('پرداختی\u200cهای پیشین'));
   assert.ok(sources.includes('مشخص\u200cشده'));
 
-  // بکند در CI فرانتاند چکاوت نمیشود؛ در محیط تکمیلشده پروژه بررسی میشود.
-  const backendPath = join(here, '..', '..', 'arasanad_backend', 'src', 'routes', 'admin.ts');
+  // بکند در CI فرانت‌اند چکاوت نمی‌شود؛ در محیط تکمیل‌شده پروژه بررسی می‌شود.
+  const backendPath = join(
+    here,
+    '..',
+    '..',
+    'arasanad_backend',
+    'src',
+    'routes',
+    'admin.ts',
+  );
   if (existsSync(backendPath)) {
     const backend = readFileSync(backendPath, 'utf8');
     assert.ok(backend.includes('خوانده' + String.fromCharCode(0x200c) + 'نشده'));
