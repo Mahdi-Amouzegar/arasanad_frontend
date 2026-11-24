@@ -98,7 +98,7 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
     return shell(info.title, backToProjects, <><ProjectList admin /><AdminRatingsPanel /></>);
   }
 
-  // فاز ۱۲٫۲-ی: جزئیات کامل سفارش (فایل‌ها، لینکها و تحویل‌ها) برای مدیر.
+  // فاز ۱۲٫۲-ی: جزئیات کامل سفارش (فایل‌ها، لینک‌ها و تحویل‌ها) برای مدیر.
   if (href === '/admin/projects/detail') {
     return shell('جزئیات سفارش', backToProjects, <ProjectDetail />, '/admin/projects');
   }

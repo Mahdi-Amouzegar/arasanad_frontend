@@ -65,7 +65,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: '/admin/users', label: 'کاربران', icon: 'user' },
       { href: '/admin/files', label: 'فایل‌های موجود', icon: 'fileText' },
       { href: '/pricing', label: 'نرخ‌نامه', icon: 'receipt' },
-      { href: '/portfolio', label: 'نمونه\u200cکارها', icon: 'package' },
+      { href: '/portfolio', label: 'نمونه‌کارها', icon: 'package' },
       { href: '/admin/settings', label: 'تنظیمات', icon: 'settings' },
       { href: '/admin/audit', label: 'سوابق حسابرسی', icon: 'shield' },
     ],

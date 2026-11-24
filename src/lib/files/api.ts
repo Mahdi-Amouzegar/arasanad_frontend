@@ -50,7 +50,7 @@ export interface DeliveryFile {
   createdAt: string;
   downloadedAt: string | null;
   acknowledgedAt: string | null;
-  /** فاز ۱۲٫۲۱: زمان تسویه\u200cی همان تحویل. */
+  /** فاز ۱۲٫۲۱: زمان تسویه‌ی همان تحویل. */
   settledAt?: string | null;
   deliveredByName: string | null;
   files: FileItem[];

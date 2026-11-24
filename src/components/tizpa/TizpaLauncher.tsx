@@ -259,7 +259,7 @@ export function TizpaLauncher() {
   /**
    * پنجرهٔ مشترک مدیریت فایل: آپلود، فایل موجود یا لینک خارجی.
    * ⚠️ فایل‌های آپلودشده در همان Batch تیزپا ثبت می‌شوند؛ فایل‌های موجود و
-   *    لینکها توسط بکند دوباره بررسی و هنگام ایجاد سفارش Snapshot می‌شوند.
+   *    لینک‌ها توسط بکند دوباره بررسی و هنگام ایجاد سفارش Snapshot می‌شوند.
    */
   function handleFileManagerSelect(selected: FileManagerResult) {
     const usedIds = new Set(
@@ -525,7 +525,7 @@ export function TizpaLauncher() {
                   onDrop={onDrop}
                 >
                   <Icon name="upload" size={22} />
-                  <p>فایل\u200cها را اینجا بکشید یا از طریق دکمهٔ زیر انتخاب کنید</p>
+                  <p>فایل‌ها را اینجا بکشید یا از طریق دکمهٔ زیر انتخاب کنید</p>
                   <Button
                     type="button"
                     variant="secondary"
@@ -595,10 +595,10 @@ export function TizpaLauncher() {
                   <span>برآورد تقریبی: <strong>{formatAmount(estimate)}</strong></span>
                   <span>پیش‌پرداخت تقریبی: <strong>{formatAmount(deposit)}</strong></span>
                   <span>
-                    فایل\u200cها: {summary.success} موفق / {summary.failed} ناموفق /
+                    فایل‌ها: {summary.success} موفق / {summary.failed} ناموفق /
                     {' '}{summary.pending} در جریان
                   </span>
-                  <span>لینک\u200cها: {linkIds.length}</span>
+                  <span>لینک‌ها: {linkIds.length}</span>
                   <small>مبالغ فوق پیشنهادی‌اند؛ نرخ نهایی و بیعانه توسط مدیر تعیین می‌شود.</small>
                 </div>
 
@@ -635,7 +635,7 @@ export function TizpaLauncher() {
         config={{
           role: 'customer',
           defaultTab: 'upload',
-          title: 'فایل\u200cهای سفارش تیزپا',
+          title: 'فایل‌های سفارش تیزپا',
           tabs: ['upload', 'select', 'link'],
           batchId: batch?.id,
           maxFiles: TIZPA_LIMITS.maxFiles,

@@ -45,7 +45,7 @@ export interface RealtimeEventsPage {
   serverTime: string;
 }
 
-/** بلیت یک‌بارمصرف؛ تنها از طریق درخواست احرازشده خوانده می\u200cشود. */
+/** بلیت یک‌بارمصرف؛ تنها از طریق درخواست احرازشده خوانده می‌شود. */
 export async function getRealtimeTicket(request: RealtimeRequest): Promise<RealtimeTicket> {
   return request<RealtimeTicket>('/realtime/ticket');
 }
@@ -63,7 +63,7 @@ export async function fetchRealtimeEvents(
   );
 }
 
-/** آدرس WebSocket؛ توکن و بلیت هرگز به query string اضافه نمی\u200cشوند. */
+/** آدرس WebSocket؛ توکن و بلیت هرگز به query string اضافه نمی‌شوند. */
 export function wsUrlFromApiBase(wsPath: string): string {
   return wsUrl(API_BASE, wsPath);
 }

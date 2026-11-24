@@ -112,7 +112,7 @@ export function ProjectDetail() {
   const [reason, setReason] = useState('');
   const [nextStatus, setNextStatus] = useState('');
 
-  /* ── فاز ۸: فایل‌های اولیه، لینکها و تحویل‌ها ── */
+  /* ── فاز ۸: فایل‌های اولیه، لینک‌ها و تحویل‌ها ── */
   const [initialFiles, setInitialFiles] = useState<FileItem[]>([]);
   const [initialLinks, setInitialLinks] = useState<ExternalLink[]>([]);
   const [deliveries, setDeliveries] = useState<DeliveryFile[]>([]);
@@ -176,7 +176,7 @@ export function ProjectDetail() {
   }, []);
 
   /**
-   * فایل‌ها، لینکها و تحویل‌ها جداگانه بارگذاری می‌شوند تا شکست یکی از آنها
+   * فایل‌ها، لینک‌ها و تحویل‌ها جداگانه بارگذاری می‌شوند تا شکست یکی از آنها
    * کل صفحه‌ی جزئیات سفارش را از کار نیندازد.
    */
   const loadFiles = useCallback(async () => {

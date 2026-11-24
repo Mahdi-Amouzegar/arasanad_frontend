@@ -334,7 +334,7 @@ export function ProjectNewForm() {
         title: 'سفارش ثبت شد',
         message: `کد سفارش: ${project.code}`,
       });
-      // فاز ۱۲٫۳-هـ: صفحهٔ جزئیات کامل (فایل‌ها، لینکها و تحویل) نه نمای‌عمومی.
+      // فاز ۱۲٫۳-هـ: صفحهٔ جزئیات کامل (فایل‌ها، لینک‌ها و تحویل) نه نمای‌عمومی.
       const detailBase =
         user?.role === 'admin' ? '/admin/projects/detail/' : '/panel/projects/detail/';
       router.push(`${detailBase}?id=${encodeURIComponent(project.id)}`);

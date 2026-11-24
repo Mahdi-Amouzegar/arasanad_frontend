@@ -4,7 +4,7 @@
  * فاز ۹٫۵ — ارسال پیام / پیوست عملیاتی و بازبینی (§9.5.6).
  *
  * از همان `FileManagerModal` سه‌تبه فاز ۸ استفاده می‌شود؛ پس از ساختن کارت،
- * فایل‌ها و لینکها با `entityType='project_activity'` به همان کارت الصاق
+ * فایل‌ها و لینک‌ها با `entityType='project_activity'` به همان کارت الصاق
  * می‌گردند. بازبینی فقط سفارش‌دهنده و رسیدگی فقط مدیر، و `replyToActivityId`
  * رشته‌ی پاسخ را نگه می‌دارد.
  */
@@ -208,7 +208,7 @@ export function ActivityComposer({
               ACTIVITY_FILE_ROLE,
             );
           } catch {
-            attachErrors.push('لینکها');
+            attachErrors.push('لینک‌ها');
           }
         }
         setText('');

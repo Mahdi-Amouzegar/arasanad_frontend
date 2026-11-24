@@ -181,7 +181,7 @@ export default async function PanelPage({ params }: { params: Promise<{ slug?: s
     );
 
     // فاز ۱۲٫۱۷: در ریشهٔ `/panel/` تنها موقعی که پارامتر `u` در مرورگر
-    // وجود دارد، نمای عمومی جای داشبورد خصوصی می\u200cنشیند.
+    // وجود دارد، نمای عمومی جای داشبورد خصوصی می‌نشیند.
     if (href === '/panel') {
       return <PanelQueryGate queryBranch={<PublicProfileQuery />}>{dashboard}</PanelQueryGate>;
     }

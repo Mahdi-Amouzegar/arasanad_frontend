@@ -4,8 +4,8 @@
  * فاز ۱۲٫۱۷ — پروفایل عمومی بدون بیلد، از طریق `/panel/?u=CODE`.
  *
  * ⚠️ `searchParams` در خروجی ایستا در دسترس نیست؛ بنابراین کد پروفایل
- *    تنها پس از hydration از `location.search` خوانده می\u200cشود. بدین\u200cترتیب
- *    هم بارگذاری مستقیم و هم بارگذاری مجدد صفحه کار می\u200cکند.
+ *    تنها پس از hydration از `location.search` خوانده می‌شود. بدین‌ترتیب
+ *    هم بارگذاری مستقیم و هم بارگذاری مجدد صفحه کار می‌کند.
  */
 
 import { useEffect, useState } from 'react';
@@ -16,7 +16,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { isValidPublicId } from '@/lib/public-id';
 
 export function PublicProfileQuery() {
-  // `undefined` یعنی هنوز خوانده\u200cنشده؛ `null` یعنی کد غایب یا نامعتبر.
+  // `undefined` یعنی هنوز خوانده‌نشده؛ `null` یعنی کد غایب یا نامعتبر.
   const [code, setCode] = useState<string | null | undefined>(undefined);
 
   useEffect(() => {

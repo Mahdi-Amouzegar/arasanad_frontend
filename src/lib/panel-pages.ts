@@ -19,7 +19,7 @@ export const CUSTOMER_PAGES: Record<string, PanelPageInfo> = {
   '/panel': { title: 'داشبورد', phase: 7, note: 'خلاصه‌ی سفارش‌ها و وضعیت‌ها' },
   '/panel/orders': { title: 'سفارشات من', phase: 12.8, note: 'آدرس قدیمی؛ همان جدول ادغام‌شده سفارشات من' },
   '/panel/projects': { title: 'سفارشات من', phase: 7, note: 'جدول واحد سفارش‌ها با فیلتر، مرتب‌سازی و جزئیات مالی' },
-  '/panel/projects/detail': { title: 'جزئیات سفارش', phase: 12.2, note: 'جزئیات کامل سفارش همراه فایل‌ها و لینکها' },
+  '/panel/projects/detail': { title: 'جزئیات سفارش', phase: 12.2, note: 'جزئیات کامل سفارش همراه فایل‌ها و لینک‌ها' },
   '/panel/projects/new': { title: 'ثبت سفارش جدید', phase: 7, note: 'فرم ثبت سفارش‌ها؛ بارگذاری فایل در فاز ۸' },
   '/panel/projects/operations': { title: 'سفارش‌گردانی', phase: 9.5, note: 'سابقه‌ی فقط الحاقی عملیات‌ها، جدیدترین در بالا' },
   '/panel/projects/delivery': { title: 'تحویل و اصلاح', phase: 11, note: 'نسخه‌های تحویل، قفل دانلود و درخواست اصلاح' },
@@ -35,7 +35,7 @@ export const CUSTOMER_PAGES: Record<string, PanelPageInfo> = {
 export const ADMIN_PAGES: Record<string, PanelPageInfo> = {
   '/admin': { title: 'داشبورد مدیر', phase: 8, note: 'نمای کلی سفارش‌ها و صف کاری' },
   '/admin/orders': { title: 'سفارشات سامانه', phase: 12.8, note: 'آدرس قدیمی؛ همان جدول ادغام‌شده سفارشات' },
-  '/admin/projects/detail': { title: 'جزئیات سفارش', phase: 12.2, note: 'جزئیات کامل سفارش همراه فایل‌ها و لینکها' },
+  '/admin/projects/detail': { title: 'جزئیات سفارش', phase: 12.2, note: 'جزئیات کامل سفارش همراه فایل‌ها و لینک‌ها' },
   '/admin/projects': { title: 'سفارش‌ها', phase: 7, note: 'صف کاری، تعیین نرخ و گردش وضعیت‌ها، فعال در فاز ۷' },
   '/admin/projects/operations': { title: 'سفارش‌گردانی', phase: 9.5, note: 'سابقه‌ی فقط الحاقی عملیات‌ها، جدیدترین در بالا' },
   '/admin/projects/delivery': { title: 'تحویل و اصلاح', phase: 11, note: 'ثبت نسخه‌ها، پاسخ اصلاح و تکمیل سفارش' },

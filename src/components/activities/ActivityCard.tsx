@@ -38,7 +38,7 @@ interface ActivityCardProps {
   /** فاز ۱۲٫۱۹ — اقدامهای سرورمحور روی کارت‌های ثبت و تعیین نرخ. */
   onSetQuote?: () => void;
   onDeclareDeposit?: () => void;
-  /** فاز ۱۲٫۲۱: اقدامهای تسویه\u200cی نهایی روی همان کارت عملیات. */
+  /** فاز ۱۲٫۲۱: اقدامهای تسویه‌ی نهایی روی همان کارت عملیات. */
   onDeclareSettlement?: () => void;
   onApproveSettlement?: () => void;
   projectStatus?: string;
@@ -133,7 +133,7 @@ export function ActivityCard({ activity, role, onReply, onSetQuote, onDeclareDep
   const showDepositActions =
     role === 'customer' && ['quote.set', 'deposit.set'].includes(activity.eventType)
     && projectStatus === 'awaiting_deposit' && typeof onDeclareDeposit === 'function';
-  // فاز ۱۲٫۲۱: دکمه\u200cی تسویه دقیقاً روی کارت مربوط به همان مرحله ظاهر می\u200cشود.
+  // فاز ۱۲٫۲۱: دکمه‌ی تسویه دقیقاً روی کارت مربوط به همان مرحله ظاهر می‌شود.
   const showSettlementDeclare =
     role === 'customer' && activity.eventType === 'delivery.created'
     && projectStatus === 'awaiting_settlement' && typeof onDeclareSettlement === 'function';
