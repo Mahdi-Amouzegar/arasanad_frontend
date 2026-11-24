@@ -209,7 +209,38 @@ export interface UploadHandle {
 interface UploadEnvelope {
   ok: boolean;
   data: { file: FileItem } | null;
-  error: { code: string; message: string } | null;
+  error: {
+    code: string;
+    message: string;
+    details?: { retryAfterMs?: number; fileId?: string };
+  } | null;
+}
+
+/**
+ * فاز ۱۲٫۲۷: خطای آپلود با اطلاعات لازم برای صف تیزپا.
+ * `retryAfterMs` تنها در پاسخ ۴۲۹ از سرور می‌آید و محدودیت را دور نمیزند.
+ */
+export class UploadRequestError extends Error {
+  readonly code: string;
+  readonly status: number;
+  readonly retryAfterMs: number | null;
+  /** شناسهٔ ردیف failed سرور؛ Retry همان ردیف را میپر کند، نه فایل جدید. */
+  readonly fileId: string | null;
+
+  constructor(
+    status: number,
+    code: string,
+    message: string,
+    retryAfterMs: number | null,
+    fileId: string | null = null,
+  ) {
+    super(message);
+    this.name = 'UploadRequestError';
+    this.status = status;
+    this.code = code;
+    this.retryAfterMs = retryAfterMs;
+    this.fileId = fileId;
+  }
 }
 
 /**
@@ -246,7 +277,19 @@ function xhrUpload(
         resolve(payload.data.file);
         return;
       }
-      reject(new Error(payload?.error?.message ?? fallbackMessage));
+      reject(
+        new UploadRequestError(
+          xhr.status,
+          payload?.error?.code ?? 'UPLOAD_FAILED',
+          payload?.error?.message ?? fallbackMessage,
+          typeof payload?.error?.details?.retryAfterMs === 'number'
+            ? payload.error.details.retryAfterMs
+            : null,
+          typeof payload?.error?.details?.fileId === 'string'
+            ? payload.error.details.fileId
+            : null,
+        ),
+      );
     };
     xhr.onerror = () => reject(new Error('ارتباط با سرور برقرار نشد. اتصال اینترنت را بررسی کنید.'));
     xhr.onabort = () => reject(new DOMException('ارسال فایل لغو شد', 'AbortError'));
@@ -260,6 +303,7 @@ export function uploadFileWithProgress(
   token: string,
   file: File,
   onProgress?: UploadProgressHandler,
+  batchId?: string,
 ): UploadHandle {
   return xhrUpload(
     `${API_BASE}/files/upload`,
@@ -268,6 +312,7 @@ export function uploadFileWithProgress(
       'X-File-Name': encodeURIComponent(file.name),
       'X-File-Size': String(file.size),
       Authorization: `Bearer ${token}`,
+      ...(batchId ? { 'X-Upload-Batch-Id': batchId } : {}),
     },
     file,
     onProgress,

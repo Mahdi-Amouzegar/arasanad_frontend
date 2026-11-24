@@ -204,6 +204,29 @@ export interface CreateProjectBody {
   linkIds?: string[];
 }
 
+/**
+ * فاز ۱۲٫۲۷: بدنهٔ مجاز ثبت تیزپا. هیچ مبلغ، زبان، فرمت یا نوع مالیای
+ * از کلاینت ارسال نمی‌شود؛ سرور تمام پیش‌فرضها و مبالغ را تعیین می‌کند.
+ */
+export interface CreateTizpaProjectBody {
+  name?: string;
+  serviceTypeId: string;
+  sourcePageCount: number;
+  fileIds: string[];
+  idempotencyKey: string;
+  reservationId?: string | null;
+  batchId?: string | null;
+}
+
+export interface TizpaCreateResult {
+  status: 'completed' | 'processing';
+  operationKey: string;
+  project?: Project;
+  code?: string | null;
+  name?: string | null;
+  uploadedCount?: number;
+}
+
 export interface ProjectListFilters {
   status?: string;
   q?: string;
@@ -273,6 +296,7 @@ export interface ProjectsApi {
   getHistory(id: string): Promise<ProjectHistoryItem[]>;
   addNote(id: string, text: string): Promise<ProjectNote>;
   createProject(body: CreateProjectBody): Promise<Project>;
+  createTizpaProject(body: CreateTizpaProjectBody): Promise<TizpaCreateResult>;
   submitQuote(
     id: string,
     quotedPricePerPage: number,
@@ -337,6 +361,13 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
         body,
       });
       return data.project;
+    },
+
+    async createTizpaProject(body) {
+      return request<TizpaCreateResult>('/projects/tizpa', {
+        method: 'POST',
+        body,
+      });
     },
 
     async submitQuote(id, quotedPricePerPage, reason, depositAmount, pricingMode) {

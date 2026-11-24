@@ -11,6 +11,7 @@ import '@/styles/files.css';
 import '@/styles/chat.css';
 import '@/styles/activities.css';
 import '@/styles/admin.css';
+import '@/styles/tizpa.css';
 
 import { ChatProvider } from '@/components/chat/ChatProvider';
 import { ChatDock } from '@/components/chat/ChatDock';

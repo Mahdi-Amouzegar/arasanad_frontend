@@ -8,6 +8,7 @@ import { ActivityBell } from '@/components/activities/ActivityBell';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { TopbarIdentity } from './TopbarIdentity';
+import { TizpaLauncher } from '@/components/tizpa/TizpaLauncher';
 import type { NavGroup } from '@/lib/navigation';
 
 export interface AppShellProps {
@@ -97,6 +98,9 @@ export function AppShell({
           search={search}
           actions={
             <>
+              {/* فاز ۱۲٫۲۷: دکمهٔ سراسری «ثبت تیزپا» در تمام صفحات پنل.
+                  دکمهٔ شناور جداگانه و نوار پنجآیتمی موبایل تغییری نکردهاند. */}
+              <TizpaLauncher />
               <TopbarIdentity />
               {actions}
             </>
