@@ -1,4 +1,11 @@
 {
   "adminTelegram": "mehdi_amouz",
-  "botUsername": "ArasanadBot"
+  "botUsername": "ArasanadBot",
+  "order": {
+    "defaultOutputFormat": "Word",
+    "allowedOutputFormats": [
+      "PDF",
+      "Word"
+    ]
+  }
 }

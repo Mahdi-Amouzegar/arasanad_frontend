@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/account';
+import { useSiteConfig } from '@/lib/site-config';
 import {
   createProjectsApi,
   getDesignPresets,
@@ -21,7 +22,6 @@ import {
   DELIVERY_VALUE_MAX,
   DELIVERY_VALUE_MIN,
   deliveryHoursFrom,
-  OUTPUT_FORMATS,
   PAPER_SIZES,
   SOURCE_TYPES,
   calculateDeposit,
@@ -126,9 +126,37 @@ export function ProjectNewForm() {
   const [deliveryValue, setDeliveryValue] = useState<string>('2');
   const [deliveryUnit, setDeliveryUnit] = useState<string>('day');
   // فاز ۱۲٫۳-ج: چند فرمت خروجی قابل انتخاب است و به‌صورت «PDF, Word» ذخیره می‌شود.
-  const [outputFormats, setOutputFormats] = useState<string[]>([
-    OUTPUT_FORMATS[0] ?? 'PDF',
-  ]);
+  // فاز ۱۲٫۳۰-A: پیش‌فرض و فهرست مجاز از مرجع مرکزی بکند خوانده می‌شوند.
+  const { order: siteOrder } = useSiteConfig('');
+  const [outputFormats, setOutputFormats] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (siteOrder.allowedOutputFormats.length === 0) return;
+    setOutputFormats((current) => {
+      const valid = current.filter((item) => siteOrder.allowedOutputFormats.includes(item));
+      if (valid.length > 0) return valid;
+      const fallback = siteOrder.defaultOutputFormat || siteOrder.allowedOutputFormats[0];
+      return fallback ? [fallback] : [];
+    });
+  }, [siteOrder.defaultOutputFormat, siteOrder.allowedOutputFormats]);
+
+  // فاز ۱۲٫۳۰-B: انتخابگر روش پرداخت تنها برای مشتری دارای مجوز اعتبار
+  // نمایش داده می‌شود؛ مجوز را بکند تعیین می‌کند نه ظاهر فرم.
+  const [creditEnabled, setCreditEnabled] = useState(false);
+  const [paymentMode, setPaymentMode] = useState<'cash' | 'credit'>('credit');
+  useEffect(() => {
+    if (!user || loading) return;
+    let alive = true;
+    void authedRequest<{ creditEnabled: boolean }>('/credit/me')
+      .then((data) => {
+        if (!alive) return;
+        setCreditEnabled(data.creditEnabled === true);
+      })
+      .catch(() => {
+        if (alive) setCreditEnabled(false);
+      });
+    return () => { alive = false; };
+  }, [user, loading, authedRequest]);
 
   const [designMode, setDesignMode] = useState<'standard' | 'custom'>('standard');
   const [designSubmode, setDesignSubmode] = useState<'like_original' | 'custom'>(
@@ -316,6 +344,7 @@ export function ProjectNewForm() {
       sourcePageCount: Number(pageCount),
       deliveryHours: hours,
       outputFormat: outputFormats.join(', '),
+      paymentMode: creditEnabled ? paymentMode : undefined,
       specialRequirements: specialRequirements.trim(),
       design: {
         mode: designMode,
@@ -554,7 +583,7 @@ export function ProjectNewForm() {
                   aria-label="فرمت خروجی"
                   tabIndex={-1}
                 >
-                  {OUTPUT_FORMATS.map((item) => (
+                  {siteOrder.allowedOutputFormats.map((item) => (
                     <label key={item} className="prj-format-option">
                       <input
                         type="checkbox"
@@ -573,6 +602,19 @@ export function ProjectNewForm() {
                 </div>
               </FormField>
             </div>
+
+            {creditEnabled && (
+              <FormField label="روش پرداخت" htmlFor="prj-payment-mode">
+                <Select
+                  id="prj-payment-mode"
+                  value={paymentMode}
+                  onChange={(event) => setPaymentMode(event.target.value as 'cash' | 'credit')}
+                >
+                  <option value="credit">اعتباری</option>
+                  <option value="cash">نقدی</option>
+                </Select>
+              </FormField>
+            )}
 
             <div className="prj-grid prj-grid--one">
               <FormField label="توضیحات" htmlFor="prj-desc">

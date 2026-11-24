@@ -22,6 +22,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/account';
+import { useSiteConfig } from '@/lib/site-config';
 import { Button } from '@/components/ui/Button';
 import { FormField, Input, Select } from '@/components/ui/Field';
 import { FileManagerModal, type FileManagerResult } from '@/components/files/FileManagerModal';
@@ -78,8 +79,31 @@ function formatAmount(value: number): string {
 }
 
 export function TizpaLauncher() {
-  const { token, authedRequest } = useAuth();
+  const { token, user, authedRequest } = useAuth();
   const router = useRouter();
+  const { order: siteOrder } = useSiteConfig('');
+  const [outputFormat, setOutputFormat] = useState('');
+  const [creditEnabled, setCreditEnabled] = useState(false);
+  const [paymentMode, setPaymentMode] = useState<'cash' | 'credit'>('credit');
+
+  useEffect(() => {
+    const allowed = siteOrder.allowedOutputFormats;
+    if (allowed.length === 0) return;
+    setOutputFormat((current) =>
+      allowed.includes(current)
+        ? current
+        : (siteOrder.defaultOutputFormat || allowed[0] || ''),
+    );
+  }, [siteOrder.defaultOutputFormat, siteOrder.allowedOutputFormats]);
+
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    void authedRequest<{ creditEnabled: boolean }>('/credit/me')
+      .then((data) => { if (alive) setCreditEnabled(data.creditEnabled === true); })
+      .catch(() => { if (alive) setCreditEnabled(false); });
+    return () => { alive = false; };
+  }, [user, authedRequest]);
 
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
@@ -415,6 +439,8 @@ export function TizpaLauncher() {
         .sort(),
       linkIds: [...linkIdsRef.current].sort(),
       reservationId: reservation?.id ?? null,
+      outputFormat,
+      paymentMode: creditEnabled ? paymentMode : null,
     });
     if (keyRef.current?.signature !== signature) {
       keyRef.current = { signature, key: crypto.randomUUID() };
@@ -449,6 +475,8 @@ export function TizpaLauncher() {
         serviceTypeId,
         language,
         sourcePageCount: Number(pageCount),
+        outputFormat: outputFormat || undefined,
+        paymentMode: creditEnabled ? paymentMode : undefined,
         fileIds: uploaded.map((item) => item.fileId as string),
         linkIds: attachedLinks,
         idempotencyKey: operationKey,
@@ -613,6 +641,36 @@ export function TizpaLauncher() {
                         required
                       />
                     </FormField>
+                  </div>
+                  <div className="tizpa-form__compact">
+                    {siteOrder.allowedOutputFormats.length > 0 && (
+                      <label className="tizpa-compact">
+                        <span>خروجی</span>
+                        <select
+                          id="tizpa-output-format"
+                          value={outputFormat}
+                          onChange={(event) => setOutputFormat(event.target.value)}
+                        >
+                          {siteOrder.allowedOutputFormats.map((item) => (
+                            <option key={item} value={item}>{item}</option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
+                    {creditEnabled && (
+                      <label className="tizpa-compact">
+                        <span>پرداخت</span>
+                        <select
+                          id="tizpa-payment-mode"
+                          value={paymentMode}
+                          onChange={(event) =>
+                            setPaymentMode(event.target.value as 'cash' | 'credit')}
+                        >
+                          <option value="credit">اعتباری</option>
+                          <option value="cash">نقدی</option>
+                        </select>
+                      </label>
+                    )}
                   </div>
                 </div>
 

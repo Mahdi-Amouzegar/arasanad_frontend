@@ -1,5 +1,6 @@
 'use client';
 import { CopyableCode } from '@/components/projects/CopyableCode';
+import { AdminCreditPanel } from '@/components/finance/CreditPanels';
 
 /**
  * فاز ۱۰ (زیرفاز ۱۰-س / ۱۰-ض) — پنلهای واقعی مالی.
@@ -458,6 +459,7 @@ export function AdminWalletsPanel() {
     <div className="prj-stack">
       {error ? <ErrorBar message={error} retry={reload} /> : null}
       <ReconciliationCard />
+      <AdminCreditPanel />
       <Card>
         <CardHeader title="کیف پول کاربران" actions={<Button variant="ghost" size="sm" onClick={reload} aria-label="بازخوانی"><Icon name="refresh" size={16} /></Button>} />
         <CardBody>

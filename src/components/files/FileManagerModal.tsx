@@ -783,7 +783,7 @@ function UploadTab({
           فایل‌ها را اینجا رها کنید یا کلیک کنید
         </p>
         <p className="fm-dropzone__hint">
-          حداکثر {formatBytesFa(maxSize)} — فرمتهای مجاز: {allowedExtensions.join(', ')}
+          حداکثر {formatBytesFa(maxSize)} — فرمت‌های مجاز: {allowedExtensions.join(', ')}
         </p>
         <input
           ref={fileInputRef}

@@ -298,3 +298,30 @@
     gap: 6px;
   }
 }
+
+/* فاز ۱۲٫۳۰-A: کنترل فشردهٔ خروجی/پرداخت بدون تبدیل فرم سهفیلدی به فرم کامل. */
+.tizpa-form__compact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-block-start: var(--sp-2);
+}
+
+.tizpa-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted, var(--text-2, #94a3b8));
+}
+
+.tizpa-compact select {
+  min-width: 92px;
+  padding: 3px 6px;
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+  background: var(--surface, #0f172a);
+  color: var(--text, #e2e8f0);
+  font-size: 0.78rem;
+}

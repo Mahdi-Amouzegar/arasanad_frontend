@@ -10,6 +10,7 @@
  */
 
 import { CopyableCode } from '@/components/projects/CopyableCode';
+import { CreditSummaryCard } from '@/components/finance/CreditPanels';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
@@ -223,6 +224,9 @@ export function CustomerDashboard() {
           </div>
         </CardBody>
       </Card>
+
+      {/* فاز ۱۲٫۳۰-E: حساب اعتباری تنها برای مشتری دارای مجوز نمایش مییابد. */}
+      <CreditSummaryCard />
 
       {/* ۵. آخرین گفتگو‌ها */}
       <Card>

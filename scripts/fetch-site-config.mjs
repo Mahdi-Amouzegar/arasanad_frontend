@@ -12,7 +12,12 @@ import { fileURLToPath } from 'node:url';
 
 const OUTPUT = fileURLToPath(new URL('../public/site-config.json', import.meta.url));
 const API_URL = 'https://api.arasanad.ir/api/v1/site/config';
-const FALLBACK = { adminTelegram: 'mehdi_amouz', botUsername: 'ArasanadBot' };
+const FALLBACK = {
+  adminTelegram: 'mehdi_amouz',
+  botUsername: 'ArasanadBot',
+  // فاز ۱۲٫۳۰-A: در صورت دردسترس نبودن API، نسخهٔ قبلی اسنپشات
+  // حفظ می‌شود؛ مقادیر پیش\u200cفرض فقط از بکند می\u200cآیند و در کد فرانت تکرار نمی\u200cشوند.
+};
 
 /** fetch فقط هدرها را پوشش می‌دهد؛ خواندن بدنه هم نیاز به مهلت جدا دارد. */
 function withTimeout(promise, ms, label) {
@@ -41,8 +46,17 @@ try {
   const data = payload?.data ?? {};
   const adminTelegram = String(data.adminTelegram ?? '').replace(/^@/, '');
   const botUsername = String(data.botUsername ?? '').replace(/^@/, '');
-  if (isHandle(adminTelegram) && isHandle(botUsername)) {
-    next = { adminTelegram, botUsername };
+  const allowed = Array.isArray(data.order?.allowedOutputFormats)
+    ? data.order.allowedOutputFormats.filter((value) => typeof value === 'string')
+    : [];
+  const preferred = data.order?.defaultOutputFormat;
+  if (isHandle(adminTelegram) && isHandle(botUsername) && allowed.length > 0
+      && typeof preferred === 'string' && allowed.includes(preferred)) {
+    next = {
+      adminTelegram,
+      botUsername,
+      order: { defaultOutputFormat: preferred, allowedOutputFormats: allowed },
+    };
   } else {
     console.warn('[site-config] unexpected API payload; keeping committed snapshot');
   }
@@ -51,4 +65,4 @@ try {
 }
 
 await writeFile(OUTPUT, `${JSON.stringify(next, null, 2)}\n`, 'utf8');
-console.log(`[site-config] wrote ${OUTPUT} for @${next.adminTelegram}`);
+console.log(`[site-config] wrote ${OUTPUT} for @${next.adminTelegram} (default ${next.order?.defaultOutputFormat ?? 'from snapshot'})`);
