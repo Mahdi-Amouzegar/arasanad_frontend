@@ -35,8 +35,6 @@ export function isAllowedDeliveryHours(hours) {
     || (n % 24 === 0 && n / 24 <= DELIVERY_VALUE_MAX)
     || (n % 168 === 0 && n / 168 <= DELIVERY_VALUE_MAX);
 }
-export const LANGUAGES = ['فارسی', 'انگلیسی', 'عربی', 'ترکیبی (فارسی-عربی / فارسی-انگلیسی)'];
-
 export const SOURCE_TYPES = ['چاپی', 'دست\u200cنویس', 'ترکیبی'];
 
 export const OUTPUT_FORMATS = ['PDF', 'Word'];
@@ -287,7 +285,8 @@ export function validateProjectDraft(draft) {
   if (typeof d.serviceTypeId !== 'string' || d.serviceTypeId.trim().length === 0) {
     errors.serviceTypeId = 'نوع خدمت را انتخاب کنید.';
   }
-  if (!LANGUAGES.includes(d.language)) {
+  // فهرست معتبر زبان فقط در بکند است؛ اینجا تنها نبود انتخاب بررسی می‌شود.
+  if (typeof d.language !== 'string' || d.language.trim().length === 0) {
     errors.language = 'زبان سند را از فهرست انتخاب کنید.';
   }
   if (!SOURCE_TYPES.includes(d.sourceType)) {

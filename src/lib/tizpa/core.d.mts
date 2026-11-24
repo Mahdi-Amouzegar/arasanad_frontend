@@ -33,6 +33,7 @@ export function validateClientFile(
 export function validateTizpaDraft(draft: {
   name?: string;
   serviceTypeId?: string;
+  language?: string;
   sourcePageCount?: string | number;
 }): string[];
 

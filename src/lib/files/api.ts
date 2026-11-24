@@ -362,9 +362,14 @@ export function isInlinePreviewable(mime?: string | null, name?: string): boolea
 
 export function createExternalLinksApi(request: AuthedRequest) {
   return {
-    async createLink(url: string, description?: string): Promise<ExternalLink> {
+    async createLink(
+      url: string,
+      description?: string,
+      batchId?: string | null,
+    ): Promise<ExternalLink> {
       const body: Record<string, unknown> = { url };
       if (description) body.description = description;
+      if (batchId) body.batchId = batchId;
       const data = await request<{ link: ExternalLink }>('/external-links', {
         method: 'POST',
         body,

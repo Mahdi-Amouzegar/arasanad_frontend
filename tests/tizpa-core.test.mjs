@@ -18,11 +18,17 @@ const config = {
   allowedExtensions: ['pdf', 'docx', 'zip'],
 };
 
-test('TIZPA-FE-01: only the three required draft fields are validated', () => {
-  const draft = { name: 'سفارش تیزپا 1', serviceTypeId: 'fa', sourcePageCount: '10' };
+test('TIZPA-FE-01: only the four required draft fields are validated', () => {
+  const draft = {
+    name: 'سفارش تیزپا 1',
+    serviceTypeId: 'fa',
+    language: 'فارسی',
+    sourcePageCount: '10',
+  };
   assert.deepEqual(validateTizpaDraft(draft), []);
   assert.ok(validateTizpaDraft({ ...draft, name: '' }).length > 0);
   assert.ok(validateTizpaDraft({ ...draft, serviceTypeId: '' }).length > 0);
+  assert.ok(validateTizpaDraft({ ...draft, language: '' }).length > 0);
   assert.ok(validateTizpaDraft({ ...draft, sourcePageCount: '0' }).length > 0);
   assert.ok(validateTizpaDraft({ ...draft, sourcePageCount: '10001' }).length > 0);
 });

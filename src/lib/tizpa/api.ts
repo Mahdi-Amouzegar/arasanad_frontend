@@ -24,6 +24,17 @@ export interface TizpaCleanupResult {
   error: string | null;
 }
 
+export interface TizpaCancelResult {
+  status: 'cancelled' | 'order_created' | 'processing';
+  deletedFiles: string[];
+  skippedFiles: Array<{ fileId: string; reason: string }>;
+  deletedLinks: string[];
+  reservationReleased: boolean;
+  retryable: boolean;
+  order?: { projectId: string; code: string | null } | null;
+  message?: string | null;
+}
+
 export function createTizpaApi(request: AuthedRequest) {
   return {
     async reserveName(): Promise<TizpaReservation> {
@@ -33,9 +44,10 @@ export function createTizpaApi(request: AuthedRequest) {
       return data.reservation;
     },
 
-    async createBatch(): Promise<TizpaBatch> {
+    async createBatch(reservationId?: string | null): Promise<TizpaBatch> {
       const data = await request<{ batch: TizpaBatch }>('/tizpa/batches', {
         method: 'POST',
+        body: reservationId ? { reservationId } : {},
       });
       return data.batch;
     },
@@ -44,6 +56,18 @@ export function createTizpaApi(request: AuthedRequest) {
       const safeId = encodeURIComponent(batchId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 96));
       return request<TizpaCleanupResult>(`/tizpa/batches/${safeId}/cleanup`, {
         method: 'POST',
+      });
+    },
+
+    /** لغو امن و Idempotent تمام منابع همان پنجره تیزپا. */
+    async cancelBatch(
+      batchId: string,
+      operationKey?: string | null,
+    ): Promise<TizpaCancelResult> {
+      const safeId = encodeURIComponent(batchId.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 96));
+      return request<TizpaCancelResult>(`/tizpa/batches/${safeId}/cancel`, {
+        method: 'POST',
+        body: operationKey ? { operationKey } : {},
       });
     },
   };

@@ -5,7 +5,7 @@
  *
  * ⚠️ دکمه در Topbar سراسری AppShell است؛ دکمهٔ شناور جدایی وجود ندارد و
  *    نوار پنجآیتمی موبایل («ثبت سفارش جدید») فرم کامل را همانگونه باز می‌کند.
- * ⚠️ پنجره فقط سه فیلد نام، نوع خدمت و تعداد صفحات دارد. تمام پیش‌فرضها،
+ * ⚠️ پنجره فقط چهار فیلد نام، نوع خدمت، زبان کار و تعداد صفحات دارد. تمام پیش‌فرضها،
  *    نرخ‌ها و مبالغ از سرور می‌آیند و به هیچوجه در این کامپوننت کپی نمی‌شوند.
  * ⚠️ سفارش تنها پس از آپلود موفق حداقل یک فایل و تأیید کاربر ایجاد می‌شود.
  */
@@ -30,6 +30,7 @@ import { getFileConfig, type FileConfig } from '@/lib/files/api';
 import {
   createProjectsApi,
   getDesignPresets,
+  getLanguages,
   getPricingRules,
   getServiceTypes,
   type PricingRules,
@@ -83,6 +84,7 @@ export function TizpaLauncher() {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const [services, setServices] = useState<ServiceType[]>([]);
+  const [languages, setLanguages] = useState<string[]>([]);
   const [rules, setRules] = useState<PricingRules>(EMPTY_RULES);
   const [config, setConfig] = useState<FileConfig | null>(null);
   const [reservation, setReservation] = useState<TizpaReservation | null>(null);
@@ -92,6 +94,7 @@ export function TizpaLauncher() {
 
   const [name, setName] = useState('');
   const [serviceTypeId, setServiceTypeId] = useState('');
+  const [language, setLanguage] = useState('');
   const [pageCount, setPageCount] = useState('10');
   const [files, setFiles] = useState<TizpaUploadItem[]>([]);
   const filesRef = useRef<TizpaUploadItem[]>([]);
@@ -105,6 +108,11 @@ export function TizpaLauncher() {
   const [result, setResult] = useState<TizpaCreateResult | null>(null);
   const keyRef = useRef<{ signature: string; key: string } | null>(null);
   const closingRef = useRef(false);
+  /** هر بازشدن پنجره یک نشست مستقل است؛ پاسخهای دیررس نشست قبل نادیده گرفته می‌شوند. */
+  const sessionRef = useRef(0);
+  const operationKeyRef = useRef<string | null>(null);
+  const resultRef = useRef<TizpaCreateResult | null>(null);
+  const batchIdCleanedRef = useRef<Set<string>>(new Set());
 
   const api = useMemo(() => createProjectsApi(authedRequest), [authedRequest]);
   const tizpaApi = useMemo(() => createTizpaApi(authedRequest), [authedRequest]);
@@ -126,13 +134,61 @@ export function TizpaLauncher() {
     setLinkIds(next);
   }, []);
 
+  const openDialog = useCallback(() => {
+    sessionRef.current += 1;
+    closingRef.current = false;
+    resultRef.current = null;
+    operationKeyRef.current = null;
+    keyRef.current = null;
+    replaceFiles([]);
+    replaceLinkIds([]);
+    setResult(null);
+    setIssues([]);
+    setSubmitError(null);
+    setSubmitting(false);
+    setLanguage('');
+    setServiceTypeId('');
+    setPageCount('10');
+    setDragActive(false);
+    setOpen(true);
+  }, [replaceFiles, replaceLinkIds]);
+
+  /**
+   * بستن تکاقدامی: تمام Abortها، پاک‌سازی سمت سرور و ریست کامل UI.
+   * ⚠️ پس از ثبت موفق، سفارش نهایی لغو نمی‌شود؛ بکند تشخیص می‌دهد و محافظت می‌کند.
+   */
   const close = useCallback(() => {
+    if (closingRef.current && !open) return;
     closingRef.current = true;
+    sessionRef.current += 1;
     for (const abort of tizpaAbortRegistry.values()) abort();
     tizpaAbortRegistry.clear();
+
+    const succeeded = resultRef.current?.status === 'completed';
+    const hadInFlight = submitting
+      || filesRef.current.some((item) =>
+        item.state === UPLOAD_STATES.queued || item.state === UPLOAD_STATES.uploading);
+    if (!succeeded && batch && !batchIdCleanedRef.current.has(batch.id)) {
+      batchIdCleanedRef.current.add(batch.id);
+      const operationKey = operationKeyRef.current;
+      void tizpaApi.cancelBatch(batch.id, operationKey).catch(() => {
+        // در صورت شکست شبکه، Cron پاک‌سازی Batch منقضی به‌عنوان جبرانگر باقی است.
+      });
+      // اگر آپلود/ثبت در جریان بود، تلاش دوم پس از نهاییشدن سمت سرور،
+      // فایلی را که دیررس ذخیره شده باشد هم پاک می‌کند (لغو Idempotent است).
+      if (hadInFlight) {
+        setTimeout(() => {
+          if (resultRef.current?.status === 'completed') return;
+          void tizpaApi.cancelBatch(batch.id, operationKey).catch(() => {});
+        }, 1200);
+      }
+    }
+
     setFileManagerOpen(false);
     setOpen(false);
-  }, []);
+    const dialog = dialogRef.current;
+    if (dialog?.open) dialog.close();
+  }, [batch, open, submitting, tizpaApi]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -158,22 +214,26 @@ export function TizpaLauncher() {
     setSubmitError(null);
     void Promise.all([
       getServiceTypes(),
+      getLanguages(),
       getDesignPresets(),
       getPricingRules(),
       getFileConfig(),
       tizpaApi.reserveName(),
-      tizpaApi.createBatch(),
     ])
-      .then(([serviceRows, _presets, ruleRows, fileConfig, reserved, newBatch]) => {
+      .then(async ([serviceRows, languageCatalog, _presets, ruleRows, fileConfig, reserved]) => {
+        // Batch حتماً پس از رزرو ساخته می‌شود تا لغو عملیات بداند کدام رزرو متعلق به آن است.
+        const newBatch = await tizpaApi.createBatch(reserved.id);
         if (!alive) return;
         const visible = serviceRows.filter(visibleService);
         setServices(visible);
+        setLanguages(languageCatalog.languages);
         setRules(ruleRows ?? EMPTY_RULES);
         setConfig(fileConfig);
         setReservation(reserved);
         setBatch(newBatch);
         setName(reserved.name);
         setServiceTypeId((current) => current || visible[0]?.id || '');
+        setLanguage((current) => current || languageCatalog.defaultLanguage);
         setPageCount('10');
         replaceFiles([]);
         replaceLinkIds([]);
@@ -219,41 +279,49 @@ export function TizpaLauncher() {
     [token, batch, updateFile],
   );
 
+  /**
+   * مسیر مشترک فایل‌های محلی (Drag & Drop). فایل‌های ردشده به‌صورت کارت خطای
+   * غیرقابلتکرار نمایش داده می‌شوند تا وضعیت تکتک فایل‌ها قابل مشاهده بماند.
+   */
   function addFiles(incoming: FileList | File[] | null) {
     if (!incoming) return;
     const signatures = new Set(filesRef.current.map((item) => fileSignature(item.name, item.size)));
     const accepted: TizpaUploadItem[] = [];
-    const rejected: string[] = [];
+    const rejected: TizpaUploadItem[] = [];
     for (const file of Array.from(incoming)) {
-      if (filesRef.current.length + accepted.length >= TIZPA_LIMITS.maxFiles) {
-        rejected.push(`${file.name}: حداکثر ۲۰ فایل مجاز است`);
+      const base = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        name: file.name,
+        size: file.size,
+        attempts: 0,
+        progress: 0,
+        phase: null,
+        fileId: null,
+      };
+      if (filesRef.current.length + accepted.length + rejected.length >= TIZPA_LIMITS.maxFiles) {
+        rejected.push({ ...base, state: UPLOAD_STATES.failed, reason: 'حداکثر ۲۰ فایل مجاز است', retryable: false });
         continue;
       }
       const reason = validateClientFile(file, config, [...signatures]);
       if (reason) {
-        rejected.push(`${file.name}: ${reason}`);
+        rejected.push({ ...base, state: UPLOAD_STATES.failed, reason, retryable: false });
         continue;
       }
       const signature = fileSignature(file.name, file.size);
       signatures.add(signature);
       accepted.push({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        ...base,
         file,
-        name: file.name,
-        size: file.size,
         state: UPLOAD_STATES.queued,
-        attempts: 0,
-        progress: 0,
-        phase: null,
-        fileId: null,
         reason: null,
+        retryable: true,
       });
     }
-    if (accepted.length > 0) {
-      replaceFiles([...filesRef.current, ...accepted]);
+    if (accepted.length > 0 || rejected.length > 0) {
+      replaceFiles([...filesRef.current, ...accepted, ...rejected]);
+      // همان منطق دکمهٔ انتخاب فایل؛ ترتیب صف حفظ و حداکثر ۲ هم‌زمان اجرا می‌شود.
       startUploads(accepted);
     }
-    if (rejected.length > 0) setIssues(rejected);
   }
 
   /**
@@ -308,7 +376,7 @@ export function TizpaLauncher() {
 
   function retryFile(id: string) {
     const item = filesRef.current.find((entry) => entry.id === id);
-    if (!item || item.state !== UPLOAD_STATES.failed) return;
+    if (!item || item.state !== UPLOAD_STATES.failed || item.retryable === false) return;
     const retried: TizpaUploadItem = {
       ...item,
       state: UPLOAD_STATES.queued,
@@ -339,6 +407,7 @@ export function TizpaLauncher() {
     const signature = JSON.stringify({
       name,
       serviceTypeId,
+      language,
       pages: pageCount,
       fileIds: filesRef.current
         .filter((item) => item.state === UPLOAD_STATES.success && item.fileId)
@@ -356,7 +425,7 @@ export function TizpaLauncher() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitError(null);
-    const found = validateTizpaDraft({ name, serviceTypeId, sourcePageCount: pageCount });
+    const found = validateTizpaDraft({ name, serviceTypeId, language, sourcePageCount: pageCount });
     const uploaded = filesRef.current.filter(
       (item) => item.state === UPLOAD_STATES.success && item.fileId,
     );
@@ -371,29 +440,46 @@ export function TizpaLauncher() {
     }
     setIssues([]);
     setSubmitting(true);
+    const session = sessionRef.current;
+    const operationKey = requestKey();
+    operationKeyRef.current = operationKey;
     try {
       const created = await api.createTizpaProject({
         name,
         serviceTypeId,
+        language,
         sourcePageCount: Number(pageCount),
         fileIds: uploaded.map((item) => item.fileId as string),
         linkIds: attachedLinks,
-        idempotencyKey: requestKey(),
+        idempotencyKey: operationKey,
         reservationId: reservation?.id,
         batchId: batch?.id,
       });
+      if (session !== sessionRef.current || closingRef.current) return;
       if (created.status !== 'completed' || !created.project) {
         setSubmitError('سفارش در حال ثبت است؛ لحظاتی بعد دوباره تلاش کنید.');
         return;
       }
+      resultRef.current = created;
       setResult(created);
     } catch (caught) {
+      if (session !== sessionRef.current || closingRef.current) return;
       setSubmitError(
         errorText(caught, 'ثبت تیزپا انجام نشد؛ فایل‌ها قابل بازیابیاند، دوباره تلاش کنید'),
       );
     } finally {
-      setSubmitting(false);
+      if (session === sessionRef.current) setSubmitting(false);
     }
+  }
+
+  function fileStateLabel(item: TizpaUploadItem): string {
+    if (item.state === UPLOAD_STATES.queued) return 'در صف';
+    if (item.state === UPLOAD_STATES.uploading) return `در حال آپلود ${item.progress}%`;
+    if (item.state === UPLOAD_STATES.success) return 'آپلود موفق';
+    if (item.state === UPLOAD_STATES.cancelled) return 'لغو شد';
+    if (item.reason?.includes('پسوند')) return 'خطای نوع فایل';
+    if (item.reason?.includes('حجم')) return 'خطای حجم فایل';
+    return 'خطای شبکه';
   }
 
   return (
@@ -401,7 +487,7 @@ export function TizpaLauncher() {
       <button
         type="button"
         className="topbar__tizpa"
-        onClick={() => setOpen(true)}
+        onClick={openDialog}
         aria-label="ثبت تیزپا"
         title="ثبت تیزپا"
       >
@@ -489,30 +575,45 @@ export function TizpaLauncher() {
                       required
                     />
                   </FormField>
-                  <FormField label="نوع خدمت" htmlFor="tizpa-service" required>
-                    <Select
-                      id="tizpa-service"
-                      value={serviceTypeId}
-                      onChange={(event) => setServiceTypeId(event.target.value)}
-                      required
-                    >
-                      <option value="">انتخاب خدمت</option>
-                      {services.map((item) => (
-                        <option key={item.id} value={item.id}>{item.name}</option>
-                      ))}
-                    </Select>
-                  </FormField>
-                  <FormField label="تعداد صفحات" htmlFor="tizpa-pages" required>
-                    <Input
-                      id="tizpa-pages"
-                      type="number"
-                      min={TIZPA_LIMITS.minPages}
-                      max={TIZPA_LIMITS.maxPages}
-                      value={pageCount}
-                      onChange={(event) => setPageCount(event.target.value)}
-                      required
-                    />
-                  </FormField>
+                  <div className="tizpa-form__row">
+                    <FormField label="نوع خدمت" htmlFor="tizpa-service" required>
+                      <Select
+                        id="tizpa-service"
+                        value={serviceTypeId}
+                        onChange={(event) => setServiceTypeId(event.target.value)}
+                        required
+                      >
+                        <option value="">انتخاب خدمت</option>
+                        {services.map((item) => (
+                          <option key={item.id} value={item.id}>{item.name}</option>
+                        ))}
+                      </Select>
+                    </FormField>
+                    <FormField label="زبان کار" htmlFor="tizpa-language" required>
+                      <Select
+                        id="tizpa-language"
+                        value={language}
+                        onChange={(event) => setLanguage(event.target.value)}
+                        required
+                      >
+                        <option value="">انتخاب زبان</option>
+                        {languages.map((item) => (
+                          <option key={item} value={item}>{item}</option>
+                        ))}
+                      </Select>
+                    </FormField>
+                    <FormField label="تعداد صفحات" htmlFor="tizpa-pages" required>
+                      <Input
+                        id="tizpa-pages"
+                        type="number"
+                        min={TIZPA_LIMITS.minPages}
+                        max={TIZPA_LIMITS.maxPages}
+                        value={pageCount}
+                        onChange={(event) => setPageCount(event.target.value)}
+                        required
+                      />
+                    </FormField>
+                  </div>
                 </div>
 
                 <div
@@ -550,13 +651,7 @@ export function TizpaLauncher() {
                             {Math.max(1, Math.round(item.size / 1024)).toLocaleString('fa-IR')} KB
                           </span>
                           <span className="tizpa-file__state">
-                            {item.state === UPLOAD_STATES.queued ? 'در صف' : null}
-                            {item.state === UPLOAD_STATES.uploading
-                              ? `در حال آپلود ${item.progress}%`
-                              : null}
-                            {item.state === UPLOAD_STATES.success ? 'موفق' : null}
-                            {item.state === UPLOAD_STATES.failed ? 'ناموفق' : null}
-                            {item.state === UPLOAD_STATES.cancelled ? 'لغو شد' : null}
+                            {fileStateLabel(item)}
                           </span>
                         </div>
                         {item.phase === 'confirming' ? (
@@ -571,7 +666,7 @@ export function TizpaLauncher() {
                           </div>
                         ) : null}
                         <div className="tizpa-file__actions">
-                          {item.state === UPLOAD_STATES.failed ? (
+                          {item.state === UPLOAD_STATES.failed && item.retryable !== false ? (
                             <Button variant="ghost" size="sm" onClick={() => retryFile(item.id)}>
                               تلاش مجدد
                             </Button>

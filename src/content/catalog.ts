@@ -59,7 +59,6 @@ export const SERVICE_TYPES: ServiceType[] = [
 
 /* ─────────────────────────── گزینه‌های فرم ─────────────────────────── */
 
-export const LANGUAGES = ['فارسی', 'انگلیسی', 'عربی', 'ترکیبی (فارسی-عربی / فارسی-انگلیسی)'] as const;
 
 export const SOURCE_TYPES = ['چاپی', 'دست‌نویس', 'ترکیبی'] as const;
 

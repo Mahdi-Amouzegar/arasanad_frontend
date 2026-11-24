@@ -44,6 +44,23 @@
   gap: var(--sp-3);
 }
 
+.tizpa-form__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.35fr) minmax(0, 0.7fr);
+  gap: var(--sp-3);
+  align-items: end;
+}
+
+.tizpa-form__row > * {
+  min-width: 0;
+}
+
+.tizpa-form__row select,
+.tizpa-form__row input {
+  min-width: 0;
+  width: 100%;
+}
+
 .tizpa-note {
   color: var(--c-text-secondary);
   font-size: var(--fs-sm);
@@ -264,5 +281,20 @@
 
   .tizpa-modal .fm-modal__body {
     padding: var(--sp-4);
+  }
+
+  .tizpa-form__row {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) minmax(0, 0.65fr);
+    gap: var(--sp-2);
+  }
+
+  .tizpa-form__row .field__label {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 380px) {
+  .tizpa-form__row {
+    gap: 6px;
   }
 }

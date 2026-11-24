@@ -835,6 +835,18 @@
 }
 
 /* فاز ۱۲٫۲۴-C: هشدار قابلکلیک به همان کادر هدایت می‌شود. */
+#prj-section-details,
+#prj-section-attachments {
+  scroll-margin-top: 88px;
+  outline: none;
+}
+
+#prj-section-details:focus-visible,
+#prj-section-attachments:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
 .prj-issue-link {
   padding: 0;
   border: 0;

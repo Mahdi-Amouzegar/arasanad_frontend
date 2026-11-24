@@ -72,6 +72,7 @@ export function validateTizpaDraft(draft) {
     issues.push('نام سفارش باید بین ۳ تا ۱۲۰ کاراکتر باشد');
   }
   if (!draft?.serviceTypeId) issues.push('نوع خدمت را انتخاب کنید');
+  if (!draft?.language) issues.push('زبان کار را انتخاب کنید');
   const pages = Number(draft?.sourcePageCount);
   if (
     !Number.isInteger(pages) ||

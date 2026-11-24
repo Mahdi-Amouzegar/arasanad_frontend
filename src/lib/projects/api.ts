@@ -211,6 +211,7 @@ export interface CreateProjectBody {
 export interface CreateTizpaProjectBody {
   name?: string;
   serviceTypeId: string;
+  language?: string;
   sourcePageCount: number;
   fileIds: string[];
   /** فایل‌های موجود/لینک‌های انتخاب‌شده در پنجرهٔ مشترک مدیریت فایل. */
@@ -244,6 +245,23 @@ export type AuthedRequest = <T>(
 ) => Promise<T>;
 
 /* ─────────────────────────── Public catalog ─────────────────────────── */
+
+export interface LanguageCatalog {
+  languages: string[];
+  defaultLanguage: string;
+}
+
+/** مرجع واحد زبان کار؛ لیست در Frontend کپی نمی‌شود. */
+export async function getLanguages(): Promise<LanguageCatalog> {
+  const data = await apiRequest<LanguageCatalog>('/languages');
+  const languages = Array.isArray(data.languages)
+    ? data.languages.filter((item): item is string => typeof item === 'string' && item.length > 0)
+    : [];
+  const defaultLanguage = typeof data.defaultLanguage === 'string'
+    ? data.defaultLanguage
+    : languages[0] ?? '';
+  return { languages, defaultLanguage };
+}
 
 export async function getServiceTypes(): Promise<ServiceType[]> {
   const data = await apiRequest<{ services: ServiceType[] }>('/service-types');

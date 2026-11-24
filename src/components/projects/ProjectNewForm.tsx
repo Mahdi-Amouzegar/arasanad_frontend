@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/account';
 import {
   createProjectsApi,
   getDesignPresets,
+  getLanguages,
   getPricingRules,
   getServiceTypes,
   type CreateProjectBody,
@@ -20,7 +21,6 @@ import {
   DELIVERY_VALUE_MAX,
   DELIVERY_VALUE_MIN,
   deliveryHoursFrom,
-  LANGUAGES,
   OUTPUT_FORMATS,
   PAPER_SIZES,
   SOURCE_TYPES,
@@ -55,27 +55,30 @@ import { ORDER_DESCRIPTION_MAX } from '@/lib/chat/forward-core.mjs';
 const EMPTY_RULES = { urgencyMultiplier: 1.3, depositRatio: 0.5, roundStep: 500 };
 const ATTACHMENT_ISSUE = 'حداقل یک فایل یا لینک پیوست کنید.';
 
-/** فاز ۱۲٫۲۴-C: نگاشت هر هشدار به کادری که باید اصلاح شود. */
+/** فاز ۱۲٫۲۴-C: نگاشت هر هشدار به «بخش» کاغذی که باید اصلاح شود. */
+const DETAILS_SECTION = 'prj-section-details';
+const ATTACHMENTS_SECTION = 'prj-section-attachments';
+
 const ISSUE_TARGETS: Record<string, string> = {
-  name: 'prj-name',
-  serviceTypeId: 'prj-service',
-  language: 'prj-language',
-  sourceType: 'prj-source',
-  sourcePageCount: 'prj-pages',
-  deliveryHours: 'prj-deadline-value',
-  outputFormat: 'prj-format',
-  design: 'prj-design-mode',
-  'design.mode': 'prj-design-mode',
-  'design.spec': 'prj-paper',
-  'design.spec.paperSize': 'prj-paper',
-  [ATTACHMENT_ISSUE]: 'prj-files',
+  name: DETAILS_SECTION,
+  serviceTypeId: DETAILS_SECTION,
+  language: DETAILS_SECTION,
+  sourceType: DETAILS_SECTION,
+  sourcePageCount: DETAILS_SECTION,
+  deliveryHours: DETAILS_SECTION,
+  outputFormat: DETAILS_SECTION,
+  design: DETAILS_SECTION,
+  'design.mode': DETAILS_SECTION,
+  'design.spec': DETAILS_SECTION,
+  'design.spec.paperSize': DETAILS_SECTION,
+  [ATTACHMENT_ISSUE]: ATTACHMENTS_SECTION,
 };
 
 function focusIssue(target: string) {
-  const element = document.getElementById(target);
-  if (!element) return;
-  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  element.focus({ preventScroll: true });
+  const section = document.getElementById(target);
+  if (!section) return;
+  section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  section.focus({ preventScroll: true });
 }
 
 /** Phase 12.8-y: removed service type must stay hidden even from a stale catalog response. */
@@ -106,6 +109,7 @@ export function ProjectNewForm() {
   const [attachedLinks, setAttachedLinks] = useState<SelectedLink[]>([]);
 
   const [services, setServices] = useState<ServiceType[]>([]);
+  const [languages, setLanguages] = useState<string[]>([]);
   const [presets, setPresets] = useState<DesignPreset[]>([]);
   const [rules, setRules] = useState(EMPTY_RULES);
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -113,7 +117,7 @@ export function ProjectNewForm() {
 
   const [name, setName] = useState('');
   const [serviceTypeId, setServiceTypeId] = useState('');
-  const [language, setLanguage] = useState<string>(LANGUAGES[0] ?? '');
+  const [language, setLanguage] = useState<string>('');
   const [sourceType, setSourceType] = useState<string>(SOURCE_TYPES[0] ?? '');
   const [description, setDescription] = useState('');
   const [specialRequirements, setSpecialRequirements] = useState('');
@@ -136,28 +140,29 @@ export function ProjectNewForm() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   /** فاز ۱۲٫۹-ط: تمام ایرادها یکجا بالای دکمه‌ی ثبت نمایش داده می‌شوند. */
-  const [submitIssues, setSubmitIssues] = useState<string[]>([]);
+  const [submitIssues, setSubmitIssues] = useState<Array<{ key: string; message: string }>>([]);
 
   /** فاز ۱۲٫۲۴-C: کلیک روی هشدار، کادر مربوط را نشانه می‌رود. */
-  function handleIssueClick(issue: string) {
-    const target = Object.entries(ISSUE_TARGETS).find(([key]) =>
-      issue.startsWith(key),
-    )?.[1];
+  function handleIssueClick(key: string) {
+    const target = ISSUE_TARGETS[key];
     if (!target) return;
-    if (target === 'prj-files') {
-      setFmOpen(true);
-      return;
-    }
     focusIssue(target);
   }
 
   useEffect(() => {
     let alive = true;
-    void Promise.all([getServiceTypes(), getDesignPresets(), getPricingRules()])
-      .then(([serviceRows, presetRows, ruleRows]) => {
+    void Promise.all([
+      getServiceTypes(),
+      getLanguages(),
+      getDesignPresets(),
+      getPricingRules(),
+    ])
+      .then(([serviceRows, languageCatalog, presetRows, ruleRows]) => {
         if (!alive) return;
         const visibleRows = serviceRows.filter(isVisibleServiceType);
         setServices(visibleRows);
+        setLanguages(languageCatalog.languages);
+        setLanguage((current) => current || languageCatalog.defaultLanguage);
         setPresets(presetRows);
         setRules(ruleRows ?? EMPTY_RULES);
         setServiceTypeId((current) => current || visibleRows[0]?.id || '');
@@ -281,8 +286,8 @@ export function ProjectNewForm() {
     const result = validateProjectDraft(draft);
     const noAttachment = attachedFiles.length === 0 && attachedLinks.length === 0;
     const issues = [
-      ...Object.values(result.errors),
-      ...(noAttachment ? [ATTACHMENT_ISSUE] : []),
+      ...Object.entries(result.errors).map(([key, message]) => ({ key, message })),
+      ...(noAttachment ? [{ key: ATTACHMENT_ISSUE, message: ATTACHMENT_ISSUE }] : []),
     ];
     setSubmitIssues(issues);
     if (issues.length > 0) {
@@ -405,7 +410,7 @@ export function ProjectNewForm() {
           </div>
         ) : null}
 
-        <Card>
+        <Card id={DETAILS_SECTION} tabIndex={-1}>
           <CardHeader title="مشخصات سفارش" />
           <CardBody>
             <div className="prj-grid">
@@ -457,7 +462,7 @@ export function ProjectNewForm() {
                   value={language}
                   onChange={(event) => setLanguage(event.target.value)}
                 >
-                  {LANGUAGES.map((item) => (
+                  {languages.map((item) => (
                     <option key={item} value={item}>
                       {item}
                     </option>
@@ -590,9 +595,11 @@ export function ProjectNewForm() {
             </div>
 
             <div
+              id={ATTACHMENTS_SECTION}
+              tabIndex={-1}
               className={cx(
                 'prj-grid prj-grid--one',
-                submitIssues.includes(ATTACHMENT_ISSUE) &&
+                submitIssues.some((issue) => issue.key === ATTACHMENT_ISSUE) &&
                   'prj-attachment-field--warning',
               )}
             >
@@ -876,13 +883,13 @@ export function ProjectNewForm() {
                   <strong>پیش از ثبت سفارش، موارد زیر را اصلاح کنید:</strong>
                   <ol>
                     {submitIssues.map((issue, index) => (
-                      <li key={`${index}-${issue}`}>
+                      <li key={`${index}-${issue.key}`}>
                         <button
                           type="button"
                           className="prj-issue-link"
-                          onClick={() => handleIssueClick(issue)}
+                          onClick={() => handleIssueClick(issue.key)}
                         >
-                          {issue}
+                          {issue.message}
                         </button>
                       </li>
                     ))}

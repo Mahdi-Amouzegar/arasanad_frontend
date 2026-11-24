@@ -26,14 +26,14 @@ test('P123-01: تنظیمات سایت از همان دامنه لود می‌ش
   assert.match(pkg.scripts.prebuild, /fetch-site-config\.mjs/);
 });
 
-test('P123-02: نوع خدمت فارسی-انگلیسی حذف و زبان ترکیبی تکمیل شد', () => {
+test('P123-02: نوع خدمت فارسی-انگلیسی حذف و زبان‌ها فقط از بکند می‌آیند', () => {
   const catalog = read('src/content/catalog.ts');
   assert.ok(!catalog.includes("id: 'fa-en'"), 'fa-en در کاتالوگ ایستا هست');
-  assert.ok(catalog.includes('ترکیبی (فارسی-عربی / فارسی-انگلیسی)'), 'برچسب زبان ترکیبی تغییر نکرد');
+  assert.ok(!catalog.includes('LANGUAGES'), 'فهرست زبان نباید در فرانت کپی شود');
   const core = read('src/lib/projects/core.mjs');
-  assert.ok(core.includes('ترکیبی (فارسی-عربی / فارسی-انگلیسی)'), 'اعتبارسنجی هسته هماهنگ نیست');
-  // ⚠️ مهاجرت D1 در مخزن بکند است؛ CI فرانت‌اند فقط همین مخزن را چکاوت می‌کند.
-  //    وجود مهاجرت در تست‌های بکند پوشش داده شده است.
+  assert.ok(!core.includes('LANGUAGES'), 'اعتبارسنجی هسته نباید کپی مستقل داشته باشد');
+  const api = read('src/lib/projects/api.ts');
+  assert.match(api, /\/languages/);
   assert.ok(!catalog.includes("'fa-en'"), 'ردیف fa-en هنوز در کاتالوگ هست');
 });
 

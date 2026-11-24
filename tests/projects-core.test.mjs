@@ -14,7 +14,6 @@ import {
   DELIVERY_VALUE_MAX,
   deliveryHoursFrom,
   isAllowedDeliveryHours,
-  LANGUAGES,
   SOURCE_TYPES,
   OUTPUT_FORMATS,
   parseOutputFormats,
@@ -41,7 +40,7 @@ function validDraft(overrides = {}) {
   return {
     name: 'تایپ پایان نامه',
     serviceTypeId: 'svc-1',
-    language: LANGUAGES[0],
+    language: 'فارسی',
     sourceType: SOURCE_TYPES[0],
     description: '',
     specialRequirements: '',
@@ -62,8 +61,6 @@ test('catalog constants are finite, ordered and free of duplicates', () => {
   assert.equal(DELIVERY_VALUE_MAX, 24);
   assert.equal(PROJECT_STATUSES.length, 14);
   assert.equal(new Set(PROJECT_STATUSES).size, 14);
-  assert.equal(LANGUAGES.length, 4);
-  assert.ok(LANGUAGES.includes('ترکیبی (فارسی-عربی / فارسی-انگلیسی)'));
   assert.equal(SOURCE_TYPES.length, 3);
   assert.deepEqual(OUTPUT_FORMATS, ['PDF', 'Word']);
   for (const status of PROJECT_STATUSES) {
@@ -168,7 +165,7 @@ test('validateProjectDraft rejects invalid catalog values and missing design', (
   const bad = validateProjectDraft(
     validDraft({
       serviceTypeId: '',
-      language: 'Klingon',
+      language: '',
       sourceType: 'Unknown',
       sourcePageCount: 0,
       deliveryHours: 25,

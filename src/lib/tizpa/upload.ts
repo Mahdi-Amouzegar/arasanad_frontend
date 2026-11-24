@@ -32,6 +32,8 @@ export interface TizpaUploadItem {
   phase: 'uploading' | 'confirming' | null;
   fileId: string | null;
   reason: string | null;
+  /** خطای نوع/حجم فایل قابلاصلاح با Retry نیست؛ خطای شبکه قابل است. */
+  retryable?: boolean;
 }
 
 export interface TizpaUploadPatch {

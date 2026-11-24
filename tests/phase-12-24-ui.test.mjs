@@ -76,10 +76,11 @@ test('P1224-F4: هشدارهای فرم سفارش قابلکلیک و به کا
   const form = read('components/projects/ProjectNewForm.tsx');
   assert.match(form, /prj-issue-link/);
   assert.match(form, /handleIssueClick/);
-  assert.match(form, /name: 'prj-name'/);
-  assert.match(form, /\[ATTACHMENT_ISSUE\]: 'prj-files'/);
-  assert.match(form, /id="prj-files"/);
-  assert.match(form, /setFmOpen\(true\)/);
+  assert.match(form, /name: DETAILS_SECTION/);
+  assert.match(form, /\[ATTACHMENT_ISSUE\]: ATTACHMENTS_SECTION/);
+  assert.match(form, /id=\{DETAILS_SECTION\}/);
+  assert.match(form, /id=\{ATTACHMENTS_SECTION\}/);
+  assert.match(form, /scrollIntoView\(\{ behavior: 'smooth', block: 'start' \}\)/);
 });
 
 test('P1224-F5: لغو مشتری و فرم نرخmanager مطابق بندها', () => {

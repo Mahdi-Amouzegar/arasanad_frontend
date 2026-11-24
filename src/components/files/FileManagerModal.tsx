@@ -240,6 +240,10 @@ export function FileManagerModal({
         }).catch(() => setLoadingLinks(false));
       }
     } else if (dialog.open) {
+      // بستن پنجره، آپلودهای در حال اجرا را هم لغو می‌کند؛ فایل ذخیره‌شده
+      // توسط مسیر لغو تیزپا (یا Cron) پاک می‌شود و بدون مالک باقی نمی‌ماند.
+      for (const handle of uploadHandlesRef.current.values()) handle.abort();
+      uploadHandlesRef.current.clear();
       dialog.close();
     }
   }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -465,7 +469,11 @@ export function FileManagerModal({
       return;
     }
     try {
-      const link = await linksApi.createLink(normalized, linkDesc.trim() || undefined);
+      const link = await linksApi.createLink(
+        normalized,
+        linkDesc.trim() || undefined,
+        config.batchId,
+      );
       setLinks((prev) => [link, ...prev]);
       setLinkUrl('');
       setLinkDesc('');
