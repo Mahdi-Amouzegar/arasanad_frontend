@@ -99,7 +99,11 @@ test('P123-09: آپلود دارای پیشرفت بای‌تی، میله کل�
   assert.ok(api.includes('XMLHttpRequest') && api.includes('xhr.upload.onprogress'), 'پیشرفت بای‌تی وجود ندارد');
   assert.ok(api.includes("'confirming'"), 'مرحله انتظار تأیید تعریف نشد');
   const modal = read('src/components/files/FileManagerModal.tsx');
-  assert.ok(modal.includes('uploadFileWithProgress(token, item.file, onProgress)'), 'پیشرفت به پنجره وصل نشد');
+  assert.match(
+    modal,
+    /uploadFileWithProgress\(token, item\.file, onProgress(?:, config\.batchId)?\)/,
+    'پیشرفت به پنجره وصل نشد',
+  );
   assert.ok(modal.includes('fm-progress--small') && modal.includes('fm-upload-overall'), 'میله فایل و کل نیست');
   assert.ok(modal.includes('fm-spinner') && modal.includes('awaitingServer'), 'چرخان و حالت نامعین نیست');
   const css = read('src/styles/files.css');

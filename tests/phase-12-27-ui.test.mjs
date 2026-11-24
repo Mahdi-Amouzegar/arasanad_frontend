@@ -72,3 +72,23 @@ test('TIZPA-FE-11: desktop dialog and mobile bottom sheet styles are present', (
   assert.match(css, /safe-area-inset-bottom/);
   assert.match(layout, /styles\/tizpa\.css/);
 });
+
+test('TIZPA-FE-12: Persian typography uses ZWNJ, not a literal escape', () => {
+  const launcher = read('src/components/tizpa/TizpaLauncher.tsx');
+  const zwnj = String.fromCharCode(0x200c);
+  const literalEscape = 'پیش' + String.fromCharCode(92) + 'u200cپرداخت';
+  assert.ok(!launcher.includes(literalEscape), 'escape sequence leaked into the UI');
+  assert.ok(launcher.includes('پیش' + zwnj + 'پرداخت تقریبی'));
+  assert.ok(launcher.includes('پیشنهادی' + zwnj + 'اند'));
+});
+
+test('TIZPA-FE-13: shared file manager replaces the raw file input', () => {
+  const launcher = read('src/components/tizpa/TizpaLauncher.tsx');
+  const api = read('src/lib/projects/api.ts');
+  assert.match(launcher, /FileManagerModal/);
+  assert.match(launcher, /tabs: \['upload', 'select', 'link'\]/);
+  assert.match(launcher, /batchId: batch\?\.id/);
+  assert.doesNotMatch(launcher, /id="tizpa-files"/);
+  assert.doesNotMatch(launcher, /type="file"/);
+  assert.match(api, /linkIds\?: string\[\]/);
+});

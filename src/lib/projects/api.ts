@@ -213,6 +213,8 @@ export interface CreateTizpaProjectBody {
   serviceTypeId: string;
   sourcePageCount: number;
   fileIds: string[];
+  /** فایل‌های موجود/لینک‌های انتخاب‌شده در پنجرهٔ مشترک مدیریت فایل. */
+  linkIds?: string[];
   idempotencyKey: string;
   reservationId?: string | null;
   batchId?: string | null;
@@ -225,6 +227,7 @@ export interface TizpaCreateResult {
   code?: string | null;
   name?: string | null;
   uploadedCount?: number;
+  linkedCount?: number;
 }
 
 export interface ProjectListFilters {

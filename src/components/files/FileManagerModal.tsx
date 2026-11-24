@@ -52,6 +52,13 @@ export interface FileManagerConfig {
   excludeIds?: string[];
   /** اثر انگشت «نام+حجم» فایل‌ها برای جلوگیری از افزودن دوباره. */
   excludeSignatures?: string[];
+  /**
+   * فاز ۱۲٫۲۷: شناسهٔ Batch تیزپا. هنگامی که تنظیم شود، فایل‌های آپلودشده
+   * در همان Batch ثبت می‌شوند تا پاک‌سازی فایل‌های یتیم و Idempotency حفظ شود.
+   */
+  batchId?: string;
+  /** سقف تعداد فایل قابلانتخاب (مثلاً ۲۰ در ثبت تیزپا). */
+  maxFiles?: number;
 }
 
 export interface SelectedFile {
@@ -267,6 +274,11 @@ export function FileManagerModal({
     const newFiles: Array<{ file: File; status: 'pending'; loaded: number; total: number }> = [];
     const { maxFileSize, allowedExtensions } = limits;
     for (const file of Array.from(fileList)) {
+      const maxFiles = config.maxFiles;
+      if (maxFiles !== undefined && pendingFiles.length + newFiles.length >= maxFiles) {
+        setNotice({ type: 'error', message: `حداکثر ${maxFiles} فایل قابلانتخاب است` });
+        break;
+      }
       const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
       if (!allowedExtensions.includes(ext)) {
         setNotice({ type: 'error', message: `فرمت «${ext}» پشتیبانی نمی‌شود؛ مجاز: ${allowedExtensions.join('، ')}` });
@@ -289,7 +301,7 @@ export function FileManagerModal({
     if (newFiles.length > 0) {
       setPendingFiles((prev) => [...prev, ...newFiles]);
     }
-  }, [limits, config.excludeSignatures, pendingFiles]);
+  }, [limits, config.excludeSignatures, config.maxFiles, pendingFiles]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -322,7 +334,7 @@ export function FileManagerModal({
     };
 
     try {
-      const handle = uploadFileWithProgress(token, item.file, onProgress);
+      const handle = uploadFileWithProgress(token, item.file, onProgress, config.batchId);
       uploadHandlesRef.current.set(index, handle);
       const result = await handle.done;
       setPendingFiles((prev) => prev.map((p, i) =>
@@ -341,7 +353,7 @@ export function FileManagerModal({
         } : p,
       ));
     }
-  }, [token, pendingFiles]);
+  }, [token, pendingFiles, config.batchId]);
 
   const handleUploadAll = useCallback(async () => {
     const pending = pendingFiles
@@ -371,7 +383,7 @@ export function FileManagerModal({
       // درخواست به `/files//retry` نرود و خطا تکرار نشود.
       const handle = item.fileId
         ? retryUpload(token, item.fileId, item.file, onProgress)
-        : uploadFileWithProgress(token, item.file, onProgress);
+        : uploadFileWithProgress(token, item.file, onProgress, config.batchId);
       uploadHandlesRef.current.set(index, handle);
       const result = await handle.done;
       setPendingFiles((prev) => prev.map((p, i) =>
@@ -391,7 +403,7 @@ export function FileManagerModal({
         } : p,
       ));
     }
-  }, [token, pendingFiles, refreshExistingFiles]);
+  }, [token, pendingFiles, refreshExistingFiles, config.batchId]);
 
   // ─── Select tab ───
   const toggleExistingFile = useCallback((id: string) => {

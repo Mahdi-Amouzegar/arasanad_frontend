@@ -22,7 +22,8 @@ import {
 
 export interface TizpaUploadItem {
   id: string;
-  file: File;
+  /** فایل محلی فقط برای آپلودهای صف تیزپا؛ فایل موجود/لینک از پنجرهٔ مشترک بدون File محلی‌اند. */
+  file?: File;
   name: string;
   size: number;
   state: string;
@@ -72,10 +73,14 @@ function startUpload(
   item: TizpaUploadItem,
   onProgress: (loaded: number, total: number, phase: 'uploading' | 'confirming') => void,
 ): UploadHandle {
-  if (item.fileId) {
-    return retryUpload(options.token, item.fileId, item.file, onProgress);
+  const localFile = item.file;
+  if (!localFile) {
+    throw new Error('فایل محلی برای آپلود در دسترس نیست');
   }
-  return uploadFileWithProgress(options.token, item.file, onProgress, options.batchId);
+  if (item.fileId) {
+    return retryUpload(options.token, item.fileId, localFile, onProgress);
+  }
+  return uploadFileWithProgress(options.token, localFile, onProgress, options.batchId);
 }
 
 /**

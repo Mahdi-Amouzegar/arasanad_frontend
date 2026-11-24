@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/account';
 import { Button } from '@/components/ui/Button';
 import { FormField, Input, Select } from '@/components/ui/Field';
+import { FileManagerModal, type FileManagerResult } from '@/components/files/FileManagerModal';
 import { Icon } from '@/components/ui/Icon';
 import { getFileConfig, type FileConfig } from '@/lib/files/api';
 import {
@@ -94,6 +95,9 @@ export function TizpaLauncher() {
   const [pageCount, setPageCount] = useState('10');
   const [files, setFiles] = useState<TizpaUploadItem[]>([]);
   const filesRef = useRef<TizpaUploadItem[]>([]);
+  const [fileManagerOpen, setFileManagerOpen] = useState(false);
+  const [linkIds, setLinkIds] = useState<string[]>([]);
+  const linkIdsRef = useRef<string[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [issues, setIssues] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -117,10 +121,16 @@ export function TizpaLauncher() {
     setFiles(next);
   }, []);
 
+  const replaceLinkIds = useCallback((next: string[]) => {
+    linkIdsRef.current = next;
+    setLinkIds(next);
+  }, []);
+
   const close = useCallback(() => {
     closingRef.current = true;
     for (const abort of tizpaAbortRegistry.values()) abort();
     tizpaAbortRegistry.clear();
+    setFileManagerOpen(false);
     setOpen(false);
   }, []);
 
@@ -129,10 +139,14 @@ export function TizpaLauncher() {
     const dialog = dialogRef.current;
     if (dialog && !dialog.open) dialog.showModal();
     return registerBackDismiss(() => {
+      if (fileManagerOpen) {
+        setFileManagerOpen(false);
+        return true;
+      }
       close();
       return true;
     });
-  }, [open, close]);
+  }, [open, close, fileManagerOpen]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -162,6 +176,8 @@ export function TizpaLauncher() {
         setServiceTypeId((current) => current || visible[0]?.id || '');
         setPageCount('10');
         replaceFiles([]);
+        replaceLinkIds([]);
+        setFileManagerOpen(false);
         keyRef.current = null;
       })
       .catch((caught) => {
@@ -173,7 +189,7 @@ export function TizpaLauncher() {
     return () => {
       alive = false;
     };
-  }, [open, tizpaApi, replaceFiles]);
+  }, [open, tizpaApi, replaceFiles, replaceLinkIds]);
 
   const service = services.find((item) => item.id === serviceTypeId) ?? null;
   const pages = Number(pageCount) || 1;
@@ -240,6 +256,50 @@ export function TizpaLauncher() {
     if (rejected.length > 0) setIssues(rejected);
   }
 
+  /**
+   * پنجرهٔ مشترک مدیریت فایل: آپلود، فایل موجود یا لینک خارجی.
+   * ⚠️ فایل‌های آپلودشده در همان Batch تیزپا ثبت می‌شوند؛ فایل‌های موجود و
+   *    لینکها توسط بکند دوباره بررسی و هنگام ایجاد سفارش Snapshot می‌شوند.
+   */
+  function handleFileManagerSelect(selected: FileManagerResult) {
+    const usedIds = new Set(
+      filesRef.current.filter((item) => item.fileId).map((item) => item.fileId as string),
+    );
+    const signatures = new Set(filesRef.current.map((item) => fileSignature(item.name, item.size)));
+    const accepted: TizpaUploadItem[] = [];
+    const rejected: string[] = [];
+    for (const file of selected.files) {
+      if (filesRef.current.length + accepted.length >= TIZPA_LIMITS.maxFiles) {
+        rejected.push(`${file.originalName}: حداکثر ۲۰ فایل مجاز است`);
+        break;
+      }
+      if (usedIds.has(file.id)) continue;
+      const signature = fileSignature(file.originalName, file.sizeBytes);
+      if (signatures.has(signature)) continue;
+      usedIds.add(file.id);
+      signatures.add(signature);
+      accepted.push({
+        id: `fm-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+        name: file.originalName,
+        size: file.sizeBytes,
+        state: UPLOAD_STATES.success,
+        attempts: 0,
+        progress: 100,
+        phase: null,
+        fileId: file.id,
+        reason: null,
+      });
+    }
+    if (accepted.length > 0) {
+      replaceFiles([...filesRef.current, ...accepted]);
+    }
+    const nextLinks = [
+      ...new Set([...linkIdsRef.current, ...selected.links.map((link) => link.id)]),
+    ].slice(0, TIZPA_LIMITS.maxFiles);
+    replaceLinkIds(nextLinks);
+    setIssues(rejected);
+  }
+
   function onDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setDragActive(false);
@@ -284,6 +344,7 @@ export function TizpaLauncher() {
         .filter((item) => item.state === UPLOAD_STATES.success && item.fileId)
         .map((item) => item.fileId)
         .sort(),
+      linkIds: [...linkIdsRef.current].sort(),
       reservationId: reservation?.id ?? null,
     });
     if (keyRef.current?.signature !== signature) {
@@ -299,7 +360,10 @@ export function TizpaLauncher() {
     const uploaded = filesRef.current.filter(
       (item) => item.state === UPLOAD_STATES.success && item.fileId,
     );
-    if (uploaded.length === 0) found.push('حداقل یک فایل باید با موفقیت آپلود شود');
+    const attachedLinks = linkIdsRef.current;
+    if (uploaded.length === 0 && attachedLinks.length === 0) {
+      found.push('حداقل یک فایل یا لینک باید انتخاب شود');
+    }
     if (summary.pending > 0) found.push('منتظر پایان آپلود فایل‌ها بمانید');
     if (found.length > 0) {
       setIssues(found);
@@ -313,6 +377,7 @@ export function TizpaLauncher() {
         serviceTypeId,
         sourcePageCount: Number(pageCount),
         fileIds: uploaded.map((item) => item.fileId as string),
+        linkIds: attachedLinks,
         idempotencyKey: requestKey(),
         reservationId: reservation?.id,
         batchId: batch?.id,
@@ -330,11 +395,6 @@ export function TizpaLauncher() {
       setSubmitting(false);
     }
   }
-
-  const acceptedExtensions = useMemo(
-    () => (config?.allowedExtensions ?? []).map((item) => `.${item}`).join(','),
-    [config],
-  );
 
   return (
     <>
@@ -385,7 +445,7 @@ export function TizpaLauncher() {
                 <h3>{result.name ?? result.project.name}</h3>
                 <p className="tizpa-result__code">کد سفارش: <strong>{result.code ?? result.project.code}</strong></p>
                 <p>
-                  {result.uploadedCount ?? 0} فایل با موفقیت پیوست شد
+                  {result.uploadedCount ?? 0} فایل و {result.linkedCount ?? 0} لینک با موفقیت پیوست شد
                   {summary.failed > 0 ? ` و ${summary.failed} فایل ناموفق ماند` : ''}.
                 </p>
                 {summary.failed > 0 ? (
@@ -465,22 +525,16 @@ export function TizpaLauncher() {
                   onDrop={onDrop}
                 >
                   <Icon name="upload" size={22} />
-                  <p>فایل‌ها را اینجا بکشید یا انتخاب کنید</p>
-                  <label className="btn btn--secondary btn--sm" htmlFor="tizpa-files">
-                    انتخاب فایل
-                  </label>
-                  <input
-                    id="tizpa-files"
-                    className="tizpa-drop__input"
-                    type="file"
-                    multiple
+                  <p>فایل\u200cها را اینجا بکشید یا از طریق دکمهٔ زیر انتخاب کنید</p>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
                     disabled={catalogLoading || !batch || !config}
-                    accept={acceptedExtensions}
-                    onChange={(event) => {
-                      addFiles(event.target.files);
-                      event.target.value = '';
-                    }}
-                  />
+                    onClick={() => setFileManagerOpen(true)}
+                  >
+                    انتخاب فایل
+                  </Button>
                   <span className="tizpa-drop__hint">
                     حداکثر ۲۰ فایل، هر فایل تا ۵۰ مگابایت
                   </span>
@@ -539,12 +593,13 @@ export function TizpaLauncher() {
 
                 <div className="tizpa-summary" aria-live="polite">
                   <span>برآورد تقریبی: <strong>{formatAmount(estimate)}</strong></span>
-                  <span>پیش\u200cپرداخت تقریبی: <strong>{formatAmount(deposit)}</strong></span>
+                  <span>پیش‌پرداخت تقریبی: <strong>{formatAmount(deposit)}</strong></span>
                   <span>
-                    فایل‌ها: {summary.success} موفق / {summary.failed} ناموفق /
+                    فایل\u200cها: {summary.success} موفق / {summary.failed} ناموفق /
                     {' '}{summary.pending} در جریان
                   </span>
-                  <small>مبالغ فوق پیشنهادیاند؛ نرخ نهایی و بیعانه توسط مدیر تعیین می‌شود.</small>
+                  <span>لینک\u200cها: {linkIds.length}</span>
+                  <small>مبالغ فوق پیشنهادی‌اند؛ نرخ نهایی و بیعانه توسط مدیر تعیین می‌شود.</small>
                 </div>
 
                 {issues.length > 0 ? (
@@ -559,7 +614,11 @@ export function TizpaLauncher() {
                   <Button
                     type="submit"
                     loading={submitting}
-                    disabled={catalogLoading || summary.pending > 0 || summary.success === 0}
+                    disabled={
+                      catalogLoading ||
+                      summary.pending > 0 ||
+                      (summary.success === 0 && linkIds.length === 0)
+                    }
                   >
                     ثبت سفارش
                   </Button>
@@ -569,6 +628,24 @@ export function TizpaLauncher() {
           </div>
         </div>
       </dialog>
+
+      <FileManagerModal
+        open={fileManagerOpen}
+        onClose={() => setFileManagerOpen(false)}
+        config={{
+          role: 'customer',
+          defaultTab: 'upload',
+          title: 'فایل\u200cهای سفارش تیزپا',
+          tabs: ['upload', 'select', 'link'],
+          batchId: batch?.id,
+          maxFiles: TIZPA_LIMITS.maxFiles,
+          excludeIds: filesRef.current
+            .filter((item) => item.fileId)
+            .map((item) => item.fileId as string),
+          excludeSignatures: filesRef.current.map((item) => fileSignature(item.name, item.size)),
+        }}
+        onSelect={handleFileManagerSelect}
+      />
     </>
   );
 }
