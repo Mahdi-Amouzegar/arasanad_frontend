@@ -1,5 +1,5 @@
 /**
- * فاز ۱۲٫۱۶ — رفتار ظاهری و قرارداد متنها در فرانت‌اند.
+ * فاز ۱۲٫۱۶ — رفتار ظاهری و قرارداد متن‌ها در فرانت‌اند.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

@@ -7,17 +7,24 @@
  * API is unreachable in CI, the committed snapshot is kept as a safe fallback.
  */
 
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 const OUTPUT = fileURLToPath(new URL('../public/site-config.json', import.meta.url));
 const API_URL = 'https://api.arasanad.ir/api/v1/site/config';
-const FALLBACK = {
-  adminTelegram: 'mehdi_amouz',
-  botUsername: 'ArasanadBot',
-  // فاز ۱۲٫۳۰-A: در صورت دردسترس نبودن API، نسخهٔ قبلی اسنپشات
-  // حفظ می‌شود؛ مقادیر پیش\u200cفرض فقط از بکند می\u200cآیند و در کد فرانت تکرار نمی\u200cشوند.
-};
+
+// فاز ۱۲٫۳۱: هنگام دردسترس نبودن API، اسنپشات موجود (شامل `order`) دقیقاً
+// حفظ می‌شود. مقدارهای پیش‌فرض خروجی فقط از بکند می‌آیند و در فرانت تکرار
+// نمی‌شوند؛ نوشتن Fallback بدون `order` چکباکسهای تیزپا را ناپدید می\u200cکرد.
+async function committedSnapshot() {
+  try {
+    const parsed = JSON.parse(await readFile(OUTPUT, 'utf8'));
+    if (parsed && typeof parsed === 'object') return parsed;
+  } catch {
+    /* فایل موجود نیست یا قابلخواندن نیست */
+  }
+  return { adminTelegram: 'mehdi_amouz', botUsername: 'ArasanadBot' };
+}
 
 /** fetch فقط هدرها را پوشش می‌دهد؛ خواندن بدنه هم نیاز به مهلت جدا دارد. */
 function withTimeout(promise, ms, label) {
@@ -34,7 +41,7 @@ function isHandle(value) {
   return typeof value === 'string' && /^[A-Za-z0-9_]{3,32}$/.test(value);
 }
 
-let next = FALLBACK;
+let next = await committedSnapshot();
 try {
   const response = await withTimeout(
     fetch(API_URL, { headers: { Accept: 'application/json' }, signal: AbortSignal.timeout(6000) }),

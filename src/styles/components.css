@@ -1062,6 +1062,25 @@ a.badge--link:focus-visible {
   max-width: 34ch;
 }
 
+.alert__reason {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  width: 100%;
+  font-size: var(--fs-sm);
+  color: var(--c-text-secondary);
+}
+
+.alert__reason input {
+  width: 100%;
+  min-height: 40px;
+  padding: var(--sp-2);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  background: var(--c-surface);
+  color: var(--c-text);
+}
+
 .alert__actions {
   display: flex;
   flex-direction: column;

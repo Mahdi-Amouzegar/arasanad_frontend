@@ -31,12 +31,17 @@
 .tizpa-modal .fm-modal__body {
   padding: var(--sp-5);
   overflow-y: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .tizpa-form {
   display: flex;
   flex-direction: column;
   gap: var(--sp-4);
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 .tizpa-form__fields {
@@ -213,8 +218,15 @@
   display: flex;
   justify-content: space-between;
   gap: var(--sp-2);
-  padding-block-start: var(--sp-2);
+  padding-block: var(--sp-3) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
   border-block-start: 1px solid var(--c-border);
+  /* تنها محتوای بالای پنجره اسکرول می‌شود؛ دکمه‌ها همیشه در انتها دیدهاند. */
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 2;
+  margin-block-start: auto;
+  background: var(--c-surface);
+  flex-shrink: 0;
 }
 
 .tizpa-result {
@@ -314,6 +326,28 @@
   gap: 6px;
   font-size: 0.78rem;
   color: var(--text-muted, var(--text-2, #94a3b8));
+}
+
+.tizpa-compact--formats {
+  align-items: flex-start;
+}
+
+.tizpa-format-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.tizpa-format-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--border, #334155);
+  border-radius: 6px;
+  background: var(--surface, #0f172a);
+  color: var(--text, #e2e8f0);
+  cursor: pointer;
 }
 
 .tizpa-compact select {

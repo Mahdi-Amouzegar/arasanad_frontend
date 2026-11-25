@@ -1,6 +1,8 @@
 'use client';
 import { CopyableCode } from '@/components/projects/CopyableCode';
 import { AdminCreditPanel } from '@/components/finance/CreditPanels';
+import { financeStatLabel } from '@/lib/admin/labels';
+import { PROJECT_STATUS } from '@/lib/status';
 
 /**
  * فاز ۱۰ (زیرفاز ۱۰-س / ۱۰-ض) — پنلهای واقعی مالی.
@@ -405,7 +407,7 @@ function ReconciliationCard() {
           <>
             <div className="fin-stats">
               {Object.entries(view.totals).map(([key, value]) => (
-                <div key={key}><span>{key}</span><strong><Money value={Number(value)} /></strong></div>
+                <div key={key}><span>{financeStatLabel(key)}</span><strong><Money value={Number(value)} /></strong></div>
               ))}
             </div>
             <p className="prj-note">
@@ -423,7 +425,7 @@ function ReconciliationCard() {
                         <td><CopyableCode value={row.code} label="کد سفارش" /></td>
                         <td><Money value={Number(row.escrowBalance)} /></td>
                         <td><Money value={Number(row.settledAmount)} /></td>
-                        <td>{row.status}</td>
+                        <td>{PROJECT_STATUS[row.status as keyof typeof PROJECT_STATUS]?.label ?? 'وضعیت نامشخص'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -472,7 +474,16 @@ export function AdminWalletsPanel() {
                 <tbody>
                   {wallets.map((row) => (
                     <tr key={String(row.user_id)}>
-                      <td className="prj-muted">{String(row.user_id)}</td>
+                      <td>
+                        <strong>
+                          {[row.first_name, row.last_name].filter(Boolean).join(' ')
+                            || row.display_name
+                            || 'نام کاربر موجود نیست'}
+                        </strong>
+                        <div className="prj-muted">
+                          {row.username ? `@${row.username}` : 'نام کاربری موجود نیست'}
+                        </div>
+                      </td>
                       <td><Money value={Number(row.available ?? 0)} /></td>
                       <td><Money value={Number(row.reserved ?? 0)} /></td>
                     </tr>

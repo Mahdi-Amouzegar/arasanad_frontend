@@ -82,18 +82,19 @@ export function TizpaLauncher() {
   const { token, user, authedRequest } = useAuth();
   const router = useRouter();
   const { order: siteOrder } = useSiteConfig('');
-  const [outputFormat, setOutputFormat] = useState('');
+  const [outputFormats, setOutputFormats] = useState<string[]>([]);
   const [creditEnabled, setCreditEnabled] = useState(false);
   const [paymentMode, setPaymentMode] = useState<'cash' | 'credit'>('credit');
 
   useEffect(() => {
     const allowed = siteOrder.allowedOutputFormats;
     if (allowed.length === 0) return;
-    setOutputFormat((current) =>
-      allowed.includes(current)
-        ? current
-        : (siteOrder.defaultOutputFormat || allowed[0] || ''),
-    );
+    setOutputFormats((current) => {
+      const valid = current.filter((item) => allowed.includes(item));
+      if (valid.length > 0) return valid;
+      const preferred = siteOrder.defaultOutputFormat || allowed[0];
+      return preferred ? [preferred] : [];
+    });
   }, [siteOrder.defaultOutputFormat, siteOrder.allowedOutputFormats]);
 
   useEffect(() => {
@@ -439,7 +440,7 @@ export function TizpaLauncher() {
         .sort(),
       linkIds: [...linkIdsRef.current].sort(),
       reservationId: reservation?.id ?? null,
-      outputFormat,
+      outputFormat: outputFormats.join(', '),
       paymentMode: creditEnabled ? paymentMode : null,
     });
     if (keyRef.current?.signature !== signature) {
@@ -475,7 +476,7 @@ export function TizpaLauncher() {
         serviceTypeId,
         language,
         sourcePageCount: Number(pageCount),
-        outputFormat: outputFormat || undefined,
+        outputFormat: outputFormats.length > 0 ? outputFormats : undefined,
         paymentMode: creditEnabled ? paymentMode : undefined,
         fileIds: uploaded.map((item) => item.fileId as string),
         linkIds: attachedLinks,
@@ -644,18 +645,32 @@ export function TizpaLauncher() {
                   </div>
                   <div className="tizpa-form__compact">
                     {siteOrder.allowedOutputFormats.length > 0 && (
-                      <label className="tizpa-compact">
-                        <span>خروجی</span>
-                        <select
-                          id="tizpa-output-format"
-                          value={outputFormat}
-                          onChange={(event) => setOutputFormat(event.target.value)}
+                      <div className="tizpa-compact tizpa-compact--formats">
+                        <span id="tizpa-output-format-label">خروجی</span>
+                        <div
+                          className="tizpa-format-options"
+                          role="group"
+                          aria-labelledby="tizpa-output-format-label"
+                          aria-describedby="tizpa-output-format-hint"
                         >
                           {siteOrder.allowedOutputFormats.map((item) => (
-                            <option key={item} value={item}>{item}</option>
+                            <label key={item} className="tizpa-format-option">
+                              <input
+                                type="checkbox"
+                                checked={outputFormats.includes(item)}
+                                onChange={(event) =>
+                                  setOutputFormats((current) =>
+                                    event.target.checked
+                                      ? Array.from(new Set([...current, item]))
+                                      : current.filter((value) => value !== item),
+                                  )
+                                }
+                              />
+                              {item}
+                            </label>
                           ))}
-                        </select>
-                      </label>
+                        </div>
+                      </div>
                     )}
                     {creditEnabled && (
                       <label className="tizpa-compact">
@@ -673,6 +688,11 @@ export function TizpaLauncher() {
                     )}
                   </div>
                 </div>
+                {outputFormats.length === 0 && siteOrder.allowedOutputFormats.length > 0 ? (
+                  <p className="tizpa-note--error" role="alert">
+                    حداقل یک فرمت خروجی (Word یا PDF) انتخاب کنید.
+                  </p>
+                ) : null}
 
                 <div
                   className={cx('tizpa-drop', dragActive && 'tizpa-drop--active')}
@@ -769,6 +789,7 @@ export function TizpaLauncher() {
                     loading={submitting}
                     disabled={
                       catalogLoading ||
+                      outputFormats.length === 0 ||
                       summary.pending > 0 ||
                       (summary.success === 0 && linkIds.length === 0)
                     }

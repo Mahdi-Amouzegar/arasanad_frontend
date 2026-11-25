@@ -17,12 +17,20 @@ export interface DashboardCard {
   href: string;
 }
 
+export type CustomerAccessStatus = 'normal' | 'credit' | 'disabled';
+
 export interface AdminUser {
   id: string;
   username: string;
   displayName: string;
+  firstName: string;
+  lastName: string;
   role: string;
+  /** وضعیت امنیتی حساب؛ با حالت دسترسی مشتری متفاوت است. */
   status: string;
+  customerAccess: CustomerAccessStatus;
+  creditEnabled: boolean;
+  avatarUrl: string | null;
   createdAt: string;
   lastLoginAt: string | null;
 }
@@ -136,6 +144,10 @@ export interface AdminApi {
   dashboardCards(): Promise<DashboardCardsSection>;
   users(query?: string, offset?: number): Promise<{ users: AdminUser[]; page: PageMeta }>;
   userDetail(id: string): Promise<AdminUserDetail>;
+  updateUserAccessStatus(
+    id: string,
+    input: { status: CustomerAccessStatus; reason: string },
+  ): Promise<{ user: AdminUser; unchanged?: boolean }>;
   serviceTypes(): Promise<{ services: ServiceType[] }>;
   saveServiceType(id: string, patch: Partial<Pick<ServiceType, 'name' | 'pricePerPage' | 'description' | 'isPopular' | 'isActive' | 'sortOrder'>>): Promise<{ service: ServiceType }>;
   createServiceType(input: { slug: string; name: string; pricePerPage: number; description?: string }): Promise<{ service: ServiceType }>;
@@ -179,6 +191,11 @@ export function createAdminApi(request: AuthedRequest): AdminApi {
     files: (uploader, offset, scope) => request(`/admin/files${q({ uploader, offset, scope })}`),
     users: (query, offset) => request(`/admin/users${q({ q: query, offset })}`),
     userDetail: (id) => request(`/admin/users/${encodeURIComponent(id)}`),
+    updateUserAccessStatus: (id, input) =>
+      request(`/admin/users/${encodeURIComponent(id)}/access-status`, {
+        method: 'PATCH',
+        body: input,
+      }),
     serviceTypes: () => request('/admin/service-types'),
     saveServiceType: (id, patch) => request(`/admin/service-types/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),
     createServiceType: (input) => request('/admin/service-types', { method: 'POST', body: input }),

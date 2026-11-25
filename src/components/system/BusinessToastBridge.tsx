@@ -14,6 +14,11 @@ import { useAlert } from '@/components/ui/AlertProvider';
 import { useRealtimeEvent } from './RealtimeProvider';
 import { claimRealtimeEventId } from '@/lib/realtime/core.mjs';
 import { businessToastFor } from '@/lib/realtime/toast.mjs';
+import { useNotifications } from '@/components/chat/NotificationProvider';
+import {
+  catalogEventTypeForRealtime,
+  eventChannelEnabled,
+} from '@/lib/notifications/preferences.mjs';
 import { PROJECT_STATUS, type ProjectStatus } from '@/lib/status';
 
 const BUSINESS_TYPES = [
@@ -33,10 +38,15 @@ function statusLabel(value: string): string {
 
 export function BusinessToastBridge() {
   const { showToast } = useAlert();
+  const { settings } = useNotifications();
   const seenRef = useRef<Set<string>>(new Set());
 
   useRealtimeEvent([...BUSINESS_TYPES], (event) => {
     if (!claimRealtimeEventId(seenRef.current, event.id)) return;
+    // فاز ۱۲٫۳۱: فقط Toast ناشی از رویداد سامانه خاموش می‌شود؛ پیام‌های خطا،
+    // تأیید عملیات و بازخورد تعاملی از AlertProvider مستقل‌اند.
+    const eventType = catalogEventTypeForRealtime(event.type);
+    if (!eventChannelEnabled(settings, eventType, 'inapp')) return;
     const toast = businessToastFor(event, statusLabel);
     if (toast) showToast(toast);
   });

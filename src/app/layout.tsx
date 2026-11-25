@@ -80,12 +80,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AndroidBackHandler />
           <AccountProvider>
             <RealtimeProvider>
-              {/* فاز ۱۲٫۲۰-B: Toast سراسری در تمام تبها و نوتیف مرورگر تکتب. */}
-              <BusinessToastBridge />
               {/* فاز ۹: گفتگو و اعلان، یک وضعیت سراسری در تمام صفحات.
                   ⚠️ ترتیب وابستگی: هر دو Provider به useAuth نیاز دارند،
                      پس حتماً درون AccountProvider قرار می‌گیرند. */}
               <NotificationProvider>
+                {/* فاز ۱۲٫۳۱: Toast رویدادی تنظیمات کانال داخلی را از Provider می‌خواند. */}
+                <BusinessToastBridge />
                 <BrowserNotificationBridge />
                 {/* فاز ۹٫۵: زنگوله‌ی عملیات، مستقل از اعلان فاز ۹. */}
                 <ActivityProvider>

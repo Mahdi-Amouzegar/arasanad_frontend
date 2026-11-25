@@ -195,7 +195,7 @@ export interface CreateProjectBody {
   description: string;
   sourcePageCount: number;
   deliveryHours: number;
-  outputFormat: string;
+  outputFormat: string | string[];
   /** فاز ۱۲٫۳۰: درخواست روش پرداخت؛ تصمیم نهایی همیشه در بکند است. */
   paymentMode?: 'cash' | 'credit';
   specialRequirements: string;
@@ -216,7 +216,7 @@ export interface CreateTizpaProjectBody {
   language?: string;
   sourcePageCount: number;
   /** فاز ۱۲٫۳۰: اختیاری؛ در هش Idempotency درخواست منظور می‌شود. */
-  outputFormat?: string;
+  outputFormat?: string | string[];
   paymentMode?: 'cash' | 'credit';
   fileIds: string[];
   /** فایل‌های موجود/لینک‌های انتخاب‌شده در پنجرهٔ مشترک مدیریت فایل. */

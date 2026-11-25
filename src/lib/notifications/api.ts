@@ -25,11 +25,36 @@ export interface NotificationPage {
   limit: number;
 }
 
+export type NotificationChannel = 'telegram' | 'browser' | 'inapp';
+export type NotificationChannelFlags = Record<NotificationChannel, boolean>;
+export type NotificationGroupId = 'system' | 'admin' | 'self';
+
+export interface NotificationCatalogItem {
+  type: string;
+  title: string;
+  group: NotificationGroupId;
+  channels: NotificationChannelFlags;
+}
+
+export interface NotificationGroupMeta {
+  id: NotificationGroupId;
+  title: string;
+}
+
+export interface NotificationSettings {
+  channels: NotificationChannelFlags;
+  events: Record<string, Partial<NotificationChannelFlags>>;
+  updatedAt: string | null;
+  catalog?: NotificationCatalogItem[];
+  groups?: NotificationGroupMeta[];
+}
+
 export interface TelegramStatus {
   connected: boolean;
   enabled: boolean;
   botStartedAt: string | null;
   channelEnabled: boolean;
+  browserEnabled?: boolean;
   botUsername: string;
   startUrl: string;
 }
@@ -94,6 +119,30 @@ export function createNotificationsApi(request: AuthedRequest) {
         body: {},
       });
       return Number(data.updated ?? 0);
+    },
+
+    /** فاز ۱۲٫۳۱ — تنظیمات کانالها و تکرویدادها از مرجع بکند. */
+    async settings(): Promise<NotificationSettings> {
+      return request<NotificationSettings>('/notifications/settings');
+    },
+
+    async catalog(): Promise<{
+      catalog: NotificationCatalogItem[];
+      groups: NotificationGroupMeta[];
+    }> {
+      return request<{ catalog: NotificationCatalogItem[]; groups: NotificationGroupMeta[] }>(
+        '/notifications/catalog',
+      );
+    },
+
+    async saveSettings(payload: {
+      channels?: Partial<NotificationChannelFlags>;
+      events?: Array<{ type: string } & Partial<NotificationChannelFlags>>;
+    }): Promise<NotificationSettings> {
+      return request<NotificationSettings>('/notifications/settings', {
+        method: 'PATCH',
+        body: payload,
+      });
     },
 
     async telegramStatus(): Promise<TelegramStatus> {

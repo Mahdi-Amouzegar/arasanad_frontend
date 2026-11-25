@@ -23,7 +23,13 @@ import {
   type ReactNode,
 } from 'react';
 import { useAuth } from '@/lib/account';
-import { createNotificationsApi, type NotificationItem, type TelegramStatus } from '@/lib/notifications/api';
+import {
+  createNotificationsApi,
+  type NotificationChannelFlags,
+  type NotificationItem,
+  type NotificationSettings,
+  type TelegramStatus,
+} from '@/lib/notifications/api';
 import {
   installAudioUnlock,
   notificationPermission,
@@ -53,6 +59,14 @@ interface NotificationContextValue {
   error: string | null;
   permission: NotificationPermission | 'unsupported';
   telegramStatus: TelegramStatus | null;
+  /** فاز ۱۲٫۳۱ — تنظیمات کانالها و رویداد‌ها؛ از بکند و بین دستگاه‌ها همگام. */
+  settings: NotificationSettings | null;
+  settingsLoading: boolean;
+  loadSettings: () => Promise<void>;
+  updateSettings: (payload: {
+    channels?: Partial<NotificationChannelFlags>;
+    events?: Array<{ type: string } & Partial<NotificationChannelFlags>>;
+  }) => Promise<void>;
   refresh: () => Promise<void>;
   loadMore: () => Promise<void>;
   markRead: (id: string) => Promise<void>;
@@ -88,6 +102,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     notificationPermission(),
   );
   const [telegramStatus, setTelegramStatus] = useState<TelegramStatus | null>(null);
+  const [settings, setSettings] = useState<NotificationSettings | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+  const settingsSeqRef = useRef(0);
 
   const lastCountRef = useRef(0);
   const lastPollRef = useRef(0);
@@ -213,6 +230,35 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, [api, signedIn]);
 
+  const loadSettings = useCallback(async () => {
+    if (!signedIn) return;
+    const requestId = ++settingsSeqRef.current;
+    setSettingsLoading(true);
+    try {
+      const value = await api.settings();
+      if (requestId === settingsSeqRef.current) setSettings(value);
+    } catch {
+      /* تنظیمات اختیاریاند؛ تلاش بعدی هنگام بازگشت تب انجام می‌شود. */
+    } finally {
+      if (requestId === settingsSeqRef.current) setSettingsLoading(false);
+    }
+  }, [api, signedIn]);
+
+  const updateSettings = useCallback(
+    async (payload: {
+      channels?: Partial<NotificationChannelFlags>;
+      events?: Array<{ type: string } & Partial<NotificationChannelFlags>>;
+    }) => {
+      if (!signedIn) return;
+      const value = await api.saveSettings(payload);
+      setSettings(value);
+      // تب‌های همان مرورگر بدون درخواست تازه از همان پاسخ استفاده می‌کنند.
+      publish('notification-settings', { updatedAt: value.updatedAt });
+      if (payload.channels?.telegram !== undefined) void refreshTelegramStatus();
+    },
+    [api, publish, refreshTelegramStatus, signedIn],
+  );
+
   const connectTelegram = useCallback(async (): Promise<string | null> => {
     if (!signedIn) return null;
     try {
@@ -243,6 +289,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!signedIn) return undefined;
     void refreshTelegramStatus();
+    void loadSettings();
     // Phase 12.17: skip business polling while realtime is connected.
     if (connected) return undefined;
     let alive = true;
@@ -315,12 +362,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         window.removeEventListener('keydown', noteInteraction);
       }
     };
-  }, [refresh, reconcileUnread, refreshTelegramStatus, signedIn, isLeader, online, multiplier, connected]);
+  }, [refresh, reconcileUnread, refreshTelegramStatus, loadSettings, signedIn, isLeader, online, multiplier, connected]);
 
   /** تب‌های پیرو شمارنده، نسخه سرور و فهرست اعلان را بدون HTTP از رهبر می‌گیرند. */
   useEffect(() => {
     if (!signedIn || isLeader) return undefined;
     return subscribe((message) => {
+      if (message.channel === 'notification-settings') {
+        void loadSettings();
+        return;
+      }
       if (message.channel === 'notifications-list') {
         const payload = message.payload as { notifications?: unknown; hasMore?: unknown } | null;
         if (Array.isArray(payload?.notifications)) {
@@ -345,7 +396,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       lastCountRef.current = safe;
       void setAppBadge(safe);
     });
-  }, [isLeader, signedIn, subscribe]);
+  }, [isLeader, loadSettings, signedIn, subscribe]);
 
   /** رهبر فهرست اعلان را برای تب‌های پیرو پخش می‌کند. */
   useEffect(() => {
@@ -360,8 +411,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, [isLeader, reconcileUnread, signedIn]);
 
   // Phase 12.17: realtime events replace business polling while connected.
-  useRealtimeEvent(['notification.created', 'notification.read'], (event) => {
+  useRealtimeEvent(
+    ['notification.created', 'notification.read', 'notification.settings.changed'],
+    (event) => {
     if (!signedIn) return;
+    if (event.type === 'notification.settings.changed') {
+      void loadSettings();
+      return;
+    }
     const result = applyBadgeEvent(badgeRef.current, event);
     if (!result.changed) return;
     commitBadge(result.state);
@@ -369,7 +426,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     if (!isLeader) return;
     if (event.type === 'notification.created') void refresh();
     else void reconcileUnread();
-  });
+    },
+  );
 
   const value = useMemo<NotificationContextValue>(
     () => ({
@@ -381,6 +439,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       error,
       permission,
       telegramStatus,
+      settings,
+      settingsLoading,
+      loadSettings,
+      updateSettings,
       refresh,
       loadMore,
       markRead,
@@ -392,6 +454,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }),
     [
       signedIn, unreadCount, notifications, hasMore, loading, error, permission, telegramStatus,
+      settings, settingsLoading, loadSettings, updateSettings,
       refresh, loadMore, markRead, markAllRead, enableBrowserNotifications,
       connectTelegram, setTelegramEnabled, refreshTelegramStatus,
     ],

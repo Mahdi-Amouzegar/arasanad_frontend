@@ -34,7 +34,10 @@ test('P1230FE-03: کنترل فشرده تیزپا سه فیلد اصلی را �
   const css = read('src/styles/tizpa.css');
   assert.match(launcher, /className="tizpa-form__row"/);
   assert.match(launcher, /className="tizpa-form__compact"/);
-  assert.match(launcher, /id="tizpa-output-format"/);
+  // فاز ۱۲٫۳۱: همان کنترل فشرده اکنون دو چک‌باکس مستقل Word/PDF است.
+  assert.match(launcher, /id="tizpa-output-format-label"/);
+  assert.match(launcher, /className="tizpa-format-options"/);
+  assert.match(launcher, /type="checkbox"/);
   assert.match(css, /\.tizpa-form__compact \{/);
   assert.match(css, /\.tizpa-form__row \{[\s\S]*grid-template-columns: minmax\(0, 1\.25fr\)/);
 });
@@ -42,9 +45,9 @@ test('P1230FE-03: کنترل فشرده تیزپا سه فیلد اصلی را �
 test('P1230FE-04: فرمت و روش پرداخت در هش Idempotency تیزپا شرکت می‌کنند', () => {
   const launcher = read('src/components/tizpa/TizpaLauncher.tsx');
   const api = read('src/lib/projects/api.ts');
-  assert.match(launcher, /reservationId: reservation\?\.id \?\? null,\s+outputFormat,\s+paymentMode:/);
-  assert.match(launcher, /outputFormat: outputFormat \|\| undefined/);
-  assert.match(api, /outputFormat\?: string/);
+  assert.match(launcher, /reservationId: reservation\?\.id \?\? null,\s+outputFormat: outputFormats\.join\(', '\),\s+paymentMode:/);
+  assert.match(launcher, /outputFormat: outputFormats\.length > 0 \? outputFormats : undefined/);
+  assert.match(api, /outputFormat\?: string \| string\[\]/);
   assert.match(api, /paymentMode\?: 'cash' \| 'credit'/);
 });
 

@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { useAlert } from '@/components/ui/AlertProvider';
+import { customerAccessLabel } from '@/lib/admin/labels';
 
 interface CreditInvoice {
   id: string;
@@ -84,17 +86,23 @@ export function CreditSummaryCard() {
 
 interface AdminCreditUser {
   id: string;
-  username: string | null;
+  username: string;
+  display_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
   credit_enabled: number;
+  customer_access: string;
   summary: { receivables: number; creditBalance: number; netBalance: number };
 }
 
 export function AdminCreditPanel() {
   const { authedRequest } = useAuth();
+  const { confirmWithReason, showToast } = useAlert();
   const [users, setUsers] = useState<AdminCreditUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [reason, setReason] = useState('تغییر مجوز اعتبار توسط مدیر');
+  const [draft, setDraft] = useState('');
+  const [busy, setBusy] = useState<string | null>(null);
 
   const reload = useCallback(() => {
     setLoading(true);
@@ -106,14 +114,51 @@ export function AdminCreditPanel() {
 
   useEffect(() => { reload(); }, [reload]);
 
-  async function toggle(user: AdminCreditUser) {
-    const enabled = user.credit_enabled !== 1;
-    await authedRequest(`/admin/credit/users/${user.id}`, {
-      method: 'PATCH',
-      body: { enabled, reason },
+  async function toggle(user: AdminCreditUser, enabled: boolean) {
+    if (busy) return;
+    const { confirmed, reason } = await confirmWithReason({
+      type: enabled ? 'confirm' : 'danger-confirm',
+      title: enabled ? 'فعالسازی مجوز اعتبار' : 'لغو مجوز اعتبار',
+      message: enabled
+        ? `مشتری @${user.username} می‌تواند سفارش اعتباری ثبت کند. بدهیها و سفارش‌های قبلی تغییری نمی‌کنند.`
+        : `مجوز اعتبار @${user.username} لغو می‌شود. سفارش‌ها و بدهیهای قبلی دست‌نخورده می‌مانند.`,
+      confirmText: enabled ? 'فعالسازی مجوز' : 'لغو مجوز',
+      reason: {
+        label: 'دلیل تغییر مجوز',
+        defaultValue: 'تغییر مجوز اعتبار توسط مدیر',
+        minLength: 5,
+      },
     });
-    reload();
+    if (!confirmed || reason.length < 5) return;
+    setBusy(user.id);
+    try {
+      await authedRequest(`/admin/credit/users/${user.id}`, {
+        method: 'PATCH',
+        body: { enabled, reason },
+      });
+      showToast({ type: 'success', title: 'مجوز اعتبار به‌روز شد' });
+      reload();
+    } catch (caught) {
+      showToast({
+        type: 'error',
+        title: 'تغییر مجوز انجام نشد',
+        message: caught instanceof Error ? caught.message : 'خطای شبکه',
+      });
+    } finally {
+      setBusy(null);
+    }
   }
+
+  const displayed = users.filter((item) => {
+    const query = draft.trim().toLowerCase();
+    if (!query) return true;
+    const name = [item.first_name, item.last_name].filter(Boolean).join(' ');
+    return (
+      item.username.toLowerCase().includes(query)
+      || (item.display_name ?? '').toLowerCase().includes(query)
+      || name.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <Card>
@@ -121,24 +166,52 @@ export function AdminCreditPanel() {
       <CardBody>
         {loading ? <Skeleton height={72} /> : error ? <p className="prj-note">{error}</p> : (
           <>
-            <input
-              aria-label="دلیل تغییر مجوز"
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-            />
+            <div className="adm-form-inline">
+              <input
+                aria-label="جستجوی مشتریان برای مجوز اعتبار"
+                placeholder="جستجو بر اساس نام یا نام کاربری"
+                value={draft}
+                onChange={(event) => setDraft(event.target.value)}
+              />
+            </div>
             <div className="prj-table-wrap">
               <table className="prj-table">
-                <thead><tr><th>مشتری</th><th>طلب</th><th>اعتبار</th><th>خالص</th><th>مجوز</th></tr></thead>
+                <thead>
+                  <tr>
+                    <th scope="col">مشتری</th>
+                    <th scope="col">وضعیت</th>
+                    <th scope="col">طلب</th>
+                    <th scope="col">اعتبار</th>
+                    <th scope="col">خالص</th>
+                    <th scope="col">مجوز</th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {users.filter((item) => item.credit_enabled === 1).map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.username ?? item.id}</td>
-                      <td><Money value={item.summary.receivables} /></td>
-                      <td><Money value={item.summary.creditBalance} /></td>
-                      <td><Money value={item.summary.netBalance} /></td>
-                      <td><Button size="sm" variant="outline" onClick={() => toggle(item)}>لغو مجوز</Button></td>
-                    </tr>
-                  ))}
+                  {displayed.map((item) => {
+                    const name = [item.first_name, item.last_name].filter(Boolean).join(' ');
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <strong>{name || item.display_name || 'کاربر بدون نام'}</strong>
+                          <div className="prj-muted">@{item.username}</div>
+                        </td>
+                        <td>{customerAccessLabel(item.customer_access)}</td>
+                        <td><Money value={item.summary.receivables} /></td>
+                        <td><Money value={item.summary.creditBalance} /></td>
+                        <td><Money value={item.summary.netBalance} /></td>
+                        <td>
+                          <Button
+                            size="sm"
+                            variant={item.credit_enabled === 1 ? 'outline' : 'primary'}
+                            disabled={busy === item.id}
+                            onClick={() => void toggle(item, item.credit_enabled !== 1)}
+                          >
+                            {item.credit_enabled === 1 ? 'لغو مجوز' : 'فعالسازی مجوز'}
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

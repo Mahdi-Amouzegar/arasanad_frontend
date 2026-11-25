@@ -19,7 +19,7 @@ export function TelegramConnectCard() {
     permission,
     enableBrowserNotifications,
     connectTelegram,
-    setTelegramEnabled,
+    updateSettings,
     refreshTelegramStatus,
   } = useNotifications();
   const [connecting, setConnecting] = useState(false);
@@ -63,7 +63,7 @@ export function TelegramConnectCard() {
           <button
             type="button"
             className="btn btn--outline btn--sm"
-            onClick={() => void setTelegramEnabled(!telegramStatus.enabled)}
+            onClick={() => void updateSettings({ channels: { telegram: !telegramStatus.enabled } })}
           >
             {telegramStatus.enabled ? 'خاموش کردن' : 'روشن کردن'}
           </button>

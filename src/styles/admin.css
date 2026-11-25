@@ -244,6 +244,39 @@
   border-color: var(--c-primary);
   color: var(--c-on-primary, #fff);
 }
+/* ═══════════════════ فاز ۱۲٫۳۱ — نمای پروفایل کاربر ═══════════════════ */
+.adm-profile-title {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  text-align: start;
+}
+.adm-profile-title > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.35;
+}
+.adm-profile-title span {
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+}
+.adm-profile-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+}
+.adm-profile-status .prj-muted {
+  flex-basis: 100%;
+  font-size: var(--fs-sm);
+}
+
 .panel-filter__count {
   min-width: 1.5rem;
   padding-inline: 4px;

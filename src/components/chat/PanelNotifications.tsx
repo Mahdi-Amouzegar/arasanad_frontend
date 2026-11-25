@@ -18,6 +18,7 @@ import { safeHref, inDisplayOrder } from '@/lib/notifications/core.mjs';
 import { truncate } from '@/lib/chat/core.mjs';
 import { useNotifications } from './NotificationProvider';
 import { TelegramConnectCard } from './TelegramConnectCard';
+import { NotificationSettingsPanel } from './NotificationSettings';
 
 export function PanelNotifications() {
   const {
@@ -125,8 +126,9 @@ export function PanelNotifications() {
 
       <Card>
         <CardHeader title="کانالهای اطلاع‌رسانی" />
-        <CardBody flush>
+        <CardBody>
           <TelegramConnectCard />
+          <NotificationSettingsPanel />
         </CardBody>
       </Card>
     </div>

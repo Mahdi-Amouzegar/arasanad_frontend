@@ -1577,6 +1577,104 @@ button.public-side__link:hover {
   color: var(--c-text-muted);
 }
 
+/* ═══════════════════ فاز ۱۲٫۳۱ — تنظیمات اعلان‌ها ═══════════════════ */
+.notif-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.notif-settings__channels {
+  display: grid;
+  gap: var(--sp-2);
+}
+.notif-settings__channel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+}
+.notif-settings__channel p {
+  margin: 2px 0 0;
+  font-size: var(--fs-xs);
+  color: var(--c-text-secondary);
+}
+.notif-toggle {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--c-border-strong, var(--c-border));
+  border-radius: 999px;
+  background: var(--c-surface-sunken);
+  cursor: pointer;
+}
+.notif-toggle--on {
+  border-color: var(--c-primary);
+  background: var(--c-primary-light, var(--c-primary));
+}
+.notif-toggle--mixed {
+  border-style: dashed;
+}
+.notif-toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.notif-toggle__dot {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--c-text-secondary);
+  transition: transform 120ms ease;
+}
+.notif-toggle--on .notif-toggle__dot {
+  transform: translateX(16px);
+  background: var(--c-on-primary, #fff);
+}
+[dir='rtl'] .notif-toggle--on .notif-toggle__dot {
+  transform: translateX(-16px);
+}
+.notif-settings__heading {
+  margin: var(--sp-2) 0 0;
+}
+.notif-group {
+  border: 1px solid var(--c-border);
+  border-radius: 8px;
+  padding: var(--sp-2) var(--sp-3);
+}
+.notif-group summary {
+  cursor: pointer;
+  font-weight: var(--fw-semibold);
+}
+.notif-group__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin: var(--sp-2) 0;
+}
+.notif-group__action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-sm);
+}
+.notif-settings__table td,
+.notif-settings__table th {
+  text-align: center;
+}
+.notif-settings__table td:first-child,
+.notif-settings__table th:first-child {
+  text-align: start;
+}
+.notif-settings__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* فاز ۱۲٫۱۱: روی دستگاه‌های لمسی دکمه‌ی انتخاب همیشه نمایان است. */
 @media (hover: none) {
   .chat-select-check {

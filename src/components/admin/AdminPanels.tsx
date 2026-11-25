@@ -16,7 +16,8 @@ import { ShowMoreButton, useVisibleSlice } from '@/components/ui/ShowMore';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
-import { Input, Textarea } from '@/components/ui/Field';
+import { Input, Select, Textarea } from '@/components/ui/Field';
+import { Avatar } from '@/components/ui/Avatar';
 import { JalaliDate } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -30,6 +31,12 @@ import {
 } from '@/lib/admin/api';
 import { createFinanceApi, type ReconciliationView } from '@/lib/finance/api';
 import { useDashboardSyncController } from '@/components/system/DashboardSyncController';
+import {
+  customerAccessLabel,
+  securityStatusLabel,
+  walletTransactionLabel,
+  type CustomerAccessStatus,
+} from '@/lib/admin/labels';
 
 function useAdminApi() {
   const { authedRequest } = useAuth();
@@ -270,7 +277,9 @@ export function AdminDashboard() {
 
 export function AdminUsers() {
   const api = useAdminApi();
+  const { confirmWithReason, showToast } = useAlert();
   const [users, setUsers] = useState<AdminUser[]>([]);
+  const [busyUser, setBusyUser] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [selected, setSelected] = useState<Awaited<
     ReturnType<AdminApi['userDetail']>
@@ -318,6 +327,40 @@ export function AdminUsers() {
       setSelected(await api.userDetail(id));
     } catch (caught) {
       setError(errorText(caught));
+    }
+  }
+
+  /** فاز ۱۲٫۳۱ — تنها مسیر تغییر وضعیت از جدول و پروفایل، با تأیید و دلیل. */
+  async function changeStatus(user: AdminUser, status: CustomerAccessStatus) {
+    if (user.customerAccess === status || busyUser) return;
+    const { confirmed, reason } = await confirmWithReason({
+      type: status === 'disabled' ? 'danger-confirm' : 'confirm',
+      title: 'تغییر وضعیت دسترسی مشتری',
+      message:
+        status === 'disabled'
+          ? 'مشتری فقط سوابق و فایل‌های مجاز قبلی خود را می‌بیند و نمی‌تواند عملیات یا پیام تاز‌های ثبت کند. بدهیها و سفارش‌های قبلی تغییری نمی‌کنند.'
+          : status === 'credit'
+            ? 'مشتری می‌تواند سفارش نقدی و اعتباری ثبت کند. مجوز اعتبار او فعال می‌شود.'
+            : 'مشتری فقط می‌تواند سفارش نقدی ثبت کند؛ مجوز اعتبار او لغو می‌شود و بدهیهای قبلی دست‌نخورده می‌مانند.',
+      confirmText: 'تأیید تغییر وضعیت',
+      reason: { label: 'دلیل تغییر وضعیت', defaultValue: 'تغییر وضعیت توسط مدیر', minLength: 5 },
+    });
+    if (!confirmed || reason.length < 5) return;
+    setBusyUser(user.id);
+    try {
+      const result = await api.updateUserAccessStatus(user.id, { status, reason });
+      const updated = result.user;
+      setUsers((list) => list.map((item) => (item.id === updated.id ? updated : item)));
+      setSelected((current) => (current && current.user.id === updated.id
+        ? { ...current, user: updated }
+        : current));
+      showToast({ type: 'success', title: 'وضعیت مشتری به‌روز شد' });
+    } catch (caught) {
+      setError(errorText(caught));
+      showToast({ type: 'error', title: 'تغییر وضعیت انجام نشد', message: errorText(caught) });
+      void reload();
+    } finally {
+      setBusyUser(null);
     }
   }
 
@@ -373,7 +416,26 @@ export function AdminUsers() {
                         <div className="prj-muted">{user.displayName}</div>
                       </td>
                       <td>{user.role === 'admin' ? 'مدیر' : 'سفارش‌دهنده'}</td>
-                      <td>{user.status === 'active' ? 'فعال' : user.status}</td>
+                      <td>
+                        {user.role === 'admin' ? (
+                          'فعال'
+                        ) : user.status !== 'active' ? (
+                          securityStatusLabel(user.status)
+                        ) : (
+                          <Select
+                            aria-label={`وضعیت ${user.username}`}
+                            value={user.customerAccess}
+                            disabled={busyUser === user.id}
+                            onChange={(event) =>
+                              void changeStatus(user, event.target.value as CustomerAccessStatus)
+                            }
+                          >
+                            <option value="normal">عادی</option>
+                            <option value="credit">اعتباری</option>
+                            <option value="disabled">غیرفعال</option>
+                          </Select>
+                        )}
+                      </td>
                       <td>
                         <JalaliDate value={user.createdAt} variant="short" />
                       </td>
@@ -399,7 +461,23 @@ export function AdminUsers() {
       {selected ? (
         <Card>
           <CardHeader
-            title={`پروفایل @${selected.user.username}`}
+            title={
+              <div className="adm-profile-title">
+                <Avatar
+                  src={selected.user.avatarUrl}
+                  name={selected.user.displayName}
+                  size="md"
+                  fallbackOnError
+                />
+                <div>
+                  <strong>
+                    {[selected.user.firstName, selected.user.lastName].filter(Boolean).join(' ')
+                      || selected.user.displayName}
+                  </strong>
+                  <span>@{selected.user.username}</span>
+                </div>
+              </div>
+            }
             actions={
               <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
                 بستن
@@ -407,6 +485,36 @@ export function AdminUsers() {
             }
           />
           <CardBody>
+            <div className="adm-profile-status">
+              <span>وضعیت دسترسی</span>
+              {selected.user.role === 'admin' ? (
+                <strong>فعال</strong>
+              ) : selected.user.status !== 'active' ? (
+                <strong>{securityStatusLabel(selected.user.status)}</strong>
+              ) : (
+                <Select
+                  aria-label="وضعیت دسترسی مشتری"
+                  value={selected.user.customerAccess}
+                  disabled={busyUser === selected.user.id}
+                  onChange={(event) =>
+                    void changeStatus(selected.user, event.target.value as CustomerAccessStatus)
+                  }
+                >
+                  <option value="normal">عادی</option>
+                  <option value="credit">اعتباری</option>
+                  <option value="disabled">غیرفعال</option>
+                </Select>
+              )}
+              <span className="prj-muted">
+                {customerAccessLabel(selected.user.customerAccess)}
+                {' — '}
+                {selected.user.customerAccess === 'disabled'
+                  ? 'دسترسی فقط‌خواندنی: مشتری سوابق قبلی خود را می‌بیند، ولی عملیات جدید نمی‌تواند ثبت کند'
+                  : selected.user.creditEnabled
+                    ? 'مجوز اعتبار: فعال'
+                    : 'مجوز اعتبار: غیرفعال'}
+              </span>
+            </div>
             <div className="fin-stats">
               <div>
                 <span>موجودی آزاد</span>
@@ -442,7 +550,7 @@ export function AdminUsers() {
                   <tbody>
                     {selected.transactions.slice(0, 20).map((tx) => (
                       <tr key={tx.id}>
-                        <td>{tx.kind}</td>
+                        <td>{walletTransactionLabel(tx.kind)}</td>
                         <td>
                           <Money value={tx.amount} />
                         </td>
@@ -569,7 +677,7 @@ export function AdminSettings() {
           </CardBody>
         </Card>
         <Card>
-          <CardHeader title="حساب بانکی مقصد و متنها" />
+          <CardHeader title="حساب بانکی مقصد و متن‌ها" />
           <CardBody>
             {loading ? (
               <Skeleton height={120} />

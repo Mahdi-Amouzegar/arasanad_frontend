@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/lib/account';
 import { createNotificationsApi } from '@/lib/notifications/api';
 import { showBrowserNotifications } from '@/lib/notifications/browser';
+import { eventChannelEnabled } from '@/lib/notifications/preferences.mjs';
 import { usePollLeader } from '@/lib/connectivity/poll-leader';
 import { useRealtimeEvent, useRealtimeStatus } from './RealtimeProvider';
 import { useNotifications } from '@/components/chat/NotificationProvider';
@@ -41,7 +42,7 @@ function writeStoredShownAt(userId: string | undefined, shownAt: string): void {
 
 export function BrowserNotificationBridge() {
   const { user, authedRequest } = useAuth();
-  const { signedIn, unreadCount } = useNotifications();
+  const { signedIn, unreadCount, settings } = useNotifications();
   const { isLeader, publish, subscribe } = usePollLeader();
   const { connected } = useRealtimeStatus();
   const api = useMemo(() => createNotificationsApi(authedRequest), [authedRequest]);
@@ -52,12 +53,18 @@ export function BrowserNotificationBridge() {
 
   const showFresh = useCallback(async () => {
     if (!signedIn || !isLeader || busyRef.current) return;
+    // فاز ۱۲٫۳۱: حتی اگر سرور ردیف فرستاد، نمایش مرورگر توسط تنظیم کاربر رد می‌شود.
+    if (settings?.channels?.browser === false) return;
     busyRef.current = true;
     // پیش از fresh: هر نوتیف جدیدتر از این زمان در دفتر بعدی دوباره دیده می‌شود.
     const shownAt = new Date().toISOString();
     try {
       const fresh = await api.fresh();
-      const unseen = fresh.filter((item) => !shownIdsRef.current.has(item.id));
+      const unseen = fresh.filter(
+        (item) =>
+          !shownIdsRef.current.has(item.id)
+          && eventChannelEnabled(settings, item.type, 'browser'),
+      );
       if (unseen.length === 0) return;
       for (const item of unseen) shownIdsRef.current.add(item.id);
       const shown = await showBrowserNotifications(unseen);
@@ -72,7 +79,7 @@ export function BrowserNotificationBridge() {
     } finally {
       busyRef.current = false;
     }
-  }, [api, isLeader, publish, signedIn, user?.id]);
+  }, [api, isLeader, publish, settings, signedIn, user?.id]);
 
   // رویداد realtime تنها محرک اصلی است؛ پل مستقل از Leader اثر دیگری ندارد.
   useRealtimeEvent(['notification.created'], () => {

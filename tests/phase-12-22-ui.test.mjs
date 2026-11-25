@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const src = (relative) => fileURLToPath(new URL(`../src/${relative}`, import.meta.url));
 const read = (relative) => readFileSync(src(relative), 'utf8');
 
-test('P1222-F1: متنها و نیمفاصلههای درخواستشده اعمال شدند', () => {
+test('P1222-F1: متن‌ها و نیمفاصلههای درخواستشده اعمال شدند', () => {
   const files = [
     'content/site.ts', 'lib/panel-pages.ts', 'components/admin/AdminRatingsPanel.tsx',
     'components/admin/AdminPanels.tsx',

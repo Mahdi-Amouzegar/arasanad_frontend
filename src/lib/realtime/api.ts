@@ -15,6 +15,7 @@ export type RealtimeEventType =
   | 'delivery.updated'
   | 'notification.created'
   | 'notification.read'
+  | 'notification.settings.changed'
   | 'chat.message.created'
   | 'chat.message.read'
   | 'chat.conversation.updated'

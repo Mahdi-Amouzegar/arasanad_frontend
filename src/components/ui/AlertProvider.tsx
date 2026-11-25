@@ -31,6 +31,8 @@ export interface AlertOptions {
   message?: string;
   confirmText?: string;
   cancelText?: string;
+  /** فاز ۱۲٫۳۱ — دریافت دلیل تغییر در همان تأییدیه (بدون پنجرهٔ موازی). */
+  reason?: { label: string; defaultValue: string; minLength?: number };
 }
 
 export type ToastType = 'success' | 'error' | 'info';
@@ -44,6 +46,10 @@ export interface ToastOptions {
 interface AlertApi {
   /** نمایش هشدار یا گرفتن تأیید. خروجی: آیا کاربر تأیید کرد؟ */
   showAlert: (options: AlertOptions) => Promise<boolean>;
+  /** تأیید همراه با دلیل قابلویرایش؛ مقدار خالی پذیرفته نمی‌شود. */
+  confirmWithReason: (
+    options: AlertOptions & { reason: { label: string; defaultValue: string; minLength?: number } },
+  ) => Promise<{ confirmed: boolean; reason: string }>;
   /** اطلاع کوتاه و گذرا */
   showToast: (options: ToastOptions) => void;
 }
@@ -66,6 +72,8 @@ export function AlertProvider({ children }: { children: ReactNode }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const resolverRef = useRef<((value: boolean) => void) | null>(null);
   const [alert, setAlert] = useState<AlertOptions | null>(null);
+  const [reasonInput, setReasonInput] = useState('');
+  const reasonRef = useRef('');
   const [toasts, setToasts] = useState<Array<ToastOptions & { id: number }>>([]);
   const toastId = useRef(0);
   const toastHostRef = useRef<HTMLDivElement>(null);
@@ -97,11 +105,24 @@ export function AlertProvider({ children }: { children: ReactNode }) {
 
   const showAlert = useCallback((options: AlertOptions) => {
     resolverRef.current?.(false);
+    setReasonInput('');
+    reasonRef.current = '';
     return new Promise<boolean>((resolve) => {
       resolverRef.current = resolve;
       setAlert(options);
     });
   }, []);
+
+  const confirmWithReason = useCallback(
+    async (options: AlertOptions & { reason: { label: string; defaultValue: string; minLength?: number } }) => {
+      const pending = showAlert(options);
+      reasonRef.current = options.reason.defaultValue;
+      setReasonInput(options.reason.defaultValue);
+      const confirmed = await pending;
+      return { confirmed, reason: reasonRef.current.trim() };
+    },
+    [showAlert],
+  );
 
   const showToast = useCallback((options: ToastOptions) => {
     toastId.current += 1;
@@ -141,11 +162,16 @@ export function AlertProvider({ children }: { children: ReactNode }) {
     });
   }, [alert, finish]);
 
-  const api = useMemo<AlertApi>(() => ({ showAlert, showToast }), [showAlert, showToast]);
+  const api = useMemo<AlertApi>(
+    () => ({ showAlert, confirmWithReason, showToast }),
+    [showAlert, confirmWithReason, showToast],
+  );
 
   const meta = alert ? TYPE_META[alert.type] : null;
   const isConfirm = alert?.type === 'confirm' || alert?.type === 'danger-confirm';
   const isBlocking = alert?.type === 'loading' || alert?.type === 'danger-confirm';
+  const reasonValid = !alert?.reason
+    || reasonInput.trim().length >= (alert.reason.minLength ?? 1);
 
   return (
     <AlertContext.Provider value={api}>
@@ -178,6 +204,20 @@ export function AlertProvider({ children }: { children: ReactNode }) {
               </p>
             ) : null}
 
+            {alert.reason ? (
+              <label className="alert__reason">
+                <span>{alert.reason.label}</span>
+                <input
+                  aria-label={alert.reason.label}
+                  value={reasonInput}
+                  onChange={(event) => {
+                    setReasonInput(event.target.value);
+                    reasonRef.current = event.target.value;
+                  }}
+                />
+              </label>
+            ) : null}
+
             {alert.type === 'loading' ? (
               <div className="alert__actions">
                 <Button loading block>
@@ -197,6 +237,7 @@ export function AlertProvider({ children }: { children: ReactNode }) {
                 <Button
                   variant={alert.type === 'danger-confirm' ? 'danger' : 'primary'}
                   block
+                  disabled={!reasonValid}
                   onClick={() => finish(true)}
                 >
                   {alert.confirmText ?? 'تأیید'}

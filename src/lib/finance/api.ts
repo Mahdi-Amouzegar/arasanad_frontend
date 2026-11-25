@@ -73,6 +73,10 @@ export interface WalletRow {
   available: number;
   reserved: number;
   updated_at?: string;
+  username?: string | null;
+  display_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
   [key: string]: unknown;
 }
 
