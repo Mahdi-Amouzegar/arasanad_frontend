@@ -127,7 +127,7 @@ export function ProjectNewForm() {
   const [deliveryUnit, setDeliveryUnit] = useState<string>('day');
   // فاز ۱۲٫۳-ج: چند فرمت خروجی قابل انتخاب است و به‌صورت «PDF, Word» ذخیره می‌شود.
   // فاز ۱۲٫۳۰-A: پیش‌فرض و فهرست مجاز از مرجع مرکزی بکند خوانده می‌شوند.
-  const { order: siteOrder } = useSiteConfig('');
+  const { order: siteOrder, defaultDesignPresetId } = useSiteConfig('');
   const [outputFormats, setOutputFormats] = useState<string[]>([]);
 
   useEffect(() => {
@@ -163,6 +163,16 @@ export function ProjectNewForm() {
     'like_original',
   );
   const [presetId, setPresetId] = useState('');
+  // فاز ۱۲٫۳۲-D: الگوی پیش‌فرض سامانه از مرجع مرکزی بکند.
+  useEffect(() => {
+    if (!defaultDesignPresetId || presets.length === 0) return;
+    setPresetId((current) => (
+      current && presets.some((item) => item.id === current)
+        ? current
+        : defaultDesignPresetId
+    ));
+  }, [defaultDesignPresetId, presets]);
+
   const [spec, setSpec] = useState<DesignSpec>({ ...DEFAULT_DESIGN_SPEC });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);

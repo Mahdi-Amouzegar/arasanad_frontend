@@ -85,7 +85,24 @@ export interface ReconciliationProject {
   code: string;
   escrowBalance: number;
   settledAmount: number;
+  /** فاز ۱۲٫۳۲-C: نوع سند ردیف (در حال حاضر `escrow_account`). */
+  documentType?: string;
   status: string;
+}
+
+/** فاز ۱۲٫۳۲-C: شاخصهای جداگانه پنل مالی مدیر. */
+export interface FinanceOverview {
+  adminWallet: { available: number; reserved: number };
+  businessRevenue: number;
+  cashRevenue?: number;
+  creditRevenue?: number;
+  escrowHeld: number;
+  accountsReceivable: number;
+  customerCredit: number;
+  netReceivable: number;
+  openInvoiceCount: number;
+  creditCustomers: number;
+  serverTime: string;
 }
 
 export interface RefundRequestView {
@@ -121,6 +138,7 @@ export interface FinanceApi {
   adminWallets(): Promise<{ wallets: WalletRow[]; serverTime: string }>;
   adminRefunds(): Promise<{ refunds: RefundRequestView[]; serverTime: string }>;
   reconciliation(): Promise<ReconciliationView>;
+  adminFinanceOverview(): Promise<FinanceOverview>;
   paymentConfig(): Promise<PaymentConfig>;
   createPaymentIntent(input: {
     purpose: PaymentPurpose;
@@ -236,6 +254,9 @@ export function createFinanceApi(request: AuthedRequest): FinanceApi {
         projects: Array.isArray(data.projects) ? data.projects : [],
         serverTime: data.serverTime,
       };
+    },
+    async adminFinanceOverview() {
+      return request<FinanceOverview>('/admin/finance/overview');
     },
     approvePayment(id, amount, fileIds = []) {
       return request(`/payment-requests/${encodeURIComponent(id)}/approve`, {

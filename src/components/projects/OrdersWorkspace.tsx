@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { RelativeTime } from '@/components/ui/JalaliDate';
 import { Money } from '@/components/ui/Money';
-import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
+import { PaymentModeBadge, ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ShowMoreButton, useVisibleSlice } from '@/components/ui/ShowMore';
 import { useProjectListController } from './ProjectListController';
@@ -447,7 +447,12 @@ export function OrdersWorkspace({ admin = false }: { admin?: boolean }) {
       {
         key: 'status',
         header: 'وضعیت',
-        render: (row) => <ProjectStatusBadge status={row.status as ProjectStatus} />,
+        render: (row) => (
+          <>
+            <ProjectStatusBadge status={row.status as ProjectStatus} />
+            <PaymentModeBadge mode={row.paymentMode} />
+          </>
+        ),
         sortValue: (row) => PROJECT_STATUS_FLOW.indexOf(row.status as ProjectStatus),
         filter: {
           options: PROJECT_STATUS_FLOW.map((s) => ({

@@ -48,6 +48,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import {
   DeliveryStateBadge,
   FinancialStatusBadge,
+  PaymentModeBadge,
   ProjectStatusBadge,
 } from '@/components/ui/StatusBadge';
 import { useAlert } from '@/components/ui/AlertProvider';
@@ -569,6 +570,7 @@ export function ProjectDetail() {
                   : undefined
               }
             />
+            <PaymentModeBadge mode={project.paymentMode} />
             <FinancialStatusBadge status={financialStatusOf(project)} />
             {deliveryState ? <DeliveryStateBadge state={deliveryState} /> : null}
             {(Array.isArray(project.availableActions) ? project.availableActions : [])

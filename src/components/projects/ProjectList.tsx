@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Icon } from '@/components/ui/Icon';
 import { Input, Select } from '@/components/ui/Field';
 import { RelativeTime } from '@/components/ui/JalaliDate';
-import { ProjectStatusBadge } from '@/components/ui/StatusBadge';
+import { PaymentModeBadge, ProjectStatusBadge } from '@/components/ui/StatusBadge';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ShowMoreButton, useVisibleSlice } from '@/components/ui/ShowMore';
 import { Avatar } from '@/components/ui/Avatar';
@@ -400,6 +400,7 @@ export function ProjectList({ admin = false }: { admin?: boolean }) {
                             label={badgeLabel}
                             title={badgeTitle}
                           />
+                          <PaymentModeBadge mode={project.paymentMode} />
                           <span className="prj-muted">
                             {formatNumberFa(project.sourcePageCount)} صفحه ·{' '}
                             {formatHours(project.deliveryHours)}

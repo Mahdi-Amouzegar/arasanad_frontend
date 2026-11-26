@@ -20,12 +20,15 @@ interface SiteConfigResponse {
   adminTelegram: string | null;
   botUsername?: string | null;
   order?: Partial<SiteOrderConfig>;
+  defaultDesignPresetId?: string | null;
 }
 
 export interface SiteConfig {
   adminTelegram: string | null;
   botUsername: string | null;
   order: SiteOrderConfig;
+  /** فاز ۱۲٫۳۲-D: شناسهٔ الگوی پیش‌فرض سامانه از مرجع مرکزی بکند. */
+  defaultDesignPresetId: string;
 }
 
 const STATIC_CONFIG_URL = asset('/site-config.json');
@@ -47,6 +50,7 @@ function parseConfig(data: SiteConfigResponse): SiteConfig {
         : (allowed[0] ?? ''),
       allowedOutputFormats: allowed,
     },
+    defaultDesignPresetId: typeof data.defaultDesignPresetId === 'string' ? data.defaultDesignPresetId : '',
   };
 }
 
@@ -91,6 +95,7 @@ export function useSiteConfig(adminFallback: string): SiteConfig {
     adminTelegram: (initial?.adminTelegram ?? adminFallback).replace(/^@/, ''),
     botUsername: initial?.botUsername ?? null,
     order: initial?.order ?? { defaultOutputFormat: '', allowedOutputFormats: [] },
+    defaultDesignPresetId: initial?.defaultDesignPresetId ?? '',
   });
 
   useEffect(() => {

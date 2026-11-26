@@ -57,11 +57,16 @@ try {
     ? data.order.allowedOutputFormats.filter((value) => typeof value === 'string')
     : [];
   const preferred = data.order?.defaultOutputFormat;
+  const designPresetId = typeof data.defaultDesignPresetId === 'string'
+    ? data.defaultDesignPresetId
+    : '';
   if (isHandle(adminTelegram) && isHandle(botUsername) && allowed.length > 0
       && typeof preferred === 'string' && allowed.includes(preferred)) {
     next = {
       adminTelegram,
       botUsername,
+      // فاز ۱۲٫۳۲-D: همان پیش‌فرض مرکزی طراحی که بکند منتشر می‌کند.
+      ...(designPresetId ? { defaultDesignPresetId: designPresetId } : {}),
       order: { defaultOutputFormat: preferred, allowedOutputFormats: allowed },
     };
   } else {

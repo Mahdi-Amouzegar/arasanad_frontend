@@ -25,8 +25,8 @@ test('REVIEW-02: زبان تیزپا از مرجع بکند می‌آید و د�
   assert.match(launcher, /getLanguages\(\)/);
   assert.match(launcher, /id="tizpa-language"/);
   assert.match(launcher, /setLanguage\(/);
-  assert.match(launcher, /language,\n\s+sourcePageCount/);
-  assert.match(launcher, /language,\n\s+pages: pageCount/);
+  assert.match(launcher, /language,\s+sourcePageCount/);
+  assert.match(launcher, /language,\s+pages: pageCount/);
   assert.match(api, /apiRequest<LanguageCatalog>\('\/languages'\)/);
   assert.doesNotMatch(launcher, /LANGUAGES\s*=/);
 });

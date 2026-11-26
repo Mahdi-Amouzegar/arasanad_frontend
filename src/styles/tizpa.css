@@ -31,6 +31,9 @@
 .tizpa-modal .fm-modal__body {
   padding: var(--sp-5);
   overflow-y: auto;
+  /* فاز ۱۲٫۳۲-E: اسکرول به صفحه پشت دیالوگ منتقل نشود. */
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
   min-height: 0;
   display: flex;
   flex-direction: column;

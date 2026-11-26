@@ -1,8 +1,7 @@
 'use client';
 import { CopyableCode } from '@/components/projects/CopyableCode';
 import { AdminCreditPanel } from '@/components/finance/CreditPanels';
-import { financeStatLabel } from '@/lib/admin/labels';
-import { PROJECT_STATUS } from '@/lib/status';
+import { escrowStatusLabel, financeStatLabel, walletTransactionLabel } from '@/lib/admin/labels';
 
 /**
  * فاز ۱۰ (زیرفاز ۱۰-س / ۱۰-ض) — پنلهای واقعی مالی.
@@ -27,6 +26,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 import { JalaliDate } from '@/components/ui/JalaliDate';
 import {
   createFinanceApi,
+  type FinanceOverview,
   type PendingPayment,
   type ReconciliationView,
   type RefundRequestView,
@@ -143,7 +143,7 @@ export function WalletPanel() {
             </Select>
             <Button type="submit" variant="primary" size="sm" disabled={busy}>ثبت درخواست</Button>
           </form>
-          <p className="prj-note">تا ثبت واریز واقعی توسط مدیر، مبلغ رزرو و غیرقابلخرج باقی می‌ماند.</p>
+          <p className="prj-note">تا ثبت واریز واقعی توسط مدیر، مبلغ رزرو و غیرقابل‌خرج باقی می‌ماند.</p>
         </CardBody>
       </Card>
 
@@ -159,7 +159,7 @@ export function WalletPanel() {
                 <tbody>
                   {transactions.map((row) => (
                     <tr key={row.id}>
-                      <td>{row.kind}</td>
+                      <td>{walletTransactionLabel(String(row.kind))}</td>
                       <td><Money value={Number(row.amount ?? 0)} /></td>
                       <td className="prj-muted">{row.projectId ?? '—'}</td>
                       <td>{row.createdAt ? <JalaliDate value={row.createdAt} variant="short" /> : '—'}</td>
@@ -425,7 +425,7 @@ function ReconciliationCard() {
                         <td><CopyableCode value={row.code} label="کد سفارش" /></td>
                         <td><Money value={Number(row.escrowBalance)} /></td>
                         <td><Money value={Number(row.settledAmount)} /></td>
-                        <td>{PROJECT_STATUS[row.status as keyof typeof PROJECT_STATUS]?.label ?? 'وضعیت نامشخص'}</td>
+                        <td>{escrowStatusLabel(row.status)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -433,6 +433,56 @@ function ReconciliationCard() {
               </div>
             ) : null}
           </>
+        )}
+      </CardBody>
+    </Card>
+  );
+}
+
+/**
+ * فاز ۱۲٫۳۲-C — شاخصهای مالی جداگانه براساس حسابهای واقعی سرور.
+ * ⚠️ هیچ‌کدام از این شاخصها با یکدیگر جمع نمی‌شوند.
+ */
+function FinanceOverviewCard() {
+  const api = useFinanceApi();
+  const [view, setView] = useState<FinanceOverview | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    void api.adminFinanceOverview()
+      .then((data) => { if (alive) { setView(data); setError(null); } })
+      .catch((caught) => { if (alive) setError(errorText(caught)); });
+    return () => { alive = false; };
+  }, [api, reloadKey]);
+
+  const items = view ? [
+    { key: 'adminWalletAvailable', label: 'موجودی آزاد کیف پول مدیر', value: view.adminWallet.available, hint: 'موجودی نقدی واقعی کیف پول؛ درآمد کسبوکار در آن نیست.' },
+    { key: 'adminWalletReserved', label: 'موجودی رزروشده کیف پول مدیر', value: view.adminWallet.reserved, hint: 'فقط وجوه رزروشدهٔ همان کیف پول.' },
+    { key: 'escrowHeld', label: 'وجوه امانی سفارش‌های باز', value: view.escrowHeld, hint: 'پول مشتریان نزد سامانه؛ جزو درآمد نیست.' },
+    { key: 'businessRevenue', label: 'درآمد شناساییشدهٔ آراسند', value: view.businessRevenue, hint: `تسویه نقدی ${view.cashRevenue ?? 0} + درآمد اعتباری ${view.creditRevenue ?? 0} تومان؛ جدا از کیف پول مدیر.` },
+    { key: 'accountsReceivable', label: 'مطالبات از مشتریان اعتباری', value: view.accountsReceivable, hint: 'بده‌ی خام مشتریان بابت تحویل‌ها.' },
+    { key: 'customerCredit', label: 'اعتبار مازاد مشتریان', value: view.customerCredit, hint: 'بده‌ی آراسند به مشتری؛ از مطالبات کسر می‌شود.' },
+    { key: 'netReceivable', label: 'مانده بده‌ی خالص', value: view.netReceivable, hint: 'مطالبات منهای اعتبار قابلاستفاده.' },
+    { key: 'openInvoiceCount', label: 'تعداد صورتحسابهای باز', value: view.openInvoiceCount, hint: 'تعداد اسناد بده‌ی باز.' },
+  ] : [];
+
+  return (
+    <Card>
+      <CardHeader title="نمای کلی مالی" actions={<Button variant="ghost" size="sm" onClick={() => setReloadKey((v) => v + 1)} aria-label="بازخوانی"><Icon name="refresh" size={16} /></Button>} />
+      <CardBody>
+        {error ? <ErrorBar message={error} retry={() => setReloadKey((v) => v + 1)} /> : null}
+        {!view ? <Skeleton height={72} /> : (
+          <div className="fin-stats">
+            {items.map((item) => (
+              <div key={item.key}>
+                <span>{item.label}</span>
+                <strong>{item.key === 'openInvoiceCount' ? item.value : <Money value={Number(item.value)} />}</strong>
+                <small className="prj-muted">{item.hint}</small>
+              </div>
+            ))}
+          </div>
         )}
       </CardBody>
     </Card>
@@ -460,6 +510,7 @@ export function AdminWalletsPanel() {
   return (
     <div className="prj-stack">
       {error ? <ErrorBar message={error} retry={reload} /> : null}
+      <FinanceOverviewCard />
       <ReconciliationCard />
       <AdminCreditPanel />
       <Card>

@@ -19,7 +19,6 @@ export function TelegramConnectCard() {
     permission,
     enableBrowserNotifications,
     connectTelegram,
-    updateSettings,
     refreshTelegramStatus,
   } = useNotifications();
   const [connecting, setConnecting] = useState(false);
@@ -40,10 +39,10 @@ export function TelegramConnectCard() {
       <div className="chat-telegram__row">
         <span className="chat-telegram__icon"><Icon name="send" size={16} /></span>
         <div className="chat-telegram__text">
-          <strong>اطلاع‌رسانی تلگرام</strong>
+          <strong>اتصال ربات تلگرام</strong>
           <span>
             {telegramStatus?.connected
-              ? 'ربات متصل است؛ اعلان‌های مهم اینجا هم می‌آیند.'
+              ? 'حساب شما به ربات متصل است و می‌توانید سفارش ثبت کنید.'
               : 'برای دریافت اعلان هنگام بستهبودن سایت، ربات را Start کنید.'}
           </span>
         </div>
@@ -60,13 +59,7 @@ export function TelegramConnectCard() {
             {connecting ? 'در حال ساخت لینک…' : 'اتصال تلگرام'}
           </button>
         ) : (
-          <button
-            type="button"
-            className="btn btn--outline btn--sm"
-            onClick={() => void updateSettings({ channels: { telegram: !telegramStatus.enabled } })}
-          >
-            {telegramStatus.enabled ? 'خاموش کردن' : 'روشن کردن'}
-          </button>
+          <span className="chat-telegram__note">وضعیت اتصال: متصل ✓ — اجازهٔ دریافت اعلان در «اعلان تلگرام» تنظیم می‌شود.</span>
         )}
 
         {notificationSupported() && permission !== 'granted' && permission !== 'denied' ? (

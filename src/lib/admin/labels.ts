@@ -57,8 +57,25 @@ export function securityStatusLabel(value: string): string {
   return SECURITY_STATUS_LABELS[value] ?? 'وضعیت نامشخص';
 }
 
+/** فاز ۱۲٫۳۲-C: وضعیت سند امانی، نه وضعیت فاکتور/پرداخت/سفارش. */
+export const ESCROW_STATUS_LABELS: Record<string, string> = {
+  open: 'باز',
+  settled: 'تسویه‌شده',
+  refunded: 'برگشتخورده',
+};
+
+export function escrowStatusLabel(value: string): string {
+  return ESCROW_STATUS_LABELS[value] ?? 'وضعیت نامشخص';
+}
+
 export function walletTransactionLabel(value: string): string {
-  return WALLET_TRANSACTION_LABELS[value] ?? 'سایر تراکنش‌ها';
+  const label = WALLET_TRANSACTION_LABELS[value];
+  if (label) return label;
+  // مقدار ناشناخته نباید بی‌صدا با ترجمه اشتباه نمایش داده شود.
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production') {
+    console.warn(`[fa] نوع تراکنش کیف پول ناشناخته: ${value}`);
+  }
+  return 'سایر تراکنش‌ها';
 }
 
 export function financeStatLabel(value: string): string {

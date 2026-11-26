@@ -129,6 +129,10 @@ export interface Project {
   sourcePageCount: number;
   deliveryHours: number;
   outputFormat: string;
+  /** فاز ۱۲٫۳۰: اسنپشوت سروری روش پرداخت؛ مجوز آینده مشتری بیاثر است. */
+  paymentMode?: 'cash' | 'credit';
+  /** فاز ۱۲٫۲۹: منبع ثبت سفارش (`web` | `tizpa` | `telegram`). */
+  sourceChannel?: string;
   specialRequirements: string | null;
   basePricePerPage: number;
   quotedPricePerPage: number | null;

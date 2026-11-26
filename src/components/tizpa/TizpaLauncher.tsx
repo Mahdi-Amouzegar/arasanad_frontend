@@ -108,6 +108,41 @@ export function TizpaLauncher() {
 
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement | null>(null);
+  /**
+   * فاز ۱۲٫۳۲-E: قفل اسکرول صفحه پشت تیزپا بدون scroll chaining.
+   * ⚠️ اگردیالوگ دیگری قفل را در دست دارد، مالکیت آنرا نگیریم و هنگام بستن
+   *    تنها وضعیتی را که خودمان نوشتهایم باز میگردانیم.
+   */
+  const scrollLockRef = useRef<{ y: number; overflow: string; position: string; top: string; width: string } | null>(null);
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined;
+    const body = document.body;
+    let owned = false;
+    if (body.style.overflow !== 'hidden') {
+      scrollLockRef.current = {
+        y: window.scrollY,
+        overflow: body.style.overflow,
+        position: body.style.position,
+        top: body.style.top,
+        width: body.style.width,
+      };
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollLockRef.current.y}px`;
+      body.style.width = '100%';
+      body.style.overflow = 'hidden';
+      owned = true;
+    }
+    return () => {
+      const saved = scrollLockRef.current;
+      if (!owned || !saved) return;
+      body.style.overflow = saved.overflow;
+      body.style.position = saved.position;
+      body.style.top = saved.top;
+      body.style.width = saved.width;
+      window.scrollTo(0, saved.y);
+      scrollLockRef.current = null;
+    };
+  }, [open]);
   const [services, setServices] = useState<ServiceType[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
   const [rules, setRules] = useState<PricingRules>(EMPTY_RULES);

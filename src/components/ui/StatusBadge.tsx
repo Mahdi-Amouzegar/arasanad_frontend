@@ -54,6 +54,22 @@ export function ProjectStatusBadge({
   return render(text, meta.tone, meta.icon, hint);
 }
 
+
+/**
+ * فاز ۱۲٫۳۲-D: تمایز سفارش اعتباری از نقدی.
+ * ⚠️ وضعیت مالی/اجرایی سفارش مستقل است؛ این نشان فقط منبع پرداخت را میگوید
+ *    و نباید به‌عنوان خطا یا تعلیق تفسیر شود. متن و آیکون هر دو حضور دارند.
+ */
+export function PaymentModeBadge({ mode }: { mode?: string | null }) {
+  const credit = mode === 'credit';
+  return (
+    <Badge tone={credit ? 'info' : 'neutral'} dot={credit}>
+      <Icon name={credit ? 'wallet' : 'receipt'} size={13} />
+      <span>{credit ? 'اعتباری' : 'نقدی'}</span>
+    </Badge>
+  );
+}
+
 export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
   const meta = PAYMENT_STATUS[status];
   return render(meta.label, meta.tone, meta.icon, meta.description);

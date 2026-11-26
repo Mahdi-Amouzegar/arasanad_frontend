@@ -52,7 +52,7 @@ test('P1231FE-04: پنل مجوز اعتبار تمام مشتریان را جس
   const credit = read('src/components/finance/CreditPanels.tsx');
   assert.doesNotMatch(credit, /filter\(\(item\) => item\.credit_enabled === 1\)/);
   assert.match(credit, /جستجوی مشتریان برای مجوز اعتبار/);
-  assert.match(credit, /فعالسازی مجوز/);
+  assert.match(credit, /فعال\u200cسازی مجوز/);
   assert.match(credit, /لغو مجوز/);
   assert.match(credit, /confirmWithReason\(/);
   assert.doesNotMatch(credit, /aria-label="دلیل تغییر مجوز"/);
@@ -64,7 +64,7 @@ test('P1231FE-05: کیف پول‌ها نام کاربر و عناوین فار�
   assert.match(finance, /row\.first_name, row\.last_name/);
   assert.match(finance, /@\$\{row\.username\}/);
   assert.doesNotMatch(finance, /<td[^>]*>\{String\(row\.user_id\)\}<\/td>/);
-  assert.match(finance, /PROJECT_STATUS\[row\.status/);
+  assert.match(finance, /escrowStatusLabel\(row\.status\)/);
 });
 
 test('P1231FE-06: تیزپا دو چک‌باکس مستقل و Footer چسبنده دارد', () => {

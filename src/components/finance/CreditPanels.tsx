@@ -13,7 +13,7 @@ import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
-import { customerAccessLabel } from '@/lib/admin/labels';
+import { creditInvoiceStatusLabel, customerAccessLabel } from '@/lib/admin/labels';
 
 interface CreditInvoice {
   id: string;
@@ -72,7 +72,7 @@ export function CreditSummaryCard() {
               <ul className="prj-note">
                 {data.invoices.map((invoice) => (
                   <li key={invoice.id}>
-                    سفارش {invoice.project_id} — تحویل {invoice.delivery_id} — <Money value={invoice.amount} />
+                    سفارش {invoice.project_id} — تحویل {invoice.delivery_id} — <Money value={invoice.amount} /> بده‌ی بابت همان تحویل
                   </li>
                 ))}
               </ul>
@@ -103,6 +103,8 @@ export function AdminCreditPanel() {
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+  const [drillUser, setDrillUser] = useState<AdminCreditUser | null>(null);
+  const [drillInvoices, setDrillInvoices] = useState<CreditInvoice[]>([]);
 
   const reload = useCallback(() => {
     setLoading(true);
@@ -114,15 +116,28 @@ export function AdminCreditPanel() {
 
   useEffect(() => { reload(); }, [reload]);
 
+  async function openInvoices(user: AdminCreditUser) {
+    setDrillUser(user);
+    setDrillInvoices([]);
+    try {
+      const data = await authedRequest<{ invoices: CreditInvoice[] }>(
+        `/admin/credit/invoices?customerId=${encodeURIComponent(user.id)}`,
+      );
+      setDrillInvoices(data.invoices ?? []);
+    } catch {
+      setDrillInvoices([]);
+    }
+  }
+
   async function toggle(user: AdminCreditUser, enabled: boolean) {
     if (busy) return;
     const { confirmed, reason } = await confirmWithReason({
       type: enabled ? 'confirm' : 'danger-confirm',
-      title: enabled ? 'فعالسازی مجوز اعتبار' : 'لغو مجوز اعتبار',
+      title: enabled ? 'فعال‌سازی مجوز اعتبار' : 'لغو مجوز اعتبار',
       message: enabled
-        ? `مشتری @${user.username} می‌تواند سفارش اعتباری ثبت کند. بدهیها و سفارش‌های قبلی تغییری نمی‌کنند.`
-        : `مجوز اعتبار @${user.username} لغو می‌شود. سفارش‌ها و بدهیهای قبلی دست‌نخورده می‌مانند.`,
-      confirmText: enabled ? 'فعالسازی مجوز' : 'لغو مجوز',
+        ? `مشتری @${user.username} می‌تواند سفارش اعتباری ثبت کند. بده‌یها و سفارش‌های قبلی تغییری نمی‌کنند.`
+        : `مجوز اعتبار @${user.username} لغو می‌شود. سفارش‌ها و بده‌یهای قبلی دست‌نخورده می‌مانند.`,
+      confirmText: enabled ? 'فعال‌سازی مجوز' : 'لغو مجوز',
       reason: {
         label: 'دلیل تغییر مجوز',
         defaultValue: 'تغییر مجوز اعتبار توسط مدیر',
@@ -196,7 +211,7 @@ export function AdminCreditPanel() {
                           <div className="prj-muted">@{item.username}</div>
                         </td>
                         <td>{customerAccessLabel(item.customer_access)}</td>
-                        <td><Money value={item.summary.receivables} /></td>
+                        <td><Button variant="ghost" size="sm" onClick={() => void openInvoices(item)} aria-label={`صورتحسابهای ${item.username}`}><Money value={item.summary.receivables} /></Button></td>
                         <td><Money value={item.summary.creditBalance} /></td>
                         <td><Money value={item.summary.netBalance} /></td>
                         <td>
@@ -206,7 +221,7 @@ export function AdminCreditPanel() {
                             disabled={busy === item.id}
                             onClick={() => void toggle(item, item.credit_enabled !== 1)}
                           >
-                            {item.credit_enabled === 1 ? 'لغو مجوز' : 'فعالسازی مجوز'}
+                            {item.credit_enabled === 1 ? 'لغو مجوز' : 'فعال‌سازی مجوز'}
                           </Button>
                         </td>
                       </tr>
@@ -215,6 +230,21 @@ export function AdminCreditPanel() {
                 </tbody>
               </table>
             </div>
+            {drillUser ? (
+              <div className="prj-note">
+                <strong>صورتحسابهای @{drillUser.username}</strong>
+                {drillInvoices.length === 0 ? <p>صورتحساب بازی یافت نشد.</p> : (
+                  <ul>
+                    {drillInvoices.map((invoice) => (
+                      <li key={invoice.id}>
+                        سفارش {invoice.project_id} — تحویل {invoice.delivery_id} —
+                        {' '}<Money value={invoice.amount} /> — {creditInvoiceStatusLabel(invoice.status)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ) : null}
           </>
         )}
       </CardBody>
