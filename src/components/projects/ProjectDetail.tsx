@@ -1,9 +1,11 @@
 'use client';
 
 import { FileName } from '@/components/ui/FileName';
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/account';
+import { useRealtimeEvent } from '@/components/system/RealtimeProvider';
+import { claimRealtimeEventId } from '@/lib/realtime/core.mjs';
 import {
   createProjectsApi,
   type ProjectDetail as ProjectDetailData,
@@ -100,6 +102,7 @@ export function ProjectDetail() {
   const linksApi = useMemo(() => createExternalLinksApi(authedRequest), [authedRequest]);
 
   const [id, setId] = useState('');
+  const seenRealtimeRef = useRef<Set<string>>(new Set());
   const [detail, setDetail] = useState<ProjectDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -249,6 +252,13 @@ export function ProjectDetail() {
     }
     void load();
   }, [id, load]);
+
+  // فاز ۱۳ (ممیزی): وضعیت همین سفارش از سایر تبها/مدیران هم بلادرنگ بازخوانی شود.
+  useRealtimeEvent(['project.status_changed'], (event) => {
+    if (!id || event.payload?.projectId !== id) return;
+    if (!claimRealtimeEventId(seenRealtimeRef.current, event.id)) return;
+    void load();
+  });
 
   const run = useCallback(
     async (label: string, action: () => Promise<unknown>, success: string) => {

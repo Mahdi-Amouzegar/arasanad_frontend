@@ -73,3 +73,11 @@ test('P13-UI7: dialog CSS uses tokens and protects touch targets', () => {
   assert.match(css, /min-block-size: var\(--touch-min\)/);
   assert.match(css, /@media \(max-width: 720px\)/);
 });
+
+test('P13-UI8: order detail reloads its timeline from realtime status events', () => {
+  const detail = read('src/components/projects/ProjectDetail.tsx');
+  assert.match(detail, /useRealtimeEvent\(\['project\.status_changed'\]/);
+  assert.match(detail, /claimRealtimeEventId\(seenRealtimeRef\.current, event\.id\)/);
+  assert.match(detail, /event\.payload\?\.projectId !== id/);
+  assert.match(detail, /void load\(\);/);
+});
