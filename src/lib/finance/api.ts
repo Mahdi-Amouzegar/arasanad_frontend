@@ -102,6 +102,9 @@ export interface FinanceOverview {
   netReceivable: number;
   openInvoiceCount: number;
   creditCustomers: number;
+  /** فاز ۱۲٫۳۳: مانده افتتاحیه جدا از گردش جاری. */
+  openingReceivables?: number;
+  openingPayables?: number;
   serverTime: string;
 }
 

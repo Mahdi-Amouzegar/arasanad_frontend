@@ -14,6 +14,9 @@ import { Money } from '@/components/ui/Money';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { creditInvoiceStatusLabel, customerAccessLabel } from '@/lib/admin/labels';
+import { OpeningBalanceDialog, type OpeningBalancePayload } from './OpeningBalanceDialog';
+import { openFileFromServer } from '@/lib/files/file-open';
+import { JalaliDate } from '@/components/ui/JalaliDate';
 
 interface CreditInvoice {
   id: string;
@@ -95,6 +98,84 @@ interface AdminCreditUser {
   summary: { receivables: number; creditBalance: number; netBalance: number };
 }
 
+
+interface StatementEntry {
+  id: string;
+  account: string;
+  direction: string;
+  amount: number;
+  description: string | null;
+  recordedAt: string;
+  effectiveDate: string;
+  activationRef: string | null;
+  origin: 'external_before_arasanad' | 'in_system_activity';
+  documentType: string;
+  attachments: Array<{ id: string; original_name: string; extension: string; size_bytes: number }>;
+}
+
+/** گردش حساب مشتری با تفکیک منشأ خارج از سامانه و的فعالیت جاری. */
+export function CustomerStatementPanel() {
+  const { user, token, authedRequest } = useAuth();
+  const [entries, setEntries] = useState<StatementEntry[]>([]);
+  useEffect(() => {
+    if (!user) return;
+    let alive = true;
+    void authedRequest<{ entries: StatementEntry[] }>('/credit/me/statement')
+      .then((value) => { if (alive) setEntries(value.entries ?? []); })
+      .catch(() => { if (alive) setEntries([]); });
+    return () => { alive = false; };
+  }, [user, authedRequest]);
+  if (!user || entries.length === 0) return null;
+  return (
+    <Card>
+      <CardHeader title="گردش حساب و مانده افتتاحیه" />
+      <CardBody>
+        <div className="prj-table-wrap">
+          <table className="prj-table">
+            <thead>
+              <tr>
+                <th scope="col">تاریخ مؤثر</th>
+                <th scope="col">نوع سند</th>
+                <th scope="col">مبلغ</th>
+                <th scope="col">منشأ</th>
+                <th scope="col">ضمیمهها</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.map((entry) => (
+                <tr key={entry.id}>
+                  <td><JalaliDate value={`${entry.effectiveDate}T00:00:00.000Z`} variant="short" /></td>
+                  <td>
+                    <strong>{entry.documentType}</strong>
+                    <div className="prj-muted">{entry.description ?? '—'}</div>
+                    <div className="prj-muted">مرجع: {entry.activationRef ?? entry.id}</div>
+                  </td>
+                  <td><Money value={entry.direction === 'debit' ? entry.amount : -entry.amount} /></td>
+                  <td>{entry.origin === 'external_before_arasanad' ? 'همکاری قبل از آراسند' : 'گردش داخل سامانه'}</td>
+                  <td>
+                    {entry.attachments.map((file) => (
+                      <button
+                        key={file.id}
+                        type="button"
+                        className="btn btn--ghost btn--sm"
+                        onClick={() => void openFileFromServer({
+                          fileId: file.id, token: token ?? '', fileName: file.original_name, mode: 'download',
+                        })}
+                      >
+                        {file.original_name}
+                      </button>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </CardBody>
+    </Card>
+  );
+}
+
 export function AdminCreditPanel() {
   const { authedRequest } = useAuth();
   const { confirmWithReason, showToast } = useAlert();
@@ -105,6 +186,7 @@ export function AdminCreditPanel() {
   const [busy, setBusy] = useState<string | null>(null);
   const [drillUser, setDrillUser] = useState<AdminCreditUser | null>(null);
   const [drillInvoices, setDrillInvoices] = useState<CreditInvoice[]>([]);
+  const [pendingActivation, setPendingActivation] = useState<{ user: AdminCreditUser; reason: string } | null>(null);
 
   const reload = useCallback(() => {
     setLoading(true);
@@ -145,11 +227,21 @@ export function AdminCreditPanel() {
       },
     });
     if (!confirmed || reason.length < 5) return;
+    // فعال‌سازی تنها پس از تکمیل صریح فرم مانده افتتاحیه انجام می‌شود.
+    if (enabled) {
+      setPendingActivation({ user, reason });
+      return;
+    }
     setBusy(user.id);
     try {
-      await authedRequest(`/admin/credit/users/${user.id}`, {
-        method: 'PATCH',
-        body: { enabled, reason },
+      await authedRequest('/admin/credit/activate', {
+        method: 'POST',
+        body: {
+          userId: user.id,
+          status: 'normal',
+          reason,
+          idempotencyKey: `credit_${crypto.randomUUID().replace(/-/g, '')}`,
+        },
       });
       showToast({ type: 'success', title: 'مجوز اعتبار به‌روز شد' });
       reload();
@@ -157,6 +249,34 @@ export function AdminCreditPanel() {
       showToast({
         type: 'error',
         title: 'تغییر مجوز انجام نشد',
+        message: caught instanceof Error ? caught.message : 'خطای شبکه',
+      });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function submitOpeningBalance(payload: OpeningBalancePayload) {
+    if (!pendingActivation || busy) return;
+    setBusy(pendingActivation.user.id);
+    try {
+      await authedRequest('/admin/credit/activate', {
+        method: 'POST',
+        body: {
+          userId: pendingActivation.user.id,
+          status: 'credit',
+          reason: pendingActivation.reason,
+          idempotencyKey: `credit_${crypto.randomUUID().replace(/-/g, '')}`,
+          openingBalance: payload,
+        },
+      });
+      showToast({ type: 'success', title: 'اعتبار فعال و مانده افتتاحیه ثبت شد' });
+      setPendingActivation(null);
+      reload();
+    } catch (caught) {
+      showToast({
+        type: 'error',
+        title: 'ثبت مانده افتتاحیه انجام نشد',
         message: caught instanceof Error ? caught.message : 'خطای شبکه',
       });
     } finally {
@@ -248,6 +368,13 @@ export function AdminCreditPanel() {
           </>
         )}
       </CardBody>
+      <OpeningBalanceDialog
+        open={pendingActivation !== null}
+        customerLabel={pendingActivation ? `@${pendingActivation.user.username}` : ''}
+        busy={busy !== null}
+        onCancel={() => setPendingActivation(null)}
+        onSubmit={(payload) => void submitOpeningBalance(payload)}
+      />
     </Card>
   );
 }

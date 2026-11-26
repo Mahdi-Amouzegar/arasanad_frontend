@@ -466,6 +466,8 @@ function FinanceOverviewCard() {
     { key: 'customerCredit', label: 'اعتبار مازاد مشتریان', value: view.customerCredit, hint: 'بده‌ی آراسند به مشتری؛ از مطالبات کسر می‌شود.' },
     { key: 'netReceivable', label: 'مانده بده‌ی خالص', value: view.netReceivable, hint: 'مطالبات منهای اعتبار قابلاستفاده.' },
     { key: 'openInvoiceCount', label: 'تعداد صورتحسابهای باز', value: view.openInvoiceCount, hint: 'تعداد اسناد بده‌ی باز.' },
+    { key: 'openingReceivables', label: 'مانده افتتاحیه بدهکار مشتریان', value: view.openingReceivables ?? 0, hint: 'همکاری خارج از سامانه؛ جزو درآمد دوره جاری نیست.' },
+    { key: 'openingPayables', label: 'مانده افتتاحیه بده‌ی به مشتریان', value: view.openingPayables ?? 0, hint: 'منشأ خارج از سامانه؛ جزو پرداخت یا کیف پول نیست.' },
   ] : [];
 
   return (

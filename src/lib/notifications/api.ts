@@ -156,6 +156,13 @@ export function createNotificationsApi(request: AuthedRequest) {
       });
     },
 
+    async telegramDisconnect(): Promise<{ connected: false }> {
+      return request<{ connected: false }>('/telegram/disconnect', {
+        method: 'POST',
+        body: {},
+      });
+    },
+
     async telegramPreference(enabled: boolean): Promise<void> {
       await request<{ enabled: boolean }>('/telegram/preferences', {
         method: 'POST',

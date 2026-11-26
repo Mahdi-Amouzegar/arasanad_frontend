@@ -19,9 +19,16 @@ export function TelegramConnectCard() {
     permission,
     enableBrowserNotifications,
     connectTelegram,
+    disconnectTelegram,
     refreshTelegramStatus,
   } = useNotifications();
   const [connecting, setConnecting] = useState(false);
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
+
+  const handleDisconnect = async () => {
+    await disconnectTelegram();
+    setConfirmDisconnect(false);
+  };
 
   const handleConnect = async () => {
     setConnecting(true);
@@ -59,7 +66,36 @@ export function TelegramConnectCard() {
             {connecting ? 'در حال ساخت لینک…' : 'اتصال تلگرام'}
           </button>
         ) : (
-          <span className="chat-telegram__note">وضعیت اتصال: متصل ✓ — اجازهٔ دریافت اعلان در «اعلان تلگرام» تنظیم می‌شود.</span>
+          <>
+            <span className="chat-telegram__note">وضعیت اتصال: متصل ✓ — اجازهٔ دریافت اعلان در «اعلان تلگرام» تنظیم می‌شود.</span>
+            {confirmDisconnect ? (
+              <span className="chat-telegram__confirm">
+                <span>اتصال حساب به ربات قطع شود؟ برای اتصال مجدد باید لینک تازه‌ای بسازید.</span>
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--sm"
+                  onClick={() => setConfirmDisconnect(false)}
+                >
+                  لغو
+                </button>
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  onClick={() => void handleDisconnect()}
+                >
+                  تأیید قطع اتصال
+                </button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={() => setConfirmDisconnect(true)}
+              >
+                قطع اتصال
+              </button>
+            )}
+          </>
         )}
 
         {notificationSupported() && permission !== 'granted' && permission !== 'denied' ? (

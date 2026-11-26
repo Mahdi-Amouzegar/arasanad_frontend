@@ -1116,6 +1116,19 @@ button.public-side__link:hover {
   color: var(--c-text-muted);
 }
 
+.chat-telegram__confirm {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.chat-telegram__confirm > span {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
+  color: var(--c-danger);
+}
+
 /* ─── جانمایی صفحات پنل ─── */
 
 .chat-page {

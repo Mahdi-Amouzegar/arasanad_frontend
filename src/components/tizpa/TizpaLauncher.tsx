@@ -704,6 +704,18 @@ export function TizpaLauncher() {
                               {item}
                             </label>
                           ))}
+                          {['Word', 'PDF'].every((item) => siteOrder.allowedOutputFormats.includes(item)) ? (
+                            <label className="tizpa-format-option">
+                              <input
+                                type="checkbox"
+                                checked={outputFormats.includes('Word') && outputFormats.includes('PDF')}
+                                onChange={(event) =>
+                                  setOutputFormats(event.target.checked ? ['Word', 'PDF'] : [])
+                                }
+                              />
+                              Word / PDF
+                            </label>
+                          ) : null}
                         </div>
                       </div>
                     )}

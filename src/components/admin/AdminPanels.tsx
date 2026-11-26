@@ -37,6 +37,7 @@ import {
   walletTransactionLabel,
   type CustomerAccessStatus,
 } from '@/lib/admin/labels';
+import { OpeningBalanceDialog, type OpeningBalancePayload } from '@/components/finance/OpeningBalanceDialog';
 
 function useAdminApi() {
   const { authedRequest } = useAuth();
@@ -277,9 +278,11 @@ export function AdminDashboard() {
 
 export function AdminUsers() {
   const api = useAdminApi();
+  const { authedRequest } = useAuth();
   const { confirmWithReason, showToast } = useAlert();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [busyUser, setBusyUser] = useState<string | null>(null);
+  const [pendingCredit, setPendingCredit] = useState<{ user: AdminUser; reason: string } | null>(null);
   const [draft, setDraft] = useState('');
   const [selected, setSelected] = useState<Awaited<
     ReturnType<AdminApi['userDetail']>
@@ -346,6 +349,11 @@ export function AdminUsers() {
       reason: { label: 'دلیل تغییر وضعیت', defaultValue: 'تغییر وضعیت توسط مدیر', minLength: 5 },
     });
     if (!confirmed || reason.length < 5) return;
+    // فاز ۱۲٫۳۳: ورود به حالت اعتباری تنها پس از ثبت/تأیید مانده افتتاحیه.
+    if (status === 'credit') {
+      setPendingCredit({ user, reason });
+      return;
+    }
     setBusyUser(user.id);
     try {
       const result = await api.updateUserAccessStatus(user.id, { status, reason });
@@ -359,6 +367,30 @@ export function AdminUsers() {
       setError(errorText(caught));
       showToast({ type: 'error', title: 'تغییر وضعیت انجام نشد', message: errorText(caught) });
       void reload();
+    } finally {
+      setBusyUser(null);
+    }
+  }
+
+  async function submitCreditActivation(payload: OpeningBalancePayload) {
+    if (!pendingCredit || busyUser) return;
+    setBusyUser(pendingCredit.user.id);
+    try {
+      await authedRequest('/admin/credit/activate', {
+        method: 'POST',
+        body: {
+          userId: pendingCredit.user.id,
+          status: 'credit',
+          reason: pendingCredit.reason,
+          idempotencyKey: `credit_${crypto.randomUUID().replace(/-/g, '')}`,
+          openingBalance: payload,
+        },
+      });
+      showToast({ type: 'success', title: 'اعتبار و مانده افتتاحیه ثبت شد' });
+      setPendingCredit(null);
+      await reload();
+    } catch (caught) {
+      showToast({ type: 'error', title: 'فعال‌سازی اعتبار انجام نشد', message: errorText(caught) });
     } finally {
       setBusyUser(null);
     }
@@ -566,6 +598,13 @@ export function AdminUsers() {
           </CardBody>
         </Card>
       ) : null}
+      <OpeningBalanceDialog
+        open={pendingCredit !== null}
+        customerLabel={pendingCredit ? `@${pendingCredit.user.username}` : ''}
+        busy={busyUser !== null}
+        onCancel={() => setPendingCredit(null)}
+        onSubmit={(payload) => void submitCreditActivation(payload)}
+      />
     </div>
   );
 }

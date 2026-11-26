@@ -1,6 +1,7 @@
 {
   "adminTelegram": "mehdi_amouz",
   "botUsername": "ArasanadBot",
+  "defaultDesignPresetId": "azad",
   "order": {
     "defaultOutputFormat": "Word",
     "allowedOutputFormats": [

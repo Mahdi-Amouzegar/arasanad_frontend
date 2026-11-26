@@ -73,6 +73,7 @@ interface NotificationContextValue {
   markAllRead: () => Promise<void>;
   enableBrowserNotifications: () => Promise<void>;
   connectTelegram: () => Promise<string | null>;
+  disconnectTelegram: () => Promise<void>;
   setTelegramEnabled: (enabled: boolean) => Promise<void>;
   refreshTelegramStatus: () => Promise<void>;
 }
@@ -269,6 +270,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, [api, signedIn]);
 
+  const disconnectTelegram = useCallback(async () => {
+    if (!signedIn) return;
+    try {
+      await api.telegramDisconnect();
+      await refreshTelegramStatus();
+    } catch (err) {
+      setError(messageOf(err));
+    }
+  }, [api, refreshTelegramStatus, signedIn]);
+
   const setTelegramEnabled = useCallback(
     async (enabled: boolean) => {
       if (!signedIn) return;
@@ -449,6 +460,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       markAllRead,
       enableBrowserNotifications,
       connectTelegram,
+      disconnectTelegram,
       setTelegramEnabled,
       refreshTelegramStatus,
     }),
@@ -456,7 +468,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       signedIn, unreadCount, notifications, hasMore, loading, error, permission, telegramStatus,
       settings, settingsLoading, loadSettings, updateSettings,
       refresh, loadMore, markRead, markAllRead, enableBrowserNotifications,
-      connectTelegram, setTelegramEnabled, refreshTelegramStatus,
+      connectTelegram, disconnectTelegram, setTelegramEnabled, refreshTelegramStatus,
     ],
   );
 
