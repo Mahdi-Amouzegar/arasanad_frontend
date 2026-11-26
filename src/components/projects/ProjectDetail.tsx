@@ -10,6 +10,9 @@ import {
   type ProjectAction,
 } from '@/lib/projects/api';
 import { DisputeFlag } from '@/components/activities/DisputeFlag';
+import { OrderTimeline } from './OrderTimeline';
+import { CancelSettlementDialog } from './CancelSettlementDialog';
+import { ManualTransitionDialog } from './ManualTransitionDialog';
 import { CopyableCode } from './CopyableCode';
 import { ProjectActionDialog } from './ProjectActionDialog';
 import {
@@ -112,6 +115,9 @@ export function ProjectDetail() {
   const [quoteDeposit, setQuoteDeposit] = useState('');
   const [reason, setReason] = useState('');
   const [nextStatus, setNextStatus] = useState('');
+  /** فاز ۱۳: پنجرههای تقسیم وجه لغو و انتقال دستی مدیر. */
+  const [cancelSplitOpen, setCancelSplitOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
 
   /* ── فاز ۸: فایل‌های اولیه، لینک‌ها و تحویل‌ها ── */
   const [initialFiles, setInitialFiles] = useState<FileItem[]>([]);
@@ -332,20 +338,14 @@ export function ProjectDetail() {
 
   async function decideCancel(approve: boolean) {
     if (approve) {
-      const confirmed = await showAlert({
-        type: 'danger-confirm',
-        title: 'تأیید لغو مشتری',
-        message:
-          'با تأیید این درخواست، سفارش لغو می‌شود. مبلغ بیعانه طبق هدف تعیین‌شده به حساب مجازی مدیر ' +
-          'منتقل و مازاد امانی به کیف پول سفارش‌دهنده بازگردانده می‌شود. این عملیات قابل بازگشت نیست.',
-        confirmText: 'تأیید لغو',
-      });
-      if (!confirmed) return;
+      // فاز ۱۳: پنجرهٔ تقسیم وجه با ماندهٔ واقعی امانی، جای تأیید ساده.
+      setCancelSplitOpen(true);
+      return;
     }
     await run(
-      approve ? 'تأیید لغو' : 'رد لغو',
-      () => api.decideCancel(id, approve, reason.trim()),
-      approve ? 'سفارش لغو شد' : 'درخواست لغو رد شد',
+      'رد لغو',
+      () => api.decideCancel(id, false, reason.trim()),
+      'درخواست لغو رد شد',
     );
   }
 
@@ -464,15 +464,6 @@ export function ProjectDetail() {
 
   const { project, history, notes } = detail;
   const isAdmin = user?.role === 'admin';
-  // فاز ۱۲٫۱۵-ج: badge بیعانه به کارت اعلام واریز متصل می‌شود.
-  const pendingPayment = project.finance?.pendingPayment ?? null;
-  const depositBadgeHref = pendingPayment?.activityId
-    ? `/${role === 'admin' ? 'admin' : 'panel'}/projects/operations/?id=${encodeURIComponent(project.id)}&activity=${encodeURIComponent(pendingPayment.activityId)}`
-    : undefined;
-  const awaitingDepositConfirmation =
-    project.status === 'awaiting_deposit' &&
-    pendingPayment?.stage === 'deposit' &&
-    Boolean(pendingPayment.paymentRequestId);
   const isOwner = Boolean(
     user && (!project.customerId || project.customerId === user.id),
   );
@@ -490,6 +481,31 @@ export function ProjectDetail() {
       item.id !== 'view_detail' &&
       item.id !== 'open_operations',
   );
+  // فاز ۱۳: همان دکمهٔ موجود سامانه در خلاصهٔ مرحلهٔ جاری تکرار می‌شود؛
+  // هیچ عملیات تاز‌های در لایهٔ Timeline تعریف نمی‌شود.
+  const primaryWorkflowAction = detailCellActions[0];
+  const primaryActionNode = primaryWorkflowAction ? (
+    primaryWorkflowAction.kind === 'link' &&
+    primaryWorkflowAction.href?.startsWith('/') &&
+    !primaryWorkflowAction.href.startsWith('//') ? (
+      <Link
+        className="btn btn--primary btn--sm"
+        href={primaryWorkflowAction.href}
+        title={primaryWorkflowAction.hint}
+      >
+        {primaryWorkflowAction.label}
+      </Link>
+    ) : (
+      <Button
+        variant="primary"
+        size="sm"
+        disabled={busy}
+        onClick={() => setActiveAction(primaryWorkflowAction)}
+      >
+        {primaryWorkflowAction.label}
+      </Button>
+    )
+  ) : null;
   // فاز ۱۲٫۸-ز: پس از لغو، عملیات و یادداشت‌ها غیرفعال می‌شوند.
   const isCancelled = project.status === 'cancelled';
   // سیگنال سراسری تسویه نهایی؛ در کنار paymentStatus هر تحویل بررسی می‌شود.
@@ -560,16 +576,9 @@ export function ProjectDetail() {
         <CardBody>
           {/* فاز ۱۲٫۹-س: نشانگر بازبینی در ردیف نشانها، با تاکید قرمز. */}
           <div className="prj-badges">
-            <ProjectStatusBadge
-              status={project.status as ProjectStatus}
-              href={awaitingDepositConfirmation ? depositBadgeHref : undefined}
-              label={awaitingDepositConfirmation ? 'در انتظار تأیید بیعانه' : undefined}
-              title={
-                awaitingDepositConfirmation
-                  ? 'برای دیدن کارت اعلام واریز بیعانه کلیک کنید'
-                  : undefined
-              }
-            />
+            {/* فاز ۱۳: تک دکمهٔ وضعیت با Timeline اختصاصی سفارش جایگزین شد؛
+                وضعیت جاری در نوار زمانی قابل کلیک و قابل ردیابی است. */}
+            <ProjectStatusBadge status={project.status as ProjectStatus} />
             <PaymentModeBadge mode={project.paymentMode} />
             <FinancialStatusBadge status={financialStatusOf(project)} />
             {deliveryState ? <DeliveryStateBadge state={deliveryState} /> : null}
@@ -688,6 +697,8 @@ export function ProjectDetail() {
           ) : null}
         </CardBody>
       </Card>
+
+      <OrderTimeline project={project} role={role} primaryAction={primaryActionNode} />
 
       <Card>
         <CardHeader title="نمای مالی ثبت‌شده" />
@@ -1081,6 +1092,18 @@ export function ProjectDetail() {
                 </form>
               )}
 
+              {/* فاز ۱۳: انتقال دستی با پیششرط، مراحل ردشده و تأیید ثانویه. */}
+              <div className="prj-actions">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => setManualOpen(true)}
+                >
+                  انتقال دستی مراحل
+                </Button>
+              </div>
+
               <form className="prj-actions" onSubmit={submitStatus}>
                 <FormField label="تغییر وضعیت" htmlFor="prj-next-status">
                   <Select
@@ -1230,6 +1253,34 @@ export function ProjectDetail() {
             void load();
           }}
         />
+      ) : null}
+
+      {detail ? (
+        <>
+          <CancelSettlementDialog
+            open={cancelSplitOpen}
+            projectId={id}
+            reason={reason.trim()}
+            api={api}
+            onClose={() => setCancelSplitOpen(false)}
+            onDone={() => {
+              setCancelSplitOpen(false);
+              void load();
+            }}
+          />
+          <ManualTransitionDialog
+            open={manualOpen}
+            projectId={id}
+            currentStatus={project.status}
+            reason={reason.trim()}
+            api={api}
+            onClose={() => setManualOpen(false)}
+            onDone={() => {
+              setManualOpen(false);
+              void load();
+            }}
+          />
+        </>
       ) : null}
     </div>
   );

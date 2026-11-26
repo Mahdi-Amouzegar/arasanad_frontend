@@ -1,0 +1,139 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   پنجرههای گردش کار فاز ۱۳ — تقسیم وجه لغو و انتقال دستی
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.wf-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: rgb(10 16 27 / 0.55);
+}
+
+.wf-dialog {
+  inline-size: min(560px, 100%);
+  max-block-size: calc(100vh - 2 * var(--sp-4));
+  overflow-y: auto;
+  padding: var(--sp-5);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: var(--sh-lg);
+}
+
+.wf-dialog__title {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--fs-section);
+  font-weight: var(--fw-semibold);
+}
+
+.wf-dialog__note,
+.wf-dialog__hint,
+.wf-dialog__warning,
+.wf-dialog__reason {
+  margin: 0 0 var(--sp-3);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+}
+
+.wf-dialog__warning {
+  padding: var(--sp-3);
+  border-inline-start: 3px solid var(--c-warning);
+  border-radius: var(--r-xs);
+  background: var(--c-warning-bg);
+  color: var(--c-text);
+}
+
+.wf-dialog__reason {
+  color: var(--c-text);
+}
+
+.wf-dialog__fieldset {
+  margin: 0 0 var(--sp-4);
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+}
+.wf-dialog__fieldset legend {
+  padding-inline: var(--sp-1);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+}
+
+.wf-dialog__check {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-block-size: var(--touch-min);
+  color: var(--c-text);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.wf-dialog__check input {
+  flex: none;
+  inline-size: 18px;
+  block-size: 18px;
+  accent-color: var(--c-primary);
+}
+.wf-dialog__confirm {
+  margin-block: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-primary-subtle);
+}
+
+.wf-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+  margin-block: var(--sp-4);
+}
+
+.wf-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  margin-block: var(--sp-4);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-surface-sunken);
+  font-size: var(--fs-sm);
+}
+.wf-summary strong {
+  flex-basis: 100%;
+}
+
+.wf-dialog__error {
+  margin-block: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+  font-size: var(--fs-sm);
+}
+
+.wf-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  justify-content: flex-end;
+  padding-block-start: var(--sp-3);
+  border-block-start: 1px solid var(--c-border);
+}
+
+@media (max-width: 720px) {
+  .wf-split {
+    grid-template-columns: 1fr;
+  }
+  .wf-dialog {
+    padding: var(--sp-4);
+  }
+  .wf-dialog__actions > * {
+    flex: 1 1 auto;
+  }
+}

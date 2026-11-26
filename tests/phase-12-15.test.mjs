@@ -43,9 +43,12 @@ test('P1215-03: نشان بیعانه لینکدار و برچسب توضیحا�
   const detail = read('src/components/projects/ProjectDetail.tsx');
   assert.match(detail, /توضیحات بیعانه:/);
   assert.doesNotMatch(detail, /دلیل تغییر نرخ:/);
-  assert.match(detail, /pendingPayment/);
-  assert.match(detail, /depositBadgeHref/);
-  assert.match(detail, /<ProjectStatusBadge/);
+  // فاز ۱۳: لینک تک وضعیت با Timeline اختصاصی جایگزین شد؛ هدف کارت اعلام
+  // واریز اکنون از طریق `activityId` در لایهٔ گردش کار تأمین می‌شود.
+  assert.match(detail, /<OrderTimeline project=\{project\} role=\{role\}/);
+  assert.match(detail, /<ProjectStatusBadge status=\{project.status as ProjectStatus\} \/>/);
+  const workflow = read('src/lib/order-workflow.ts');
+  assert.match(workflow, /kind: 'operations', activityId/);
   const badge = read('src/components/ui/StatusBadge.tsx');
   assert.match(badge, /href\?: string/);
   assert.match(badge, /badge--link/);

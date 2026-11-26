@@ -26,10 +26,11 @@ test('P1219-U2: متن تراکنش پیش از بررسی، حدودی است',
 
 test('P1219-U3: نشان بیعانه کوتاه شد', () => {
   const list = read('src/components/projects/ProjectList.tsx');
-  const detail = read('src/components/projects/ProjectDetail.tsx');
+  const workflow = read('src/lib/order-workflow.ts');
   assert.ok(list.includes('در انتظار تأیید بیعانه'));
   assert.ok(!list.includes('در انتظار تأیید پرداخت بیعانه'));
-  assert.ok(detail.includes('در انتظار تأیید بیعانه'));
+  // فاز ۱۳: برچسب وضعیت در لایهٔ گردش کار متمرکز است، نه در جزئیات صفحه.
+  assert.ok(workflow.includes('در انتظار تأیید بیعانه'));
 });
 
 test('P1219-U4: دکمه «پذیرش نرخ» حذف شد', () => {

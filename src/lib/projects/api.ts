@@ -176,6 +176,10 @@ export interface Project {
   finance?: ProjectFinanceSummary | null;
   /** فاز ۱۲٫۲۳-C: موجودی آزاد کیف پول بیننده، فقط برای پیش‌فرض پنجرهٔ تسویه. */
   walletAvailable?: number;
+  /** فاز ۱۳: مراحل ردشده توسط انتقال دستی مدیر. */
+  skippedStages?: string[] | null;
+  /** فاز ۱۳: وجود پرداخت ردشده در وضعیت جاری. */
+  rejectedPayment?: boolean;
 }
 
 export interface ProjectDetail {
@@ -320,6 +324,29 @@ export async function getPublicProject(id: string): Promise<PublicProject> {
 
 /* ─────────────────────────── Authenticated client ─────────────────────────── */
 
+/** فاز ۱۳: نمای گردش کار سرور — مبنای پنجرههای تقسیم وجه و انتقال دستی. */
+export interface ProjectWorkflowView {
+  path: 'cash' | 'credit';
+  steps: Array<{ id: string; status: string }>;
+  currentStageId: string;
+  skippedStages: string[];
+  allowedManualTargets: string[];
+  cancellation: {
+    availableAmount: number;
+    siteAmount: number;
+    walletAmount: number;
+    hasFunds: boolean;
+  };
+}
+
+export interface ManualTransitionInput {
+  status: string;
+  skippedStages: string[];
+  reason: string;
+  note?: string;
+  confirm: true;
+}
+
 export interface ProjectsApi {
   listProjects(filters?: ProjectListFilters): Promise<Project[]>;
   getProject(id: string): Promise<ProjectDetail>;
@@ -337,8 +364,15 @@ export interface ProjectsApi {
   acceptQuote(id: string): Promise<Project>;
   requestQuoteReview(id: string): Promise<Project>;
   cancelProject(id: string, reason: string): Promise<Project>;
-  decideCancel(id: string, approve: boolean, reason: string): Promise<Project>;
+  decideCancel(
+    id: string,
+    approve: boolean,
+    reason: string,
+    split?: { siteAmount: number; walletAmount: number },
+  ): Promise<Project>;
   changeStatus(id: string, status: string, reason: string): Promise<Project>;
+  getWorkflow(id: string): Promise<ProjectWorkflowView>;
+  manualTransition(id: string, input: ManualTransitionInput): Promise<Project>;
 }
 
 function projectPath(id: string, suffix = ''): string {
@@ -435,12 +469,18 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
       return data.project;
     },
 
-    async decideCancel(id, approve, reason) {
+    async decideCancel(id, approve, reason, split) {
       const data = await request<{ project: Project }>(
         projectPath(id, '/cancel/decision'),
         {
           method: 'POST',
-          body: { approve, reason },
+          body: {
+            approve,
+            reason,
+            ...(split && approve
+              ? { siteAmount: split.siteAmount, walletAmount: split.walletAmount }
+              : {}),
+          },
         },
       );
       return data.project;
@@ -451,6 +491,18 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
         method: 'POST',
         body: { status, reason },
       });
+      return data.project;
+    },
+
+    async getWorkflow(id) {
+      return request<ProjectWorkflowView>(projectPath(id, '/workflow'));
+    },
+
+    async manualTransition(id, input) {
+      const data = await request<{ project: Project }>(
+        projectPath(id, '/manual-transition'),
+        { method: 'POST', body: input },
+      );
       return data.project;
     },
   };

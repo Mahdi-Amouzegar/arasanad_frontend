@@ -97,7 +97,10 @@ test('P1224-F5: لغو مشتری و فرم نرخmanager مطابق بندها'
     ),
   );
 
-  assert.match(detail, /title: 'تأیید لغو مشتری'/);
+  // فاز ۱۳: تأیید ساده با پنجرهٔ تقسیم وجه جایگزین شد.
+  const dialog = read('components/projects/CancelSettlementDialog.tsx');
+  assert.match(dialog, /تأیید لغو و تعیین تکلیف وجه/);
+  assert.match(detail, /setCancelSplitOpen\(true\)/);
   assert.match(detail, /prj-cancel-decision/);
   const status = read('lib/status.ts');
   assert.match(status, /label: 'در انتظار لغو'/);

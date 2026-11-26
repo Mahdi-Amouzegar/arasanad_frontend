@@ -1,0 +1,373 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Timeline — کامپوننت پایهٔ مراحل/گردش کار
+   تمام رنگ‌ها و فاصلهها از Design Token می‌آیند (design.md §3).
+   فقط از CSS Logical Properties استفاده می‌شود تا RTL واقعی باشد و
+   امکان استفادهٔ LTR در آینده حفظ شود.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.timeline {
+  --tl-marker: 32px;
+  --tl-gap: var(--sp-3);
+
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline--sm {
+  --tl-marker: 28px;
+  --tl-gap: var(--sp-2);
+}
+.timeline--lg {
+  --tl-marker: 40px;
+  --tl-gap: var(--sp-4);
+}
+.timeline--compact {
+  --tl-gap: var(--sp-2);
+}
+
+.timeline__step {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-2);
+  min-inline-size: 0;
+  padding-inline: var(--sp-1);
+  text-align: center;
+}
+
+.timeline__marker {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--tl-marker);
+  block-size: var(--tl-marker);
+  border: 2px solid var(--c-border-strong);
+  border-radius: var(--r-full);
+  background: var(--c-surface);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  padding: 0;
+}
+
+.timeline__marker:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 2px;
+}
+
+.timeline__step--clickable .timeline__marker {
+  cursor: pointer;
+  transition: transform var(--t-fast), box-shadow var(--t-fast);
+}
+.timeline__step--clickable .timeline__marker:hover {
+  transform: scale(1.06);
+  box-shadow: var(--sh-sm);
+}
+
+.timeline__step--completed .timeline__marker {
+  border-color: var(--c-success);
+  background: var(--c-success);
+  color: var(--c-text-inverse);
+}
+.timeline__step--current .timeline__marker,
+.timeline__step--active .timeline__marker {
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  color: var(--c-text-inverse);
+  box-shadow: var(--sh-focus);
+}
+.timeline__step--skipped .timeline__marker {
+  border-style: dashed;
+  background: var(--c-surface-sunken);
+  color: var(--c-text-muted);
+}
+.timeline__step--cancelled .timeline__marker,
+.timeline__step--error .timeline__marker {
+  border-color: var(--c-danger);
+  background: var(--c-danger-bg);
+  color: var(--c-danger);
+}
+.timeline__step--disabled .timeline__marker,
+.timeline__marker[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.timeline__dot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: var(--r-full);
+  background: currentColor;
+}
+
+.timeline__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.timeline__title {
+  color: var(--c-text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-tight);
+  overflow-wrap: anywhere;
+}
+.timeline__step--upcoming .timeline__title,
+.timeline__step--skipped .timeline__title,
+.timeline__step--disabled .timeline__title {
+  color: var(--c-text-secondary);
+}
+.timeline__step--cancelled .timeline__title,
+.timeline__step--error .timeline__title {
+  color: var(--c-danger);
+}
+.timeline__description,
+.timeline__meta {
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-tight);
+  overflow-wrap: anywhere;
+}
+.timeline__meta {
+  color: var(--c-text-muted);
+}
+.timeline--compact .timeline__description {
+  display: none;
+}
+
+/* ── خط اتصال: افقی ── */
+.timeline__connector {
+  position: absolute;
+  inset-block-start: calc((var(--tl-marker) - 2px) / 2);
+  inset-inline-start: calc(50% + (var(--tl-marker) / 2) + var(--sp-1));
+  inline-size: calc(100% - var(--tl-marker) - (var(--sp-1) * 2));
+  block-size: 2px;
+  border-radius: var(--r-full);
+  background: var(--c-border);
+  pointer-events: none;
+}
+.timeline[dir='ltr'] .timeline__step--skipped .timeline__connector {
+  background: repeating-linear-gradient(
+    to right,
+    var(--c-border-strong) 0 4px,
+    transparent 4px 8px
+  );
+}
+.timeline__step--completed .timeline__connector {
+  background: var(--c-success);
+}
+.timeline__step--skipped .timeline__connector {
+  background: repeating-linear-gradient(
+    to left,
+    var(--c-border-strong) 0 4px,
+    transparent 4px 8px
+  );
+}
+
+/* ── حالت عمودی ── */
+.timeline--vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+.timeline--vertical .timeline__step {
+  flex: none;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  min-block-size: var(--touch-min);
+  padding-block-end: var(--sp-5);
+  text-align: start;
+}
+.timeline--vertical .timeline__body {
+  padding-block-start: 2px;
+}
+.timeline--vertical .timeline__connector {
+  inset-block-start: calc(var(--tl-marker) + var(--sp-1));
+  inset-inline-start: calc((var(--tl-marker) - 2px) / 2);
+  inline-size: 2px;
+  block-size: calc(100% - var(--tl-marker) - var(--sp-1));
+}
+.timeline--vertical .timeline__step--skipped .timeline__connector {
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--c-border-strong) 0 4px,
+    transparent 4px 8px
+  );
+}
+
+/* ── موبایل: عمودی، خوانا، بدون اسکرول افقی ── */
+@media (max-width: 720px) {
+  .timeline--horizontal {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .timeline--horizontal .timeline__step {
+    flex: none;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    min-block-size: var(--touch-min);
+    padding-block-end: var(--sp-5);
+    text-align: start;
+  }
+  .timeline--horizontal .timeline__marker {
+    min-inline-size: var(--touch-min);
+    min-block-size: var(--touch-min);
+  }
+  .timeline--horizontal .timeline__body {
+    padding-block-start: 2px;
+  }
+  .timeline--horizontal .timeline__connector {
+    inset-block-start: calc(var(--touch-min) + var(--sp-1));
+    inset-inline-start: calc((var(--touch-min) - 2px) / 2);
+    inline-size: 2px;
+    block-size: calc(100% - var(--touch-min) - var(--sp-1));
+  }
+  .timeline--horizontal .timeline__step--skipped .timeline__connector {
+    background: repeating-linear-gradient(
+      to bottom,
+      var(--c-border-strong) 0 4px,
+      transparent 4px 8px
+    );
+  }
+}
+
+/* ── بارگذاری / خالی ── */
+.timeline--loading {
+  gap: var(--sp-3);
+}
+.timeline__skeleton {
+  flex: 1 1 0;
+  block-size: var(--tl-marker);
+  border-radius: var(--r-sm);
+  background: linear-gradient(
+    90deg,
+    var(--c-surface-sunken) 25%,
+    var(--c-border) 50%,
+    var(--c-surface-sunken) 75%
+  );
+  background-size: 200% 100%;
+  animation: timeline-shimmer 1.4s ease-in-out infinite;
+}
+.timeline__empty {
+  margin: 0;
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+}
+@keyframes timeline-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timeline__skeleton {
+    animation: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   خلاصهٔ مرحلهٔ جاری — لایهٔ اختصاصی سفارش (نه کامپوننت پایه)
+   ─────────────────────────────────────────────────────────────────────────── */
+.order-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+}
+
+.order-timeline__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-primary-subtle);
+}
+
+.order-timeline__summary-main {
+  flex: 1 1 260px;
+  min-inline-size: 0;
+}
+
+.order-timeline__summary-title {
+  color: var(--c-text);
+  font-size: var(--fs-card-title);
+  font-weight: var(--fw-semibold);
+}
+
+.order-timeline__summary-desc,
+.order-timeline__summary-action {
+  margin: var(--sp-1) 0 0;
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+}
+
+.order-timeline__summary-action {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--c-primary);
+  font-weight: var(--fw-medium);
+}
+
+.order-timeline__facts {
+  display: flex;
+  flex: 1 1 320px;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  margin: 0;
+}
+.order-timeline__facts > div {
+  min-inline-size: 120px;
+}
+.order-timeline__facts dt {
+  color: var(--c-text-secondary);
+  font-size: var(--fs-xs);
+}
+.order-timeline__facts dd {
+  margin: var(--sp-1) 0 0;
+  color: var(--c-text);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.order-timeline__action {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+@media (max-width: 720px) {
+  .order-timeline__summary {
+    padding: var(--sp-3);
+  }
+  .order-timeline__facts > div {
+    flex: 1 1 45%;
+    min-inline-size: 0;
+  }
+  .order-timeline__action {
+    inline-size: 100%;
+  }
+  .order-timeline__action > * {
+    inline-size: 100%;
+  }
+}

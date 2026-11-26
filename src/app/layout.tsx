@@ -5,6 +5,8 @@ import '@/styles/fonts.css';
 import '@/styles/tokens.css';
 import './globals.css';
 import '@/styles/components.css';
+import '@/styles/timeline.css';
+import '@/styles/workflow-dialogs.css';
 import '@/styles/public.css';
 import '@/styles/projects.css';
 import '@/styles/files.css';
