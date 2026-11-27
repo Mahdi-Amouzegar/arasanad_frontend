@@ -20,8 +20,8 @@ export default function PublicProjectsPage() {
           title="مروری بر سفارش‌های در جریان"
           description="این فهرست عمومی است و فقط عنوان، نوع خدمت، وضعیت و زمان تقریبی را نشان می‌دهد. مبالغ، فایل‌ها و اطلاعات تماس هرگز اینجا منتشر نمی‌شوند."
           actions={
-            <Link href="/start/" className="btn btn--primary btn--sm">
-              ثبت سفارش تازه
+            <Link href="/calculator/" className="btn btn--primary btn--sm">
+              محاسبه حدودی نرخ
             </Link>
           }
         />

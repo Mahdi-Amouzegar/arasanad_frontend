@@ -29,7 +29,7 @@ const ROUTES = [
   '/pricing/',
   '/portfolio/',
   '/faq/',
-  '/start/',
+  '/calculator/',
   '/projects/',
   '/about/',
   '/contact/',

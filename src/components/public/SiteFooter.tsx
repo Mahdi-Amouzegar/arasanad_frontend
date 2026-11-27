@@ -7,7 +7,7 @@ import { useAdminTelegram } from '@/lib/site-config';
 import { ServerClock } from '@/components/ui/ServerClock';
 
 const PAGE_LINKS = [
-  { href: '/start/', label: 'شروع سفارش' },
+  { href: '/calculator/', label: 'محاسبه حدودی نرخ' },
   { href: '/services/', label: 'خدمات' },
   { href: '/pricing/', label: 'نرخ‌نامه' },
   { href: '/portfolio/', label: 'نمونه‌کارها' },

@@ -24,8 +24,8 @@ export function PanelPlaceholder({
   groups,
   activeHref,
   info,
-  actionHref = '/start/',
-  actionLabel = 'شروع سفارش',
+  actionHref = '/calculator/',
+  actionLabel = 'محاسبه حدودی نرخ',
 }: PanelPlaceholderProps) {
   const mobile = (groups[0]?.items ?? []).slice(0, 5);
 

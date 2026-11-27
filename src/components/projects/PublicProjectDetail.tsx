@@ -113,8 +113,8 @@ export function PublicProjectDetail() {
         <Link href="/projects/" className="btn btn--outline btn--sm">
           بازگشت به فهرست
         </Link>
-        <Link href="/start/" className="btn btn--primary btn--sm">
-          ثبت سفارش تازه
+        <Link href="/calculator/" className="btn btn--primary btn--sm">
+          محاسبه حدودی نرخ
         </Link>
       </div>
     </article>

@@ -99,7 +99,7 @@ test('P122-10: دکمه جزئیات وارد صفحه کامل سفارش در 
 test('P122-11: نتایج تست فاز ۱۲٫۱ و فیلتر نوع سفارش', () => {
   const flow = read('src/app/login/LoginFlow.tsx');
   assert.ok(flow.includes('void begin()'), 'ورود تلگرام تک‌کلیکی نیست');
-  const guest = read('src/lib/guest-order.ts');
+  const guest = read('src/lib/login-target.ts');
   assert.ok(guest.includes("role === 'admin' ? '/admin/'"), 'مدیر به داشبورد هدایت نمی‌شود');
   assert.ok(guest.includes("'/panel/'"), 'سفارش‌دهنده به پنل هدایت نمی‌شود');
 

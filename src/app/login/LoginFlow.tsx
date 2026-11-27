@@ -14,7 +14,7 @@ import {
 } from '@/lib/account';
 import { ApiError } from '@/lib/api';
 import { serverNow } from '@/lib/connectivity/index.mjs';
-import { postLoginTarget } from '@/lib/guest-order';
+import { postLoginTarget } from '@/lib/login-target';
 import { OtpLoginForm } from './OtpLoginForm';
 
 type Phase = 'idle' | 'starting' | 'waiting' | 'expired' | 'error';

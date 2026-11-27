@@ -2,18 +2,17 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PublicLayout } from '@/components/public/PublicLayout';
 import { SectionHeading } from '@/components/public/SectionHeading';
-import { Money } from '@/components/ui/Money';
+import { Card, CardBody } from '@/components/ui/Card';
 import { Icon } from '@/components/ui/Icon';
-import { SERVICE_TYPES } from '@/content/catalog';
-import { calculateEstimate } from '@/lib/pricing';
 import { FAQ } from '@/content/site';
 import { PricingCalculator } from './PricingCalculator';
+import { PricingRateSheet } from './PricingRateSheet';
 import { PricingAdminPanel } from '@/components/admin/PublicCatalogAdmin';
 
 export const metadata: Metadata = {
   title: 'نرخ‌نامه',
   description:
-    'نرخ پایه‌ی خدمات تایپ، ویرایش و آماده‌سازی اسناد به تفکیک نوع متن، همراه با محاسبه‌گر هزینه‌ی تقریبی.',
+    'نرخ پایه‌ی خدمات تایپ، ویرایش و آماده‌سازی اسناد به تفکیک نوع متن و زبان، همراه با محاسبه‌گر هزینه‌ی تقریبی.',
   alternates: { canonical: '/pricing/' },
 };
 
@@ -21,7 +20,7 @@ const FACTORS = [
   'کیفیت و خوانایی فایل ورودی',
   'وجود جدول و فرمول پیچیده',
   'میزان فوریت تحویل',
-  'نیاز به استایل خاص یا آیین‌نامه‌ی دانشگاهی',
+  'نیاز به قالب‌بندی خاص یا آیین‌نامه‌ی دانشگاهی',
 ];
 
 export default function PricingPage() {
@@ -39,45 +38,11 @@ export default function PricingPage() {
           }
         />
 
-        <div className="pricing-grid">
-          {SERVICE_TYPES.map((service) => {
-            const urgentPrice = calculateEstimate({
-              pricePerPage: service.pricePerPage,
-              pages: 1,
-              urgent: true,
-            });
-
-            return (
-              <article
-                className={`price-card ${service.isPopular ? 'price-card--featured' : ''}`}
-                key={service.id}
-              >
-                {service.isPopular ? <span className="price-badge">پرطرفدار</span> : null}
-                <div>
-                  <h3 className="price-card__title">{service.name}</h3>
-                  <p className="price-card__desc">{service.description}</p>
-                </div>
-                <div>
-                  <div className="price-row">
-                    <span>تحویل عادی (هر صفحه)</span>
-                    <span className="price-row__value">
-                      <Money value={service.pricePerPage} />
-                    </span>
-                  </div>
-                  <div className="price-row">
-                    <span>تحویل فوری (هر صفحه)</span>
-                    <span className="price-row__value">
-                      <Money value={urgentPrice} />
-                    </span>
-                  </div>
-                </div>
-                <a href="#calculator" className="btn btn--secondary btn--sm">
-                  محاسبه‌ی هزینه
-                </a>
-              </article>
-            );
-          })}
-        </div>
+        <Card>
+          <CardBody>
+            <PricingRateSheet />
+          </CardBody>
+        </Card>
       </section>
 
       <section className="section--tight">

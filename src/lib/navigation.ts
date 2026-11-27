@@ -64,6 +64,7 @@ export const ADMIN_NAV: NavGroup[] = [
     items: [
       { href: '/admin/users', label: 'کاربران', icon: 'user' },
       { href: '/admin/files', label: 'فایل‌های موجود', icon: 'fileText' },
+      { href: '/admin/pricing', label: 'قیمتگذاری', icon: 'receipt' }, // fa-ignore — برچسب دقیق قرارداد
       { href: '/pricing', label: 'نرخ‌نامه', icon: 'receipt' },
       { href: '/portfolio', label: 'نمونه‌کارها', icon: 'package' },
       { href: '/admin/settings', label: 'تنظیمات', icon: 'settings' },
@@ -96,12 +97,12 @@ export const PUBLIC_ANCHORS: NavItem[] = [
 
 /**
  * نوار پایین موبایل (design.md §4.6 — حداکثر ۵ آیتم).
- * «شروع سفارش» آیتم میانی و برجسته است؛ بقیه‌ی صفحات از Drawer در دسترساند.
+ * «محاسبه نرخ» آیتم میانی و برجسته است؛ بقیه‌ی صفحات از Drawer در دسترساند.
  */
 export const PUBLIC_MOBILE_NAV: NavItem[] = [
   { href: '/', label: 'خانه', icon: 'activity' },
   { href: '/pricing/', label: 'نرخ‌نامه', icon: 'receipt' },
-  { href: '/start/', label: 'شروع سفارش', icon: 'plus' },
+  { href: '/calculator/', label: 'محاسبه نرخ', icon: 'receipt' },
   { href: '/contact/', label: 'تماس', icon: 'message' },
   { href: '/login/', label: 'ورود', icon: 'user' },
 ];

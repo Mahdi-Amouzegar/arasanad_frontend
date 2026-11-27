@@ -45,8 +45,8 @@ export default function FaqPage() {
             <Link href="/pricing/" className="btn btn--outline">
               نرخ‌نامه
             </Link>
-            <Link href="/start/" className="btn btn--primary">
-              شروع سفارش
+            <Link href="/calculator/" className="btn btn--primary">
+              محاسبه حدودی نرخ
             </Link>
           </div>
         </div>

@@ -5,8 +5,6 @@ import { SectionHeading } from '@/components/public/SectionHeading';
 import { HeroPanelMock } from '@/components/public/HeroPanelMock';
 import { Icon } from '@/components/ui/Icon';
 import { Badge } from '@/components/ui/Badge';
-import { Money } from '@/components/ui/Money';
-import { SERVICE_TYPES } from '@/content/catalog';
 import {
   BENEFITS,
   BRAND,
@@ -28,7 +26,6 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 };
 
-const BASE_PRICE = Math.min(...SERVICE_TYPES.map((service) => service.pricePerPage));
 const STEP_NUMBERS = ['۱', '۲', '۳', '۴'] as const;
 
 export default function HomePage() {
@@ -45,12 +42,9 @@ export default function HomePage() {
               سند شما با کیفیت تحویل، در زمان مقرر و با محرمانگی کامل آماده می‌شود.
             </p>
             <div className="hero__actions">
-              <Link href="/start/" className="btn btn--primary btn--lg">
-                <Icon name="plus" size={18} />
-                شروع سفارش
-              </Link>
-              <Link href="/pricing/" className="btn btn--outline btn--lg">
-                مشاهده‌ی نرخ‌نامه
+              <Link href="/calculator/" className="btn btn--primary btn--lg">
+                <Icon name="receipt" size={18} />
+                محاسبه حدودی نرخ
               </Link>
             </div>
             <p className="hero__micro">
@@ -119,15 +113,6 @@ export default function HomePage() {
             <p className="service-feature__desc">
               از جلد و فهرست تا منابع و پیوست‌ها، دقیقاً مطابق آیین‌نامه‌ی دانشگاه شما.
             </p>
-            <div className="service-feature__price">
-              <span>نرخ پایه از</span>
-              <strong>
-                <Money value={BASE_PRICE} /> / صفحه
-              </strong>
-            </div>
-            <Link href="/pricing/" className="btn btn--secondary btn--sm btn--block">
-              دیدن نرخ کامل
-            </Link>
           </article>
         </div>
       </section>
@@ -138,11 +123,6 @@ export default function HomePage() {
           eyebrow="نحوه سفارش"
           title="چهار قدم تا دریافت فایل نهایی"
           description="همه‌ی مراحل از پنل کاربری قابل پیگیری است و در هر مرحله اعلان دریافت می‌کنید."
-          actions={
-            <Link href="/start/" className="btn btn--primary btn--sm">
-              شروع سفارش
-            </Link>
-          }
         />
         <ol className="steps-timeline">
           {STEPS.map((step, index) => (
@@ -299,14 +279,7 @@ export default function HomePage() {
             <h2>آماده‌اید سند خود را بسپارید؟</h2>
             <p>نوع خدمت را انتخاب کنید، برآورد بگیرید و بقیه را به ما بسپارید.</p>
           </div>
-          <div className="row">
-            <Link href="/pricing/" className="btn btn--outline">
-              نرخ‌نامه
-            </Link>
-            <Link href="/start/" className="btn btn--primary">
-              شروع سفارش
-            </Link>
-          </div>
+          <p>برای برآورد هزینه و نرخ‌ها، از دکمهٔ «محاسبه‌ی حدودی نرخ» در بالای صفحه استفاده کنید.</p>
         </div>
       </section>
 

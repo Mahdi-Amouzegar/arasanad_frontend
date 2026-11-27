@@ -21,8 +21,8 @@ export default function ServicesPage() {
           title="دوازده خدمت، یک استاندارد تحویل"
           description="هر سند — از یک نامه‌ی اداری کوتاه تا پایان‌نامه‌ی چندصد صفحه‌ای — با تعرفه‌ی مشخص، زمان‌بندی روشن و محرمانگی کامل آماده می‌شود."
           actions={
-            <Link href="/start/" className="btn btn--primary btn--sm">
-              شروع سفارش
+            <Link href="/calculator/" className="btn btn--primary btn--sm">
+              محاسبه حدودی نرخ
             </Link>
           }
         />
@@ -95,8 +95,8 @@ export default function ServicesPage() {
             <Link href="/pricing/" className="btn btn--outline">
               نرخ‌نامه
             </Link>
-            <Link href="/start/" className="btn btn--primary">
-              شروع سفارش
+            <Link href="/calculator/" className="btn btn--primary">
+              محاسبه حدودی نرخ
             </Link>
           </div>
         </div>

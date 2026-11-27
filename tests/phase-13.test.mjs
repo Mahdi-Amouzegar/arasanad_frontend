@@ -16,19 +16,19 @@ const read = (path) => readFileSync(join(ROOT, path), 'utf8');
 test('U-01-E1: غلطهای املایی با نیمفاصله اصلاح شدند', () => {
   const Z = '\u200C';
   const OLD_PRE = 'پیش' + 'ثبت' + 'نام'; // fa-ignore — متن نادرست عمداً برای جستجو
-  const OLD_BAZ = 'باز' + 'می' + 'گردید'; // fa-ignore — متن نادرست عمداً برای جستجو
   for (const file of [
     'src/app/start/page.tsx',
-    'src/app/start/StartEstimate.tsx',
+    'src/app/pricing/PricingCalculator.tsx',
     'src/lib/order-message.mjs',
     'tests/order-message.test.mjs',
   ]) {
     const source = read(file);
     assert.ok(!source.includes(OLD_PRE), `${file}: نوشتهٔ قدیمی هنوز هست`);
   }
-  const start = read('src/app/start/StartEstimate.tsx');
-  assert.ok(start.includes('باز' + Z + 'می' + Z + 'گردید'), 'بازگشت اصلاح نشد');
-  assert.ok(!start.includes(OLD_BAZ), 'نوشتهٔ قدیمی بازگشت هنوز هست');
+  const calculator = read('src/app/pricing/PricingCalculator.tsx');
+  assert.ok(calculator.includes('محاسبه' + Z + 'ی حدودی نرخ'), 'عنوان محاسبه‌گر با نیمفاصله نیست');
+  const start = read('src/app/start/page.tsx');
+  assert.ok(!start.includes('guestDraft'), '/start هنوز پیش‌نویس مهمان دارد');
 });
 
 test('U-01-E2: کلید بازگشت اندروید به‌صورت متمرکز مدیریت می‌شود', () => {
@@ -80,10 +80,10 @@ test('U-01-E6: پاورقی موبایل دو ستونه است', () => {
   );
 });
 
-test('U-03-F1: چهار غلط املایی با نیمفاصله اصلاح شدند', () => {
+test('U-03-F1: غلط املایی محاسبه‌گر با نیمفاصله اصلاح شد', () => {
   const Z = '\u200C';
   const expected = [
-    ['src/app/start/StartEstimate.tsx', 'نرخ' + Z + 'نامه' + Z + 'اند'],
+    ['src/app/pricing/PricingCalculator.tsx', 'محاسبه' + Z + 'ی حدودی نرخ'],
     ['src/app/login/LoginFlow.tsx', 'دسترسی' + Z + 'ها'],
     ['src/app/login/page.tsx', 'ساخته' + Z + 'شده'],
     ['src/lib/panel/api.ts', 'دسترسی' + Z + 'ها'],
@@ -133,7 +133,7 @@ test('U-03-F5: درخواست تنظیمات سایت یک‌بار و زود آ
 });
 
 test('U-03-F6: مقصد ورود براساس نقش و داشبورد مدیر کامل است', () => {
-  const guest = read('src/lib/guest-order.ts');
+  const guest = read('src/lib/login-target.ts');
   assert.ok(guest.includes("role === 'admin' ? '/admin/'"), 'مدیر به داشبورد هدایت نمی‌شود');
   assert.ok(guest.includes("'/panel/'"), 'سفارش‌دهنده به پنل هدایت نمی‌شود');
   const flow = read('src/app/login/LoginFlow.tsx');

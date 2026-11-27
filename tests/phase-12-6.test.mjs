@@ -106,27 +106,37 @@ test('P126-03: فهرست و جزئیات عمومی فقط فیلدهای مج�
   assert.ok(detail.includes('getPublicProject('), 'جزئیات عمومی از API خصوصی استفاده نمی‌کند');
 });
 
-test('P126-02: مهمان سفارش را آغاز می‌کند و پس از ورود به همان سفارش بازمی‌گردد', () => {
-  const estimate = read('src/app/start/StartEstimate.tsx');
+test('P126-02: مهمان فقط برآورد می‌گیرد و سفارشی آغاز نمی‌کند', () => {
+  const home = read('src/app/page.tsx');
+  const nav = read('src/lib/navigation.ts');
+  const sidebar = read('src/components/public/SiteSidebar.tsx');
+  const footer = read('src/components/public/SiteFooter.tsx');
+  const bottom = read('src/components/public/PublicBottomNav.tsx');
   const startPage = read('src/app/start/page.tsx');
-  const projectsPage = read('src/app/projects/page.tsx');
-  const detailPage = read('src/app/projects/detail/page.tsx');
-  const guest = read('src/lib/guest-order.ts');
+  const calculator = read('src/app/pricing/PricingCalculator.tsx');
+  const calculatorPage = read('src/app/calculator/page.tsx');
   const login = read('src/app/login/LoginFlow.tsx');
-  const otp = read('src/app/login/OtpLoginForm.tsx');
   const newForm = read('src/components/projects/ProjectNewForm.tsx');
+  const target = read('src/lib/login-target.ts');
+  const pricingApi = read('src/lib/pricing/api.ts');
 
-  assert.ok(estimate.includes('شروع سفارش بدون ورود'), 'دکمه آغاز سفارش مهمان وجود ندارد');
-  assert.ok(estimate.includes('برای پرداخت وارد شوید'), 'پیام ورود هنگام پرداخت وجود ندارد');
-  assert.ok(estimate.includes('guestDraftLoginHref('), 'لینک ورود حامل پیش‌نویس ساخته نمی‌شود');
-  assert.ok(estimate.includes("get('draft')"), 'بازگشایی پیش‌نویس در /start وجود ندارد');
-  assert.ok(guest.includes('postLoginTarget('), 'مسیر امن پس از ورود تعریف نشده است');
-  assert.ok(login.includes('postLoginTarget('), 'LoginFlow مسیر بازگشت را رعایت نمی‌کند');
-  assert.ok(otp.includes('router.replace(next)'), 'ورود با کد به مقصد بازگشت نمی‌رود');
-  assert.ok(newForm.includes("get('draft')"), 'فرم ثبت سفارش پیش‌نویس مهمان را بازگشایی نمی‌کند');
-  assert.ok(!startPage.includes('/panel/projects/new/'), '/start مهمان را مستقیم به پنل می‌فرستد');
-  assert.ok(!projectsPage.includes('/panel/projects/new/'), 'فهرست عمومی مهمان را به پنل می‌فرستد');
-  assert.ok(!detailPage.includes('/panel/projects/'), 'جزئیات عمومی مهمان را به پنل می‌فرستد');
+  assert.equal((home.match(/href="\/calculator\/"/g) ?? []).length, 1, 'صفحه اصلی بیش از یک دکمه محاسبه دارد');
+  assert.ok(home.includes('محاسبه حدودی نرخ'), 'دکمه محاسبه در صفحه اصلی نیست');
+  assert.ok(!home.includes('/start/'), 'صفحه اصلی هنوز به مسیر سفارش مهمان لینک دارد');
+  assert.ok(!home.includes('شروع سفارش'), 'متن قدیمی آغاز سفارش باقی است');
+  assert.ok(nav.includes("href: '/calculator/'") && !nav.includes("href: '/start/'"), 'ناوبری عمومی به برآورد تغییر نکرد');
+  assert.ok(sidebar.includes('href="/calculator/"') && sidebar.includes('محاسبه حدودی نرخ'), 'CTA سایدبار برآورد نیست');
+  assert.ok(footer.includes("href: '/calculator/'"), 'پاورقی هنوز به سفارش مهمان لینک دارد');
+  assert.ok(bottom.includes("item.href === '/calculator/'"), 'برجسته‌سازی نوار موبایل به برآورد تغییر نکرد');
+  assert.ok(startPage.includes('href="/calculator/"'), 'صفحه قدیمی /start مسیر برآورد را نمی‌دهد');
+  assert.ok(!startPage.includes('guestDraft') && !startPage.includes('saveGuestDraft'), '/start هنوز پیش‌نویس می‌سازد');
+  assert.ok(calculatorPage.includes('<PricingCalculator'), 'صفحه مستقل محاسبه‌گر سوار نشده است');
+  assert.ok(calculator.includes('getPricingQuote('), 'قیمت از سرور خواسته نمی‌شود');
+  assert.ok(pricingApi.includes("'/pricing/catalog'") && pricingApi.includes("'/pricing/quote'"), 'کلاینت نرخ به API متصل نیست');
+  assert.ok(!calculator.includes('createProject(') && !calculator.includes("'/projects'") && !calculator.includes('apiRequest('), 'محاسبه‌گر سفارش ایجاد می‌کند');
+  assert.ok(target.includes('postLoginTarget('), 'مقصد امن ورود حذف شد');
+  assert.ok(login.includes("from '@/lib/login-target'"), 'ورود هنوز به پیش‌نویس مهمان وابسته است');
+  assert.ok(!newForm.includes('loadGuestDraft'), 'فرم سفارش پیش‌نویس مهمان را بازمیگرداند');
 });
 
 test('P126-01: منوهای مهمان به صفحات واقعی ختم می‌شوند', () => {

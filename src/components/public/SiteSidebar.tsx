@@ -98,8 +98,8 @@ export function SiteSidebar({ onNavigate }: { onNavigate?: () => void }) {
           </span>
           <strong>سندتان را آماده کنیم؟</strong>
           <p>نوع خدمت و تعداد صفحه را بدهید؛ برآورد هزینه همان لحظه نشان داده می‌شود.</p>
-          <Link href="/start/" className="btn btn--primary btn--block btn--sm" onClick={onNavigate}>
-            شروع سفارش
+          <Link href="/calculator/" className="btn btn--primary btn--block btn--sm" onClick={onNavigate}>
+            محاسبه حدودی نرخ
           </Link>
           {/* فاز ۱۲٫۱-ز: لینک ورود فقط برای مهمان است. */}
           {!loading && !user ? (

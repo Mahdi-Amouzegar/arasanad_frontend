@@ -286,3 +286,93 @@
   font-size: var(--fs-xs);
   text-align: center;
 }
+
+/* ═════════════════ فاز ۱۲٫۳۴ — تنظیمات نرخ‌نامه ═════════════════ */
+.pricing-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  border-bottom: 1px solid var(--c-border);
+}
+.pricing-tabs button {
+  min-block-size: var(--touch-min, 44px);
+  padding: var(--sp-2) var(--sp-4);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--c-text-secondary);
+  font: inherit;
+  cursor: pointer;
+}
+.pricing-tabs button.is-active {
+  border-bottom-color: var(--c-primary);
+  color: var(--c-primary);
+  font-weight: var(--fw-semibold);
+}
+.pricing-inline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--sp-3);
+}
+.pricing-toggle-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sp-3);
+  margin-block-start: var(--sp-3);
+}
+.pricing-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-block-size: var(--touch-min, 44px);
+  padding-block: 2px;
+  font-size: var(--fs-sm);
+}
+.pricing-toggle input,
+.pricing-mode input {
+  inline-size: 18px;
+  block-size: 18px;
+  accent-color: var(--c-primary);
+}
+.pricing-mode {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  margin-block-end: var(--sp-3);
+}
+.pricing-mode label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-block-size: var(--touch-min, 44px);
+  cursor: pointer;
+}
+.pricing-matrix td:last-child input {
+  min-inline-size: 110px;
+  max-inline-size: 160px;
+}
+.pricing-history-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-block-end: var(--sp-3);
+}
+.pricing-history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-block-end: var(--sp-3);
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+}
+@media (max-width: 640px) {
+  .pricing-tabs button {
+    flex: 1 1 auto;
+  }
+  .pricing-matrix td:last-child input {
+    max-inline-size: none;
+  }
+}

@@ -11,7 +11,7 @@ import { PUBLIC_MOBILE_NAV } from '@/lib/navigation';
  *
  * ⚠️ تا پیش از این، `.mobile-nav` فقط داخل `AppShell` پنل وجود داشت و
  *    صفحات عمومی موبایل فقط هamburger داشتند.
- * ⚠️ حداکثر ۵ آیتم؛ آیتم میانی «شروع سفارش» همان CTA چسبان P0 است.
+ * ⚠️ حداکثر ۵ آیتم؛ آیتم میانی «محاسبه نرخ» مسیر برآورد مهمان است.
  * ⚠️ `env(safe-area-inset-bottom)` در CSS رعایت می‌شود.
  */
 export function PublicBottomNav() {
@@ -24,7 +24,7 @@ export function PublicBottomNav() {
           item.href === '/'
             ? pathname === '/' || pathname === ''
             : pathname.startsWith(item.href.replace(/\/$/, ''));
-        const primary = item.href === '/start/';
+        const primary = item.href === '/calculator/';
 
         return (
           <Link

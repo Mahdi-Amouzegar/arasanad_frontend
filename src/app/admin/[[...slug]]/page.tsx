@@ -9,6 +9,7 @@ import { AdminFiles } from '@/components/admin/AdminFiles';
 import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { AdminPaymentsPanel, AdminWalletsPanel, AdminRefundsPanel, AdminReconciliationPanel } from '@/components/finance/FinancePanels';
 import { RevisionPolicySettings } from '@/components/delivery/RevisionPolicySettings';
+import { PricingSettings } from '@/components/admin/PricingSettings';
 import {
   AdminDashboard,
   AdminUsers,
@@ -66,6 +67,11 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
   }
   if (href === '/admin/files') {
     return shell(info.title, null, <AdminFiles />);
+  }
+
+  // فاز ۱۲٫۳۴: نرخ‌نامهٔ نوع × زبان، زمان‌بندی و تاریخچه نسخه‌ها.
+  if (href === '/admin/pricing') {
+    return shell(info.title, backToProjects, <PricingSettings />);
   }
 
   // فاز ۱۲: تنظیمات سایت (جدای از سیاست اصلاح فاز ۱۱).

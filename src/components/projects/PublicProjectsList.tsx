@@ -72,8 +72,8 @@ export function PublicProjectsList() {
         title="سفارشی برای نمایش نیست"
         description="فهرست عمومی فقط سفارش‌های قابل‌نمایش را نشان می‌دهد و هیچ اطلاعات خصوصی‌ای منتشر نمی‌کند."
         action={
-          <Link href="/start/" className="btn btn--primary btn--sm">
-            ثبت سفارش تازه
+          <Link href="/calculator/" className="btn btn--primary btn--sm">
+            محاسبه حدودی نرخ
           </Link>
         }
       />

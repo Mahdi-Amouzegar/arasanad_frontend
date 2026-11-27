@@ -48,7 +48,6 @@ import { UploaderBadge } from '@/components/files/UploaderBadge';
 import { cx } from '@/lib/cx';
 import { RevisionPolicyDialog } from './RevisionPolicyDialog';
 import { errorText, formatHours } from './ui-utils';
-import { loadGuestDraft } from '@/lib/guest-order';
 import { loadForwardDraft } from '@/lib/chat/forward-draft';
 import { ORDER_DESCRIPTION_MAX } from '@/lib/chat/forward-core.mjs';
 
@@ -217,24 +216,6 @@ export function ProjectNewForm() {
       alive = false;
     };
   }, []);
-
-  // فاز ۱۲٫۶-پ: پیش‌نویس مهمان پس از ورود دوباره در همان سفارش باز می‌شود.
-  useEffect(() => {
-    if (typeof window === 'undefined' || services.length === 0) return;
-    const id = new URLSearchParams(window.location.search).get('draft');
-    if (!id) return;
-    const draft = loadGuestDraft(id);
-    if (!draft || !services.some((item) => item.id === draft.serviceId)) return;
-    setServiceTypeId(draft.serviceId);
-    setPageCount(String(draft.pages));
-    setDeliveryValue('2');
-    setDeliveryUnit(draft.urgent ? 'hour' : 'day');
-    showToast({
-      type: 'success',
-      title: 'پیش‌نویس بازگشایی شد',
-      message: 'برآورد مهمان در فرم ثبت سفارش بازگردانده شد.',
-    });
-  }, [services, showToast]);
 
   // فاز ۱۲٫۱۱: پیام‌ها و فایل‌های فورواردشده یک‌بار در فرم قرار می‌گیرند.
   useEffect(() => {

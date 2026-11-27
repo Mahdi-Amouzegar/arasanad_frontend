@@ -5,6 +5,24 @@
  *    هیچ مقادیر پیش‌فرض مالیای در کلاینت ساخته نمی‌شود؛ تمام اعداد از سروراند.
  */
 
+import type {
+  AdminPricingCatalog,
+  CreatePricingVersionInput,
+  PricingLanguage,
+  PricingMatrixRow,
+  PricingType,
+  PricingVersion,
+} from '@/lib/pricing/types';
+
+export type {
+  AdminPricingCatalog,
+  CreatePricingVersionInput,
+  PricingLanguage,
+  PricingMatrixRow,
+  PricingType,
+  PricingVersion,
+} from '@/lib/pricing/types';
+
 export type AuthedRequest = <T>(
   path: string,
   options?: { method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'; body?: unknown },
@@ -173,6 +191,22 @@ export interface AdminApi {
     filters?: Array<{ id: string; label: string; count: number }>;
     scope?: string;
   }>;
+
+  /* فاز ۱۲٫۳۴ — نرخ‌نامهٔ جدید (نوع × زبان × نسخه). */
+  pricingCatalog(): Promise<AdminPricingCatalog>;
+  createPricingType(input: { name: string }): Promise<{ type: PricingType }>;
+  updatePricingType(
+    id: string,
+    patch: { name?: string; isActive?: boolean; sortOrder?: number },
+  ): Promise<{ type: PricingType }>;
+  createPricingLanguage(input: { name: string }): Promise<{ language: PricingLanguage }>;
+  updatePricingLanguage(
+    id: string,
+    patch: { name?: string; isActive?: boolean; sortOrder?: number },
+  ): Promise<{ language: PricingLanguage }>;
+  createPricingVersion(input: CreatePricingVersionInput): Promise<{ version: PricingVersion }>;
+  pricingVersion(id: string): Promise<{ version: PricingVersion; matrix: PricingMatrixRow[] }>;
+  cancelPricingVersion(id: string): Promise<{ version: PricingVersion }>;
 }
 
 export function createAdminApi(request: AuthedRequest): AdminApi {
@@ -211,5 +245,18 @@ export function createAdminApi(request: AuthedRequest): AdminApi {
     saveSettings: (settings) => request('/admin/settings', { method: 'PATCH', body: { settings } }),
     audit: (filters) => request(`/admin/audit${q(filters ?? {})}`),
     messages: () => request('/admin/messages'),
+    pricingCatalog: () => request('/admin/pricing/catalog'),
+    createPricingType: (input) => request('/admin/pricing/types', { method: 'POST', body: input }),
+    updatePricingType: (id, patch) =>
+      request(`/admin/pricing/types/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),
+    createPricingLanguage: (input) =>
+      request('/admin/pricing/languages', { method: 'POST', body: input }),
+    updatePricingLanguage: (id, patch) =>
+      request(`/admin/pricing/languages/${encodeURIComponent(id)}`, { method: 'PATCH', body: patch }),
+    createPricingVersion: (input) =>
+      request('/admin/pricing/versions', { method: 'POST', body: input }),
+    pricingVersion: (id) => request(`/admin/pricing/versions/${encodeURIComponent(id)}`),
+    cancelPricingVersion: (id) =>
+      request(`/admin/pricing/versions/${encodeURIComponent(id)}/cancel`, { method: 'POST' }),
   };
 }
