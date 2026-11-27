@@ -261,18 +261,20 @@ export function ProjectDetail() {
   });
 
   const run = useCallback(
-    async (label: string, action: () => Promise<unknown>, success: string) => {
-      if (!id) return;
+    async (label: string, action: () => Promise<unknown>, success: string): Promise<unknown> => {
+      if (!id) return null;
       setBusy(true);
       setActionError(null);
       try {
-        await action();
+        const result = await action();
         await load();
         showToast({ type: 'success', title: label, message: success });
+        return result;
       } catch (caught) {
         const message = errorText(caught, `${label} انجام نشد`);
         setActionError(message);
         showToast({ type: 'error', title: `${label} انجام نشد`, message });
+        return null;
       } finally {
         setBusy(false);
       }
@@ -339,11 +341,20 @@ export function ProjectDetail() {
       confirmText: 'درخواست لغو',
     });
     if (!confirmed) return;
-    await run(
+    const result = await run(
       'لغو سفارش',
       () => api.cancelProject(id, reason.trim()),
       'درخواست لغو ثبت شد',
     );
+    // فاز ۱۲٫۳۳: لغو مدیر با ماندهٔ امانی ابتدا درخواست لغو می‌شود؛ بلافاصله
+    // پنجرهٔ تعیین تکلیف مالی را باز می‌کنیم تا فرایند بدون دورزدن کامل شود.
+    const needsSplit = Boolean(
+      result
+      && typeof result === 'object'
+      && 'requiresFinancialDecision' in result
+      && result.requiresFinancialDecision,
+    );
+    if (needsSplit && user?.role === 'admin') setCancelSplitOpen(true);
   }
 
   async function decideCancel(approve: boolean) {

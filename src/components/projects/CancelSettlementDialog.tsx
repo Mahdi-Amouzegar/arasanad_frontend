@@ -27,6 +27,7 @@ export function CancelSettlementDialog({
   const [view, setView] = useState<ProjectWorkflowView | null>(null);
   const [site, setSite] = useState('');
   const [wallet, setWallet] = useState('');
+  const [locked, setLocked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export function CancelSettlementDialog({
       .then((next) => {
         if (!alive) return;
         setView(next);
+        setLocked(next.cancellation.refundLocked);
         setSite(String(next.cancellation.availableAmount));
         setWallet('0');
       })
@@ -72,13 +74,12 @@ export function CancelSettlementDialog({
     setError(null);
     try {
       if (hasFunds) {
-        if (Number(site) + Number(wallet) !== total) {
+        const siteAmount = locked ? total : Number(site);
+        const walletAmount = locked ? 0 : Number(wallet);
+        if (siteAmount + walletAmount !== total) {
           throw new Error('جمع مبلغ حساب سایت و کیف پول باید برابر ماندهٔ واقعی باشد');
         }
-        await api.decideCancel(projectId, true, reason, {
-          siteAmount: Number(site),
-          walletAmount: Number(wallet),
-        });
+        await api.decideCancel(projectId, true, reason, { siteAmount, walletAmount });
       } else {
         await api.decideCancel(projectId, true, reason);
       }
@@ -99,6 +100,12 @@ export function CancelSettlementDialog({
           {' '}<Money value={total} />
         </p>
 
+        {locked ? (
+          <p className="wf-dialog__note">
+            طبق سیاست لغو مشتری، کل مانده به حساب سایت تعلق می‌گیرد و بازپرداخت به کیف پول مجاز نیست.
+          </p>
+        ) : null}
+
         {hasFunds ? (
           <div className="wf-split">
             <FormField label="سهم حساب سایت (تومان)" htmlFor="wf-site-amount">
@@ -106,7 +113,7 @@ export function CancelSettlementDialog({
                 id="wf-site-amount"
                 value={site}
                 onChange={changeSite}
-                disabled={busy}
+                disabled={busy || locked}
               />
             </FormField>
             <FormField label="بازگشت به کیف پول مشتری (تومان)" htmlFor="wf-wallet-amount">
@@ -114,7 +121,7 @@ export function CancelSettlementDialog({
                 id="wf-wallet-amount"
                 value={wallet}
                 onChange={changeWallet}
-                disabled={busy}
+                disabled={busy || locked}
               />
             </FormField>
           </div>

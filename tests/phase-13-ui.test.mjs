@@ -31,8 +31,11 @@ test('P13-UI3: admin cancel opens a split dialog instead of direct approve', () 
   const detail = read('src/components/projects/ProjectDetail.tsx');
   assert.match(detail, /setCancelSplitOpen\(true\)/);
   const dialog = read('src/components/projects/CancelSettlementDialog.tsx');
-  assert.match(dialog, /siteAmount: Number\(site\),\s*walletAmount: Number\(wallet\)/);
-  assert.match(dialog, /Number\(site\) \+ Number\(wallet\) !== total/);
+  // فاز ۱۲٫۳۳: مقادیر ارسالی از متغیرهای اعتبارسنجشده می‌آیند و در لغو مشتری قفلاند.
+  assert.match(dialog, /const siteAmount = locked \? total : Number\(site\)/);
+  assert.match(dialog, /const walletAmount = locked \? 0 : Number\(wallet\)/);
+  assert.match(dialog, /siteAmount \+ walletAmount !== total/);
+  assert.match(dialog, /decideCancel\(projectId, true, reason, \{ siteAmount, walletAmount \}\)/);
   assert.match(dialog, /setWallet\(String\(total - next\)\)/);
   assert.match(dialog, /setSite\(String\(total - next\)\)/);
 });

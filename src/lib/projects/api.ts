@@ -336,7 +336,17 @@ export interface ProjectWorkflowView {
     siteAmount: number;
     walletAmount: number;
     hasFunds: boolean;
+    /** فاز ۱۲٫۳۳: منشأ درخواست لغو و قفل سیاست بازپرداخت. */
+    origin: 'customer' | 'admin' | 'unknown';
+    refundLocked: boolean;
+    escrowSettled: boolean;
   };
+}
+
+export interface CancelProjectResult {
+  project: Project;
+  requiresFinancialDecision: boolean;
+  cancellationOrigin: 'customer' | 'admin' | 'unknown' | null;
 }
 
 export interface ManualTransitionInput {
@@ -363,7 +373,7 @@ export interface ProjectsApi {
   ): Promise<Project>;
   acceptQuote(id: string): Promise<Project>;
   requestQuoteReview(id: string): Promise<Project>;
-  cancelProject(id: string, reason: string): Promise<Project>;
+  cancelProject(id: string, reason: string): Promise<CancelProjectResult>;
   decideCancel(
     id: string,
     approve: boolean,
@@ -462,11 +472,10 @@ export function createProjectsApi(request: AuthedRequest): ProjectsApi {
     },
 
     async cancelProject(id, reason) {
-      const data = await request<{ project: Project }>(projectPath(id, '/cancel'), {
+      return request<CancelProjectResult>(projectPath(id, '/cancel'), {
         method: 'POST',
         body: { reason },
       });
-      return data.project;
     },
 
     async decideCancel(id, approve, reason, split) {
