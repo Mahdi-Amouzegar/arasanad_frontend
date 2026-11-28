@@ -23,6 +23,12 @@ export const SITE_ORIGIN = 'https://arasanad.ir';
  */
 export const DEFAULT_API_BASE_URL = 'https://api.arasanad.ir/api/v1';
 
+/**
+ * فاز ۱۲٫۳۵: منطقه پرخطر پنل مدیر تا پایان تست و تأیید نهایی منتشر نمی‌شود.
+ * ⚠️ پیش‌فرض خاموش است؛ فقط مقدار دقیق `on` رابط کاربری را نمایان می‌کند.
+ */
+export const DANGER_ZONE_ENABLED = process.env.NEXT_PUBLIC_DANGER_ZONE_ENABLED?.trim() === 'on';
+
 /** آدرس کامل صفحه‌ای از سایت (برای canonical / OG / لینک‌های مطلق). */
 export function absoluteUrl(path = '/'): string {
   const clean = path.startsWith('/') ? path : `/${path}`;

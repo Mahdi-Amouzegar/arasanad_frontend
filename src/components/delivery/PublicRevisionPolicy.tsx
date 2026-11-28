@@ -1,6 +1,6 @@
 'use client';
 
-/** فاز ۱۱ — نمای عمومی سیاست اصلاح؛ فقط دادههای عمومی از API می‌خواند. */
+/** فاز ۱۱ — نمای عمومی سیاست اصلاح؛ فقط داده‌های عمومی از API می‌خواند. */
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/Button';

@@ -376,3 +376,54 @@
     max-inline-size: none;
   }
 }
+
+/* فاز ۱۲٫۳۵ — منطقه پرخطر */
+.danger-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sp-3);
+  margin-block: var(--sp-3);
+}
+.danger-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-3);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  background: var(--c-surface);
+  color: var(--c-text);
+  text-align: start;
+  cursor: pointer;
+}
+.danger-mode--active {
+  border-color: var(--c-danger, #d93025);
+  box-shadow: 0 0 0 2px rgb(217 48 37 / 12%);
+}
+.danger-mode__title {
+  font-weight: 700;
+}
+.danger-mode__note {
+  color: var(--c-text-secondary);
+  font-size: var(--fs-sm);
+  line-height: 1.7;
+}
+.danger-mode__risk {
+  color: var(--c-danger, #d93025);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+}
+.danger-preview {
+  margin-block-start: var(--sp-3);
+  overflow-x: auto;
+}
+.danger-preview .prj-table {
+  min-inline-size: 420px;
+}
+.danger-preview code,
+.prj-note code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  font-family: var(--font-mono, monospace);
+}

@@ -10,6 +10,7 @@ import { ProjectOperations } from '@/components/activities/ProjectOperations';
 import { AdminPaymentsPanel, AdminWalletsPanel, AdminRefundsPanel, AdminReconciliationPanel } from '@/components/finance/FinancePanels';
 import { RevisionPolicySettings } from '@/components/delivery/RevisionPolicySettings';
 import { PricingSettings } from '@/components/admin/PricingSettings';
+import { DangerZone } from '@/components/admin/DangerZone';
 import {
   AdminDashboard,
   AdminUsers,
@@ -37,7 +38,7 @@ export async function generateMetadata({
 }
 
 export function generateStaticParams() {
-  return slugsFor(ADMIN_GROUPS, '/admin', ['projects/detail', 'projects/operations', 'projects/delivery', 'orders']);
+  return slugsFor(ADMIN_GROUPS, '/admin', ['projects/detail', 'projects/operations', 'projects/delivery', 'orders', 'danger']);
 }
 
 const backToProjects = (
@@ -85,6 +86,11 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
   }
 
   // فاز ۱۲: Audit Log و پیام‌ها.
+  // فاز ۱۲٫۳۵: منطقه پرخطر — در حالت پیش‌فرض پیام «غیرفعال» نمایش می‌دهد.
+  if (href === '/admin/danger') {
+    return shell(info.title, null, <DangerZone />);
+  }
+
   if (href === '/admin/audit') {
     return shell(info.title, null, <AdminAudit />);
   }

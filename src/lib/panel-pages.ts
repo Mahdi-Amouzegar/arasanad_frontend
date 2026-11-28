@@ -48,6 +48,7 @@ export const ADMIN_PAGES: Record<string, PanelPageInfo> = {
   '/admin/messages': { title: 'پیام‌ها', phase: 12, note: 'گفتگوهای اخیر با سفارش‌دهندگان' },
   '/admin/audit': { title: 'سوابق حسابرسی', phase: 12, note: 'رویدادهای مدیریتی با فیلتر و قبل/بعد' },
   '/admin/pricing': { title: 'قیمتگذاری', phase: 12.34, note: 'نرخهای نوع و زبان، زمانبندی و تاریخچه نسخهها' }, // fa-ignore — عنوان دقیق قرارداد
+  '/admin/danger': { title: 'منطقه پرخطر', phase: 12.35, note: 'پیش‌نمایش و حذف کنترل‌شده داده‌های عملیاتی' },
   '/admin/settings': { title: 'تنظیمات', phase: 12, note: 'اطلاعات سایت، بانک مقصد، متن‌ها و سیاست اصلاح' },
 };
 

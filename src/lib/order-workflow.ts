@@ -153,7 +153,7 @@ const CANCELLATION_STAGE: StageDef = {
   title: { admin: 'تصمیم دربارهٔ لغو', customer: 'درخواست لغو' },
   description: {
     admin: 'درخواست لغو و تعیین تکلیف وجه را بررسی کنید.',
-    customer: 'درخواست لغو شما در انتظار بررسی 관리 است.',
+    customer: 'درخواست لغو شما در انتظار بررسی توسط مدیر است.',
   },
   responsible: 'admin',
   target: { kind: 'anchor', id: 'prj-cancel-decision' },

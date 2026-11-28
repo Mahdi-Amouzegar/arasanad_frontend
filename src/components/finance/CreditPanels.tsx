@@ -113,7 +113,7 @@ interface StatementEntry {
   attachments: Array<{ id: string; original_name: string; extension: string; size_bytes: number }>;
 }
 
-/** گردش حساب مشتری با تفکیک منشأ خارج از سامانه و的فعالیت جاری. */
+/** گردش حساب مشتری با تفکیک منشأ خارج از سامانه و فعالیت جاری. */
 export function CustomerStatementPanel() {
   const { user, token, authedRequest } = useAuth();
   const [entries, setEntries] = useState<StatementEntry[]>([]);

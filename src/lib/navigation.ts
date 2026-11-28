@@ -1,4 +1,5 @@
 import type { IconName } from '@/components/ui/Icon';
+import { DANGER_ZONE_ENABLED } from './config';
 
 export interface NavItem {
   href: string;
@@ -69,6 +70,9 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: '/portfolio', label: 'نمونه‌کارها', icon: 'package' },
       { href: '/admin/settings', label: 'تنظیمات', icon: 'settings' },
       { href: '/admin/audit', label: 'سوابق حسابرسی', icon: 'shield' },
+      ...(DANGER_ZONE_ENABLED
+        ? [{ href: '/admin/danger', label: 'منطقه پرخطر', icon: 'shield' } satisfies NavItem]
+        : []),
     ],
   },
 ];
