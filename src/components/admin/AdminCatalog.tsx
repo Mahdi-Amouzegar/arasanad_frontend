@@ -10,7 +10,7 @@
  *    اعمال real authority البته در بکند با `requireAdmin` است.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useAuth } from '@/lib/account';
 import { useAlert } from '@/components/ui/AlertProvider';
 import { Button } from '@/components/ui/Button';
@@ -312,14 +312,12 @@ function imageSrc(item: PortfolioItem): string | null {
 
 export function AdminPortfolio() {
   const api = useAdminApi();
-  const { token } = useAuth();
   const { showToast, showAlert } = useAlert();
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [newItem, setNewItem] = useState({ title: '', category: '', description: '' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const reload = useCallback(() => {
     let alive = true;
@@ -351,31 +349,6 @@ export function AdminPortfolio() {
     try {
       await api.savePortfolioItem(item.id, { isPublished: !item.isPublished });
       showToast({ type: 'success', title: item.isPublished ? 'انتشار لغو شد' : 'نمونهکار منتشر شد' });
-      void reload();
-    } catch (caught) { setError(errorText(caught)); }
-    finally { setBusyId(null); }
-  }
-
-  async function upload(item: PortfolioItem) {
-    const file = fileRefs.current[item.id]?.files?.[0];
-    if (!file) { setError('ابتدا یک تصویر انتخاب کنید'); return; }
-    if (file.size > 5 * 1024 * 1024) { setError('حداکثر حجم تصویر ۵ مگابایت است'); return; }
-    setBusyId(item.id);
-    try {
-      const bytes = await file.arrayBuffer();
-      const response = await fetch(`${API_BASE}/admin/portfolio/${encodeURIComponent(item.id)}/image`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token ?? ''}`,
-          'Content-Type': file.type || 'application/octet-stream',
-          'X-File-Name': encodeURIComponent(file.name),
-          'X-File-Size': String(file.size),
-        },
-        body: bytes,
-      });
-      const payload = await response.json() as { ok?: boolean; error?: { message?: string } };
-      if (!response.ok || !payload.ok) throw new Error(payload.error?.message ?? 'آپلود تصویر انجام نشد');
-      showToast({ type: 'success', title: 'تصویر ذخیره شد' });
       void reload();
     } catch (caught) { setError(errorText(caught)); }
     finally { setBusyId(null); }
@@ -439,13 +412,7 @@ export function AdminPortfolio() {
                   <div className="adm-portfolio-body">
                     <strong>{item.title}</strong>
                     <div className="prj-muted">{item.category} {item.isPublished ? null : '· منتشر نشده'}</div>
-                    <input
-                      type="file" accept="image/avif,image/webp,image/jpeg,image/png"
-                      aria-label={`تصویر ${item.title}`}
-                      ref={(node) => { fileRefs.current[item.id] = node; }}
-                    />
                     <div className="prj-action-cell">
-                      <Button size="sm" variant="primary" disabled={busyId === item.id} onClick={() => void upload(item)}>آپلود تصویر</Button>
                       <Button size="sm" variant="outline" disabled={busyId === item.id} onClick={() => void toggle(item)}>{item.isPublished ? 'لغو انتشار' : 'انتشار'}</Button>
                       <Button size="sm" variant="ghost" onClick={() => void move(item, -1)} aria-label="بالا"><Icon name="chevronDown" size={16} /></Button>
                       <Button size="sm" variant="ghost" onClick={() => void move(item, 1)} aria-label="پایین"><Icon name="chevronDown" size={16} /></Button>
@@ -456,6 +423,7 @@ export function AdminPortfolio() {
               ))}
             </div>
           )}
+          <p className="prj-note">تصاویر نمونه\u200cکارها دارایی ثابت سایت\u200cاند و در مخزن Frontend، مسیر public/images/portfolio/ نگهداری می\u200cشوند. برای تغییر تصویر، فایل را در همان مخزن اضافه یا جایگزین کنید و مسیری مانند /images/portfolio/sample-1.avif را در رکورد نمونه\u200cکار ثبت نمایید. آپلود تصویر به ParsPack غیرفعال است.</p>
           <p className="prj-note">حذف فیزیکی وجود ندارد؛ لغو انتشار تنها نمایش عمومی را متوقف می‌کند و رکورد و سوابق باقی می‌مانند.</p>
         </CardBody>
       </Card>
