@@ -11,6 +11,7 @@ import { AdminPaymentsPanel, AdminWalletsPanel, AdminRefundsPanel, AdminReconcil
 import { RevisionPolicySettings } from '@/components/delivery/RevisionPolicySettings';
 import { PricingSettings } from '@/components/admin/PricingSettings';
 import { DangerZone } from '@/components/admin/DangerZone';
+import { StorageSettings } from '@/components/admin/StorageSettings';
 import {
   AdminDashboard,
   AdminUsers,
@@ -83,6 +84,11 @@ export default async function AdminPage({ params }: { params: Promise<{ slug?: s
         <AdminSettings />
       </div>
     ));
+  }
+
+  // فاز ۱۲٫۳۶: مدیریت چندپروایدری و بازیابی نسخه‌ها.
+  if (href === '/admin/storage') {
+    return shell(info.title, backToProjects, <StorageSettings />);
   }
 
   // فاز ۱۲: Audit Log و پیام‌ها.

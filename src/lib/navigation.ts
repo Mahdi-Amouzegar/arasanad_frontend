@@ -68,6 +68,7 @@ export const ADMIN_NAV: NavGroup[] = [
       { href: '/admin/pricing', label: 'قیمتگذاری', icon: 'receipt' }, // fa-ignore — برچسب دقیق قرارداد
       { href: '/pricing', label: 'نرخ‌نامه', icon: 'receipt' },
       { href: '/portfolio', label: 'نمونه‌کارها', icon: 'package' },
+      { href: '/admin/storage', label: 'ذخیره‌سازی', icon: 'fileText' },
       { href: '/admin/settings', label: 'تنظیمات', icon: 'settings' },
       { href: '/admin/audit', label: 'سوابق حسابرسی', icon: 'shield' },
       ...(DANGER_ZONE_ENABLED
